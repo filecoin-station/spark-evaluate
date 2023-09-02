@@ -1,5 +1,7 @@
 {
+  "type": "module",
   "scripts": {
+    "start": "node index.js",
     "test": "standard"
   },
   "devDependencies": {
