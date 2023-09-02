@@ -4,7 +4,8 @@ import { evaluate } from './lib/evaluate.js'
 export const startEvaluate = ({
   ieContract,
   ieContractWithSigner,
-  web3Storage
+  web3Storage,
+  logger
 }) => {
   const rounds = {}
   const cidsSeen = []
@@ -18,7 +19,13 @@ export const startEvaluate = ({
 
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
-    preprocess({ rounds, cid, roundIndex, web3Storage }).catch(console.error)
+    preprocess({
+      rounds,
+      cid,
+      roundIndex,
+      web3Storage,
+      logger
+    }).catch(console.error)
   })
 
   ieContract.on('RoundStart', _roundIndex => {
@@ -31,7 +38,8 @@ export const startEvaluate = ({
     evaluate({
       rounds,
       roundIndex: roundIndex - 1,
-      ieContractWithSigner
+      ieContractWithSigner,
+      logger
     }).catch(console.error)
   })
 }
