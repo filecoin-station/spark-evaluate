@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "node bin/spark-evaluate.js",
     "test": "standard"
   },
   "devDependencies": {
