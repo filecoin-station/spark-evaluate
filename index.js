@@ -16,6 +16,7 @@ export const startEvaluate = ({
     const roundIndex = Number(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
+    if (cidsSeen.length > 1000) cidsSeen.shift()
 
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
@@ -32,6 +33,7 @@ export const startEvaluate = ({
     const roundIndex = Number(_roundIndex)
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
+    if (roundsSeen.length > 1000) roundsSeen.shift()
 
     console.log('Event: RoundStart', { roundIndex })
     // Evaluate previous round
