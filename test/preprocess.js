@@ -9,9 +9,10 @@ describe('preprocess', () => {
     const measurements = [{
       peerId: '0xB0a808b5C49f5Ed7Af9EcAAaF033B2d937692877'
     }]
+    const getCalls = []
     const web3Storage = {
       async get (_cid) {
-        assert.strictEqual(_cid, cid)
+        getCalls.push(_cid)
         return {
           async files () {
             return [{
@@ -28,6 +29,7 @@ describe('preprocess', () => {
     assert.deepStrictEqual(rounds, {
       0: measurements
     })
+    assert.deepStrictEqual(getCalls, [cid])
   })
   it('validates measurements', async () => {
     const rounds = {}
