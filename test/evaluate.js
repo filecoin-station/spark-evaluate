@@ -101,8 +101,10 @@ describe('evaluate', () => {
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].peerIds.sort(), ['0x123', '0x234'])
-    const sum = setScoresCalls[0].scores[0]
-      .add(setScoresCalls[0].scores[1]).toString()
+    const sum = (
+      setScoresCalls[0].scores[0] +
+      setScoresCalls[0].scores[1]
+    ).toString()
     assert(
       ['1000000000000000', '999999999999999'].includes(sum),
       `Sum of scores not close enough. Got ${sum}`
