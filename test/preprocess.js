@@ -29,9 +29,9 @@ describe('preprocess', () => {
 
     assert.deepStrictEqual(rounds, {
       0: measurements.map(
-        // Rename "wallet_address" to "peerId"
+        // Rename "wallet_address" to "walletAddress"
         // eslint-disable-next-line camelcase
-        ({ wallet_address, ...m }) => ({ ...m, peerId: wallet_address })
+        ({ wallet_address, ...m }) => ({ ...m, walletAddress: wallet_address })
       )
     })
     assert.deepStrictEqual(getCalls, [cid])

@@ -8,7 +8,7 @@ describe('evaluate', () => {
   it('evaluates measurements', async () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 10; i++) {
-      rounds[0].push({ peerId: '0x123' })
+      rounds[0].push({ walletAddress: '0x123' })
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
@@ -82,8 +82,8 @@ describe('evaluate', () => {
   it('calculates reward shares', async () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 5; i++) {
-      rounds[0].push({ peerId: '0x123' })
-      rounds[0].push({ peerId: '0x234' })
+      rounds[0].push({ walletAddress: '0x123' })
+      rounds[0].push({ walletAddress: '0x234' })
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
