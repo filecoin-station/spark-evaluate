@@ -56,8 +56,7 @@ describe('preprocess', () => {
         }
       }
     }
-    // const logger = { log () { }, error () { } }
-    const logger = { log () { }, error: console.error }
+    const logger = { log () { }, error () { } }
     await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
     assert.deepStrictEqual(rounds, {
       0: []
