@@ -1,6 +1,9 @@
 app = "spark-evaluate"
 primary_region = "cdg"
 
+[env]
+  SENTRY_ENVIRONMENT = "production"
+
 [[services]]
   internal_port = 8080
   protocol = "tcp"
