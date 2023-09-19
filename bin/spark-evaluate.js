@@ -39,5 +39,6 @@ const web3Storage = new Web3Storage({ token: WEB3_STORAGE_API_TOKEN })
 startEvaluate({
   ieContract,
   ieContractWithSigner,
-  web3Storage
+  web3Storage,
+  logger: console
 })
