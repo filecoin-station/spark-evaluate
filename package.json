@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
-    "@sentry/node": "^7.70.0",
+    "@sentry/node": "^7.71.0",
     "ethers": "^5.7.2",
     "web3.storage": "^4.5.5"
   },
