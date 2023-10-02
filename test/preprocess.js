@@ -1,4 +1,4 @@
-import { preprocess } from '../lib/preprocess.js'
+import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
 
 describe('preprocess', () => {
@@ -7,7 +7,7 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      peerId: '0xB0a808b5C49f5Ed7Af9EcAAaF033B2d937692877'
+      participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i'
     }]
     const getCalls = []
     const web3Storage = {
@@ -24,10 +24,13 @@ describe('preprocess', () => {
         }
       }
     }
-    const logger = { log () {} }
+    const logger = { log () {}, error: console.error }
     await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
+
     assert.deepStrictEqual(rounds, {
-      0: measurements
+      0: [{
+        participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E'
+      }]
     })
     assert.deepStrictEqual(getCalls, [cid])
   })
@@ -36,7 +39,7 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      peerId: '0xinvalid'
+      wallet_address: 't1foobar'
     }]
     const web3Storage = {
       async get () {
@@ -51,10 +54,30 @@ describe('preprocess', () => {
         }
       }
     }
-    const logger = { log () {}, error () {} }
+    const logger = { log () { }, error () { } }
     await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
     assert.deepStrictEqual(rounds, {
       0: []
     })
+  })
+
+  it('converts mainnet wallet address to participant ETH address', () => {
+    const converted = parseParticipantAddress('f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
+    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
+  })
+
+  it('converts testnet wallet address to participant ETH address', () => {
+    const converted = parseParticipantAddress('t410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
+    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
+  })
+
+  it('converts mainnet f1 wallet address to hard-coded participant ETH adddress', () => {
+    const converted = parseParticipantAddress('f17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
+    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+  })
+
+  it('converts testnet f1 wallet address to hard-coded participant ETH adddress', () => {
+    const converted = parseParticipantAddress('t17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
+    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
   })
 })

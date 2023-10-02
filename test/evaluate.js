@@ -8,12 +8,12 @@ describe('evaluate', () => {
   it('evaluates measurements', async () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 10; i++) {
-      rounds[0].push({ peerId: '0x123' })
+      rounds[0].push({ participantAddress: '0x123' })
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, peerIds, scores, summary) {
-        setScoresCalls.push({ roundIndex, peerIds, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores, summary) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
         return { hash: '0x234' }
       }
     }
@@ -27,7 +27,7 @@ describe('evaluate', () => {
     assert.deepStrictEqual(rounds, {})
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
-    assert.deepStrictEqual(setScoresCalls[0].peerIds, ['0x123'])
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, ['0x123'])
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
       setScoresCalls[0].scores[0].toString(),
@@ -39,8 +39,8 @@ describe('evaluate', () => {
     const rounds = { 0: [] }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, peerIds, scores, summary) {
-        setScoresCalls.push({ roundIndex, peerIds, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores, summary) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
         return { hash: '0x234' }
       }
     }
@@ -53,7 +53,7 @@ describe('evaluate', () => {
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
-    assert.deepStrictEqual(setScoresCalls[0].peerIds, [])
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
     assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
@@ -61,8 +61,8 @@ describe('evaluate', () => {
     const rounds = {}
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, peerIds, scores, summary) {
-        setScoresCalls.push({ roundIndex, peerIds, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores, summary) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
         return { hash: '0x234' }
       }
     }
@@ -75,20 +75,20 @@ describe('evaluate', () => {
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
-    assert.deepStrictEqual(setScoresCalls[0].peerIds, [])
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
     assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
   it('calculates reward shares', async () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 5; i++) {
-      rounds[0].push({ peerId: '0x123' })
-      rounds[0].push({ peerId: '0x234' })
+      rounds[0].push({ participantAddress: '0x123' })
+      rounds[0].push({ participantAddress: '0x234' })
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (_, peerIds, scores, summary) {
-        setScoresCalls.push({ peerIds, scores, summary })
+      async setScores (_, participantAddresses, scores, summary) {
+        setScoresCalls.push({ participantAddresses, scores, summary })
         return { hash: '0x345' }
       }
     }
@@ -100,7 +100,7 @@ describe('evaluate', () => {
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].peerIds.sort(), ['0x123', '0x234'])
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
     const sum = (
       setScoresCalls[0].scores[0] +
       setScoresCalls[0].scores[1]
