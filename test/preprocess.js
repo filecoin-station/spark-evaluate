@@ -1,5 +1,8 @@
 import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
+import * as telemetry from '../lib/telemetry.js'
+
+after(telemetry.close)
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
