@@ -7,7 +7,7 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      wallet_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i'
+      participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i'
     }]
     const getCalls = []
     const web3Storage = {
@@ -29,8 +29,6 @@ describe('preprocess', () => {
 
     assert.deepStrictEqual(rounds, {
       0: [{
-        // eslint-disable-next-line camelcase
-        wallet_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
         participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E'
       }]
     })
