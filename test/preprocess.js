@@ -70,4 +70,14 @@ describe('preprocess', () => {
     const converted = parseParticipantAddress('t410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
     assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
   })
+
+  it('converts mainnet f1 wallet address to hard-coded participant ETH adddress', () => {
+    const converted = parseParticipantAddress('f17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
+    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+  })
+
+  it('converts testnet f1 wallet address to hard-coded participant ETH adddress', () => {
+    const converted = parseParticipantAddress('t17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
+    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+  })
 })
