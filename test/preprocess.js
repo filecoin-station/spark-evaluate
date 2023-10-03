@@ -42,7 +42,7 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      wallet_address: 't1foobar'
+      participant_address: 't1foobar'
     }]
     const web3Storage = {
       async get () {
@@ -59,8 +59,12 @@ describe('preprocess', () => {
     }
     const logger = { log () { }, error () { } }
     await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
+    // We allow invalid participant address for now.
+    // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
-      0: []
+      0: [{
+        participantAddress: '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC'
+      }]
     })
   })
 
