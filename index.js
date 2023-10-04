@@ -32,7 +32,7 @@ export const startEvaluate = ({
       Sentry.captureException(err, {
         extras: {
           roundIndex,
-          measurementsCid: cid,
+          measurementsCid: cid
         }
       })
     })
