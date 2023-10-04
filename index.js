@@ -6,6 +6,7 @@ export const startEvaluate = ({
   ieContract,
   ieContractWithSigner,
   web3Storage,
+  recordTelemetry,
   logger
 }) => {
   const rounds = {}
@@ -26,6 +27,7 @@ export const startEvaluate = ({
       cid,
       roundIndex,
       web3Storage,
+      recordTelemetry,
       logger
     }).catch(err => {
       console.error(err)
@@ -50,6 +52,7 @@ export const startEvaluate = ({
       rounds,
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
+      recordTelemetry,
       logger
     }).catch(err => {
       console.error(err)
