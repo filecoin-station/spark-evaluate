@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 
 const { BigNumber } = ethers
 
-const record = (measurementName, fn) => { /* no-op */ }
+const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
@@ -24,7 +24,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
-      record,
+      recordTelemetry,
       logger
     })
     assert.deepStrictEqual(rounds, {})
@@ -52,7 +52,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
-      record,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -75,7 +75,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
-      record,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -102,7 +102,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
-      record,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)

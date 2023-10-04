@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 import { fileURLToPath } from 'node:url'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { Web3Storage } from 'web3.storage'
-import { record } from '../lib/telemetry.js'
+import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 
 const {
@@ -50,6 +50,6 @@ startEvaluate({
   ieContract,
   ieContractWithSigner,
   web3Storage,
-  record,
+  recordTelemetry,
   logger: console
 })
