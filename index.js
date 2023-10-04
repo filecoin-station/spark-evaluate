@@ -5,6 +5,7 @@ export const startEvaluate = ({
   ieContract,
   ieContractWithSigner,
   web3Storage,
+  record,
   logger
 }) => {
   const rounds = {}
@@ -25,6 +26,7 @@ export const startEvaluate = ({
       cid,
       roundIndex,
       web3Storage,
+      record,
       logger
     }).catch(console.error)
   })
@@ -41,6 +43,7 @@ export const startEvaluate = ({
       rounds,
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
+      record,
       logger
     }).catch(console.error)
   })

@@ -1,11 +1,10 @@
 import { evaluate } from '../lib/evaluate.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
-import * as telemetry from '../lib/telemetry.js'
 
 const { BigNumber } = ethers
 
-after(telemetry.close)
+const record = (measurementName, fn) => { /* no-op */ }
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
@@ -25,6 +24,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
+      record,
       logger
     })
     assert.deepStrictEqual(rounds, {})
@@ -52,6 +52,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
+      record,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -74,6 +75,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
+      record,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -100,6 +102,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex: 0,
       ieContractWithSigner,
+      record,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
