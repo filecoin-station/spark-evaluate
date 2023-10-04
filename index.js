@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 
@@ -26,7 +27,15 @@ export const startEvaluate = ({
       roundIndex,
       web3Storage,
       logger
-    }).catch(console.error)
+    }).catch(err => {
+      console.error(err)
+      Sentry.captureException(err, {
+        extras: {
+          roundIndex,
+          measurementsCid: cid,
+        }
+      })
+    })
   })
 
   ieContract.on('RoundStart', _roundIndex => {
@@ -42,6 +51,13 @@ export const startEvaluate = ({
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
       logger
-    }).catch(console.error)
+    }).catch(err => {
+      console.error(err)
+      Sentry.captureException(err, {
+        extras: {
+          roundIndex
+        }
+      })
+    })
   })
 }
