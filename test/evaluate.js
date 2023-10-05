@@ -14,8 +14,8 @@ describe('evaluate', () => {
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -36,14 +36,13 @@ describe('evaluate', () => {
       setScoresCalls[0].scores[0].toString(),
       BigNumber.from(1_000_000_000_000_000).toString()
     )
-    assert.match(setScoresCalls[0].summary, /^\d+ retrievals$/)
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -59,14 +58,13 @@ describe('evaluate', () => {
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
-    assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -82,7 +80,6 @@ describe('evaluate', () => {
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
-    assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
   it('calculates reward shares', async () => {
     const rounds = { 0: [] }
@@ -92,8 +89,8 @@ describe('evaluate', () => {
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores, summary) {
-        setScoresCalls.push({ participantAddresses, scores, summary })
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
         return { hash: '0x345' }
       }
     }
@@ -116,6 +113,5 @@ describe('evaluate', () => {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
-    assert.match(setScoresCalls[0].summary, /^\d+ retrievals$/)
   })
 })
