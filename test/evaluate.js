@@ -6,25 +6,26 @@ const { BigNumber } = ethers
 
 const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
-// Get the details using this command:
-//   curl https://spark.fly.dev/rounds/520 | jq .
-const ROUND_WITH_KNOWN_DETAILS = 520
-
 const VALID_PARTICIPANT_ADDRESS = '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC'
-const VALID_MEASUREMENT = {
-  participantAddress: VALID_PARTICIPANT_ADDRESS,
+const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+  providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
   protocol: 'bitswap'
+}
+const VALID_MEASUREMENT = {
+  cid: VALID_TASK.cid,
+  provider_address: VALID_TASK.providerAddress,
+  protocol: VALID_TASK.protocol,
+  participantAddress: VALID_PARTICIPANT_ADDRESS
 }
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
-    const roundIndex = ROUND_WITH_KNOWN_DETAILS
-    const rounds = { [roundIndex]: [] }
+    const rounds = { 0: [] }
     for (let i = 0; i < 10; i++) {
-      rounds[roundIndex].push(VALID_MEASUREMENT)
+      rounds[0].push(VALID_MEASUREMENT)
     }
+    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -35,14 +36,15 @@ describe('evaluate', () => {
     const logger = { log () {} }
     await evaluate({
       rounds,
-      roundIndex,
+      roundIndex: 0,
       ieContractWithSigner,
+      fetchRoundDetails,
       recordTelemetry,
       logger
     })
     assert.deepStrictEqual(rounds, {})
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, roundIndex)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
@@ -51,8 +53,7 @@ describe('evaluate', () => {
     )
   })
   it('handles empty rounds', async () => {
-    const roundIndex = ROUND_WITH_KNOWN_DETAILS
-    const rounds = { [roundIndex]: [] }
+    const rounds = { 0: [] }
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -61,20 +62,21 @@ describe('evaluate', () => {
       }
     }
     const logger = { log () {} }
+    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
-      roundIndex,
+      roundIndex: 0,
       ieContractWithSigner,
+      fetchRoundDetails,
       recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, roundIndex)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
   })
   it('handles unknown rounds', async () => {
-    const roundIndex = ROUND_WITH_KNOWN_DETAILS
     const rounds = {}
     const setScoresCalls = []
     const ieContractWithSigner = {
@@ -84,25 +86,26 @@ describe('evaluate', () => {
       }
     }
     const logger = { log () {} }
+    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
-      roundIndex,
+      roundIndex: 0,
       ieContractWithSigner,
+      fetchRoundDetails,
       recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, roundIndex)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
   })
   it('calculates reward shares', async () => {
-    const roundIndex = ROUND_WITH_KNOWN_DETAILS
-    const rounds = { [roundIndex]: [] }
+    const rounds = { 0: [] }
     for (let i = 0; i < 5; i++) {
-      rounds[roundIndex].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
-      rounds[roundIndex].push({ ...VALID_MEASUREMENT, participantAddress: '0x234' })
-      rounds[roundIndex].push({
+      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
+      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234' })
+      rounds[0].push({
         participantAddress: '0x567',
         // invalid task
         cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
@@ -118,11 +121,13 @@ describe('evaluate', () => {
       }
     }
     const logger = { log () {} }
+    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
-      roundIndex,
+      roundIndex: 0,
       ieContractWithSigner,
       recordTelemetry,
+      fetchRoundDetails,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -141,6 +146,17 @@ describe('evaluate', () => {
 
 describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
+    const fetchRoundDetails = (roundIndex) => ({
+      roundId: roundIndex,
+      retrievalTasks: [
+        {
+          cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
+          providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+          protocol: 'bitswap'
+        }
+      ]
+    })
+
     const measurements = [
       {
         participantAddress: VALID_PARTICIPANT_ADDRESS,
@@ -158,7 +174,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(ROUND_WITH_KNOWN_DETAILS, measurements)
+    await runFraudDetection(1, measurements, { fetchRoundDetails, recordTelemetry })
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'INVALID_TASK']

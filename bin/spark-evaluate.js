@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/node'
 import { startEvaluate } from '../index.js'
+import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import { fileURLToPath } from 'node:url'
@@ -50,6 +51,7 @@ startEvaluate({
   ieContract,
   ieContractWithSigner,
   web3Storage,
+  fetchRoundDetails,
   recordTelemetry,
   logger: console
 })
