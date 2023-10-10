@@ -5,11 +5,12 @@ import { ethers } from 'ethers'
 import { fileURLToPath } from 'node:url'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { Web3Storage } from 'web3.storage'
+import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 
 const {
   SENTRY_ENVIRONMMENT = 'development',
-  IE_CONTRACT_ADDRESS = '0x381b50e8062757c404dec2bfae4da1b495341af9',
+  IE_CONTRACT_ADDRESS = '0x3113b83ccec38a18df936f31297de490485d7b2e',
   RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN
@@ -49,5 +50,6 @@ startEvaluate({
   ieContract,
   ieContractWithSigner,
   web3Storage,
+  recordTelemetry,
   logger: console
 })

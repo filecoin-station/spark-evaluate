@@ -1,8 +1,7 @@
 import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
-import * as telemetry from '../lib/telemetry.js'
 
-after(telemetry.close)
+const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
@@ -28,7 +27,7 @@ describe('preprocess', () => {
       }
     }
     const logger = { log () {}, error: console.error }
-    await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
+    await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
 
     assert.deepStrictEqual(rounds, {
       0: [{
@@ -58,7 +57,7 @@ describe('preprocess', () => {
       }
     }
     const logger = { log () { }, error () { } }
-    await preprocess({ rounds, cid, roundIndex, web3Storage, logger })
+    await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
@@ -86,5 +85,10 @@ describe('preprocess', () => {
   it('converts testnet f1 wallet address to hard-coded participant ETH adddress', () => {
     const converted = parseParticipantAddress('t17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
     assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+  })
+
+  it('accepts ETH 0x address', () => {
+    const converted = parseParticipantAddress('0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
+    assert.strictEqual(converted, '0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
   })
 })

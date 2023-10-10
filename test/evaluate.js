@@ -1,11 +1,10 @@
 import { evaluate, runFraudDetection } from '../lib/evaluate.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
-import * as telemetry from '../lib/telemetry.js'
 
 const { BigNumber } = ethers
 
-after(telemetry.close)
+const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 // Get the details using this command:
 //   curl https://spark.fly.dev/rounds/520 | jq .
@@ -28,8 +27,8 @@ describe('evaluate', () => {
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -38,6 +37,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex,
       ieContractWithSigner,
+      recordTelemetry,
       logger
     })
     assert.deepStrictEqual(rounds, {})
@@ -49,15 +49,14 @@ describe('evaluate', () => {
       setScoresCalls[0].scores[0].toString(),
       BigNumber.from(1_000_000_000_000_000).toString()
     )
-    assert.match(setScoresCalls[0].summary, /^\d+ retrievals$/)
   })
   it('handles empty rounds', async () => {
     const roundIndex = ROUND_WITH_KNOWN_DETAILS
     const rounds = { [roundIndex]: [] }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -66,21 +65,21 @@ describe('evaluate', () => {
       rounds,
       roundIndex,
       ieContractWithSigner,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, roundIndex)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
-    assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
   it('handles unknown rounds', async () => {
     const roundIndex = ROUND_WITH_KNOWN_DETAILS
     const rounds = {}
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores, summary) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores, summary })
+      async setScores (roundIndex, participantAddresses, scores) {
+        setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
       }
     }
@@ -89,13 +88,13 @@ describe('evaluate', () => {
       rounds,
       roundIndex,
       ieContractWithSigner,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, roundIndex)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
     assert.strictEqual(setScoresCalls[0].scores.length, 0)
-    assert.strictEqual(setScoresCalls[0].summary, '0 retrievals')
   })
   it('calculates reward shares', async () => {
     const roundIndex = ROUND_WITH_KNOWN_DETAILS
@@ -113,8 +112,8 @@ describe('evaluate', () => {
     }
     const setScoresCalls = []
     const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores, summary) {
-        setScoresCalls.push({ participantAddresses, scores, summary })
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
         return { hash: '0x345' }
       }
     }
@@ -123,6 +122,7 @@ describe('evaluate', () => {
       rounds,
       roundIndex,
       ieContractWithSigner,
+      recordTelemetry,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -136,7 +136,6 @@ describe('evaluate', () => {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
-    assert.match(setScoresCalls[0].summary, /^\d+ retrievals$/)
   })
 })
 
