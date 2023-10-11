@@ -5,7 +5,11 @@ const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 describe('spark-api client', () => {
   it('fetches round details', async () => {
-    const { retrievalTasks, ...details } = await fetchRoundDetails(520, recordTelemetry)
+    const { retrievalTasks, ...details } = await fetchRoundDetails(
+      '0x381b50e8062757c404dec2bfae4da1b495341af9',
+      10,
+      recordTelemetry
+    )
 
     assert.deepStrictEqual(details, {
       roundId: '520' // BigInt serialized as String
