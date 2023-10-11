@@ -1,7 +1,13 @@
 import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
+import createDebug from 'debug'
 
-const recordTelemetry = (measurementName, fn) => { /* no-op */ }
+const debug = createDebug('test')
+
+const recordTelemetry = (measurementName, fn) => {
+  /* no-op */
+  debug('recordTelemetry(%s)', measurementName)
+}
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
@@ -26,7 +32,7 @@ describe('preprocess', () => {
         }
       }
     }
-    const logger = { log () {}, error: console.error }
+    const logger = { log: debug, error: console.error }
     await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
 
     assert.deepStrictEqual(rounds, {
@@ -56,7 +62,7 @@ describe('preprocess', () => {
         }
       }
     }
-    const logger = { log () { }, error () { } }
+    const logger = { log: debug, error: debug }
     await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
