@@ -1,11 +1,11 @@
 import { evaluate, runFraudDetection } from '../lib/evaluate.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
-import debugFactory from 'debug'
+import createDebug from 'debug'
 
 const { BigNumber } = ethers
 
-const debug = debugFactory('test')
+const debug = createDebug('test')
 
 const recordTelemetry = (measurementName, fn) => {
   /* no-op */

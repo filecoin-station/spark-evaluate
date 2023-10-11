@@ -1,8 +1,8 @@
 import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
-import debugFactory from 'debug'
+import createDebug from 'debug'
 
-const debug = debugFactory('test')
+const debug = createDebug('test')
 
 const recordTelemetry = (measurementName, fn) => {
   /* no-op */
