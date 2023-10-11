@@ -1,10 +1,16 @@
 import { evaluate, runFraudDetection } from '../lib/evaluate.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
+import debugFactory from 'debug'
 
 const { BigNumber } = ethers
 
-const recordTelemetry = (measurementName, fn) => { /* no-op */ }
+const debug = debugFactory('test')
+
+const recordTelemetry = (measurementName, fn) => {
+  /* no-op */
+  debug('recordTelemetry(%s)', measurementName)
+}
 
 const VALID_PARTICIPANT_ADDRESS = '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC'
 const VALID_TASK = {
@@ -33,7 +39,7 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log () {} }
+    const logger = { log: debug, error: debug }
     await evaluate({
       rounds,
       roundIndex: 0,
@@ -61,7 +67,7 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log () {} }
+    const logger = { log: debug, error: debug }
     const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -85,7 +91,7 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log () {} }
+    const logger = { log: debug, error: debug }
     const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -120,7 +126,7 @@ describe('evaluate', () => {
         return { hash: '0x345' }
       }
     }
-    const logger = { log () {} }
+    const logger = { log: debug, error: debug }
     const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
