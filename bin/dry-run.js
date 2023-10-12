@@ -1,12 +1,18 @@
 import { evaluate } from '../lib/evaluate.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 
-const [nodePath, selfPath, roundIndex, ...measurementCids] = process.argv
+const [nodePath, selfPath, contractAddress, roundIndex, ...measurementCids] = process.argv
 
 const USAGE = `
 Usage:
-  ${nodePath} ${selfPath} <round-index> <measurements-cid-1> [cid2 [cid3...]]
+  ${nodePath} ${selfPath} <contract-address> <round-index> <measurements-cid-1> [cid2 [cid3...]]
 `
+
+if (!contractAddress) {
+  console.error('Missing required argument: contractAddress')
+  console.log(USAGE)
+  process.exit(1)
+}
 
 if (!roundIndex) {
   console.error('Missing required argument: roundIndex')
@@ -37,6 +43,7 @@ console.log('Evaluating round %s', roundIndex)
 console.log('Fetched %s measurements', measurements.length)
 
 const ieContractWithSigner = {
+  address: contractAddress,
   async setScores (_roundIndex, participantAddresses, scores) {
     console.log('==EVALUATION RESULTS==')
     console.log('participants:', participantAddresses)
