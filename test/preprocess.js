@@ -18,22 +18,12 @@ describe('preprocess', () => {
       participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i'
     }]
     const getCalls = []
-    const web3Storage = {
-      async get (_cid) {
-        getCalls.push(_cid)
-        return {
-          async files () {
-            return [{
-              async text () {
-                return JSON.stringify(measurements)
-              }
-            }]
-          }
-        }
-      }
+    const fetchMeasurements = async (cid) => {
+      getCalls.push(cid)
+      return measurements
     }
     const logger = { log: debug, error: console.error }
-    await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
+    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
     assert.deepStrictEqual(rounds, {
       0: [{
@@ -49,21 +39,9 @@ describe('preprocess', () => {
     const measurements = [{
       participant_address: 't1foobar'
     }]
-    const web3Storage = {
-      async get () {
-        return {
-          async files () {
-            return [{
-              async text () {
-                return JSON.stringify(measurements)
-              }
-            }]
-          }
-        }
-      }
-    }
+    const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
-    await preprocess({ rounds, cid, roundIndex, web3Storage, recordTelemetry, logger })
+    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
