@@ -5,7 +5,7 @@ import { evaluate } from './lib/evaluate.js'
 export const startEvaluate = ({
   ieContract,
   ieContractWithSigner,
-  web3Storage,
+  fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
   logger
@@ -27,7 +27,7 @@ export const startEvaluate = ({
       rounds,
       cid,
       roundIndex,
-      web3Storage,
+      fetchMeasurements,
       recordTelemetry,
       logger
     }).catch(err => {
