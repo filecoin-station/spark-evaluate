@@ -1,3 +1,5 @@
+import { Point } from '@influxdata/influxdb-client'
+
 /**
  * Details of a retrieval task as returned by SPARK HTTP API.
  */
@@ -14,3 +16,8 @@ export interface RoundDetails {
   roundId: string; // BigInt serialized as String (JSON does not support BigInt)
   retrievalTasks: RetrievalTask[];
 }
+
+export type RecordTelemetryFn = (
+  name: string,
+  fn: (point: Point) => void
+) => void
