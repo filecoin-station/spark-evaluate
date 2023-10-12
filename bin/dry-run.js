@@ -1,4 +1,5 @@
 import { evaluate } from '../lib/evaluate.js'
+import { preprocess, fetchMeasurementsViaGateway } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 
 const [nodePath, selfPath, contractAddress, roundIndex, ...measurementCids] = process.argv
@@ -27,21 +28,27 @@ if (!measurementCids.length) {
   process.exit(1)
 }
 
-// TODO: fetch measurements via preprocess
-const measurements = []
+const recordTelemetry = (measurementName, fn) => { /* no-op */ }
+
+console.log('Evaluating round %s of contract %s', roundIndex, contractAddress)
+
+console.log('==PREPROCESS==')
+
+const rounds = {}
 for (const cid of measurementCids) {
-  const res = await fetch(`https://${cid}.ipfs.w3s.link/measurements.json`)
-  if (!res.ok) {
-    console.log('Cannot fetch %s: %s %s', cid, res.status, await res.text())
-    process.exit(2)
-  }
-  const data = await res.json()
-  measurements.push(...data)
+  await preprocess({
+    roundIndex,
+    rounds,
+    cid,
+    fetchMeasurements: fetchMeasurementsViaGateway,
+    recordTelemetry,
+    logger: console
+  })
 }
 
-console.log('Evaluating round %s', roundIndex)
-console.log('Fetched %s measurements', measurements.length)
+console.log('Fetched %s measurements', rounds[roundIndex].length)
 
+console.log('==EVALUATE==')
 const ieContractWithSigner = {
   address: contractAddress,
   async setScores (_roundIndex, participantAddresses, scores) {
@@ -52,11 +59,10 @@ const ieContractWithSigner = {
     return { hash: '0x234' }
   }
 }
-const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 await evaluate({
   roundIndex,
-  rounds: { [roundIndex]: measurements },
+  rounds,
   fetchRoundDetails,
   ieContractWithSigner,
   logger: console,
