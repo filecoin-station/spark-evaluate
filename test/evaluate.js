@@ -153,7 +153,7 @@ describe('evaluate', () => {
 describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
     const sparkRoundDetails = {
-      roundId: 1234, // doesn't matter
+      roundId: 1234, // doesn't matte
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
