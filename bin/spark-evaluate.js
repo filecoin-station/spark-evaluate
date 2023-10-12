@@ -11,7 +11,7 @@ import fs from 'node:fs/promises'
 import { fetchMeasurementsViaClient } from '../lib/preprocess.js'
 
 const {
-  SENTRY_ENVIRONMMENT = 'development',
+  SENTRY_ENVIRONMENT = 'development',
   IE_CONTRACT_ADDRESS = '0x3113b83ccec38a18df936f31297de490485d7b2e',
   RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
   WALLET_SEED,
@@ -20,7 +20,7 @@ const {
 
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
-  environment: SENTRY_ENVIRONMMENT,
+  environment: SENTRY_ENVIRONMENT,
   // Performance Monitoring
   tracesSampleRate: 0.1 // Capture 10% of the transactions
 })
