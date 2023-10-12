@@ -31,7 +31,7 @@ describe('evaluate', () => {
     for (let i = 0; i < 10; i++) {
       rounds[0].push(VALID_MEASUREMENT)
     }
-    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -68,7 +68,7 @@ describe('evaluate', () => {
       }
     }
     const logger = { log: debug, error: debug }
-    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
       roundIndex: 0,
@@ -92,7 +92,7 @@ describe('evaluate', () => {
       }
     }
     const logger = { log: debug, error: debug }
-    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
       roundIndex: 0,
@@ -127,7 +127,7 @@ describe('evaluate', () => {
       }
     }
     const logger = { log: debug, error: debug }
-    const fetchRoundDetails = (_roundIndex) => ({ retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
       roundIndex: 0,
@@ -152,8 +152,8 @@ describe('evaluate', () => {
 
 describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
-    const fetchRoundDetails = (roundIndex) => ({
-      roundId: roundIndex,
+    const sparkRoundDetails = {
+      roundId: 1234, // doesn't matte
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -161,7 +161,7 @@ describe('fraud detection', () => {
           protocol: 'bitswap'
         }
       ]
-    })
+    }
 
     const measurements = [
       {
@@ -180,7 +180,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1, measurements, { fetchRoundDetails, recordTelemetry })
+    await runFraudDetection(1, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'INVALID_TASK']
