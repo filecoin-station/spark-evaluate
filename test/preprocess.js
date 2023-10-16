@@ -46,7 +46,7 @@ describe('preprocess', () => {
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
       0: [{
-        participantAddress: '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC'
+        participantAddress: '0x000000000000000000000000000000000000dEaD'
       }]
     })
   })
@@ -63,12 +63,12 @@ describe('preprocess', () => {
 
   it('converts mainnet f1 wallet address to hard-coded participant ETH adddress', () => {
     const converted = parseParticipantAddress('f17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
-    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+    assert.strictEqual(converted, '0x000000000000000000000000000000000000dEaD')
   })
 
   it('converts testnet f1 wallet address to hard-coded participant ETH adddress', () => {
     const converted = parseParticipantAddress('t17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
-    assert.strictEqual(converted, '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC')
+    assert.strictEqual(converted, '0x000000000000000000000000000000000000dEaD')
   })
 
   it('accepts ETH 0x address', () => {
