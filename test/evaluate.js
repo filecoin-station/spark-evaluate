@@ -12,7 +12,7 @@ const recordTelemetry = (measurementName, fn) => {
   debug('recordTelemetry(%s)', measurementName)
 }
 
-const VALID_PARTICIPANT_ADDRESS = '0xf100Ac342b7DE48e5c89f7029624eE6c3Cde68aC'
+const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
   providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
