@@ -22,6 +22,7 @@ export type RecordTelemetryFn = (
   fn: (point: Point) => void
 ) => void
 
+// When adding a new enum value, remember to update the summary initializer inside `evaluate()`
 export type FraudAssesment =
   | 'OK'
   | 'INVALID_TASK'
