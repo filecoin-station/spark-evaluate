@@ -26,8 +26,6 @@ export type RecordTelemetryFn = (
 export type FraudAssesment =
   | 'OK'
   | 'INVALID_TASK'
-  | 'NO_FINISHED_AT'
-  | 'NO_INET_GROUP'
   | 'DUP_INET_GROUP'
 
 export interface Measurement {

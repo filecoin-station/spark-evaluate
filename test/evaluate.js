@@ -194,34 +194,6 @@ describe('fraud detection', () => {
     )
   })
 
-  it('rejects tasks with no `inet_group` field', async () => {
-    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
-
-    // eslint-disable-next-line camelcase
-    const { inet_group, ...fields } = VALID_MEASUREMENT
-    const measurements = [{
-      ...fields
-      // missing inet_group
-    }]
-
-    await runFraudDetection(1, measurements, sparkRoundDetails)
-    assert.strictEqual(measurements[0].fraudAssessment, 'NO_INET_GROUP')
-  })
-
-  it('rejects tasks with no `finished_at` field', async () => {
-    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
-
-    // eslint-disable-next-line camelcase
-    const { finished_at, ...fields } = VALID_MEASUREMENT
-    const measurements = [{
-      ...fields
-      // missing finished_at
-    }]
-
-    await runFraudDetection(1, measurements, sparkRoundDetails)
-    assert.strictEqual(measurements[0].fraudAssessment, 'NO_FINISHED_AT')
-  })
-
   it('rejects redundant measurements from the same inet group', async () => {
     const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
     const measurements = [

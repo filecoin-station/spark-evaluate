@@ -15,7 +15,9 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i'
+      participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
+      inet_group: 'ig1',
+      finished_at: '2023-11-01T09:00.00.000Z'
     }]
     const getCalls = []
     const fetchMeasurements = async (cid) => {
@@ -27,7 +29,9 @@ describe('preprocess', () => {
 
     assert.deepStrictEqual(rounds, {
       0: [{
-        participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E'
+        participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
+        inet_group: 'ig1',
+        finished_at: '2023-11-01T09:00.00.000Z'
       }]
     })
     assert.deepStrictEqual(getCalls, [cid])
@@ -37,7 +41,9 @@ describe('preprocess', () => {
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      participant_address: 't1foobar'
+      participant_address: 't1foobar',
+      inet_group: 'ig1',
+      finished_at: '2023-11-01T09:00.00.000Z'
     }]
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
@@ -46,7 +52,9 @@ describe('preprocess', () => {
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
       0: [{
-        participantAddress: '0x000000000000000000000000000000000000dEaD'
+        participantAddress: '0x000000000000000000000000000000000000dEaD',
+        inet_group: 'ig1',
+        finished_at: '2023-11-01T09:00.00.000Z'
       }]
     })
   })
