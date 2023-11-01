@@ -258,12 +258,12 @@ describe('fraud detection', () => {
     // the values are crafted to get distribute rewards among pa2 and pa3
     const timestamps = {
       pa1: {
-        cid1: new Date('2023-11-01T09:00:01.000Z'),
-        cid2: new Date('2023-11-01T09:00:21.000Z')
+        cid1: '2023-11-01T09:00:01.000Z',
+        cid2: '2023-11-01T09:00:21.000Z'
       },
       pa2: {
-        cid1: new Date('2023-11-01T09:00:04.000Z'),
-        cid2: new Date('2023-11-01T09:00:22.000Z')
+        cid1: '2023-11-01T09:00:04.000Z',
+        cid2: '2023-11-01T09:00:22.000Z'
       }
     }
     const measurements = []
@@ -319,19 +319,19 @@ describe('fraud detection', () => {
     // the values are crafted to distribute rewards between pa2 and pa3
     const timestamps = {
       pa1: {
-        cid1: new Date('2023-11-01T09:00:01.000Z'),
-        cid2: new Date('2023-11-01T09:00:21.000Z'),
-        cid3: new Date('2023-11-01T09:00:41.000Z')
+        cid1: '2023-11-01T09:00:01.000Z',
+        cid2: '2023-11-01T09:00:21.000Z',
+        cid3: '2023-11-01T09:00:41.000Z'
       },
       pa2: {
-        cid1: new Date('2023-11-01T09:00:04.000Z'),
-        cid2: new Date('2023-11-01T09:00:22.000Z'),
-        cid3: new Date('2023-11-01T09:00:42.000Z')
+        cid1: '2023-11-01T09:00:04.000Z',
+        cid2: '2023-11-01T09:00:22.000Z',
+        cid3: '2023-11-01T09:00:42.000Z'
       },
       pa3: {
-        cid1: new Date('2023-11-01T09:00:03.000Z'),
-        cid2: new Date('2023-11-01T09:00:23.000Z'),
-        cid3: new Date('2023-11-01T09:03:43.000Z')
+        cid1: '2023-11-01T09:00:03.000Z',
+        cid2: '2023-11-01T09:00:23.000Z',
+        cid3: '2023-11-01T09:03:43.000Z'
       }
     }
 
@@ -361,12 +361,12 @@ describe('fraud detection', () => {
         'pa1::OK',
 
         'pa2::DUP_INET_GROUP',
-        'pa2::DUP_INET_GROUP',
         'pa2::OK',
+        'pa2::DUP_INET_GROUP',
 
         'pa3::OK',
-        'pa3::OK',
-        'pa3::DUP_INET_GROUP'
+        'pa3::DUP_INET_GROUP',
+        'pa3::OK'
       ]
     )
     assert.deepStrictEqual(stats, {
