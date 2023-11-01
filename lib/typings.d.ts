@@ -44,3 +44,13 @@ export interface Measurement {
   end_at: string;
   finished_at: string;
 }
+
+export interface GroupWinningStats {
+  min: number;
+  max: number;
+  mean: number;
+}
+
+export interface FraudDetectionStats {
+  groupWinning: GroupWinningStats
+}
