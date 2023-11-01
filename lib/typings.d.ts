@@ -27,7 +27,7 @@ export type FraudAssesment =
   | 'OK'
   | 'INVALID_TASK'
   | 'NO_INET_GROUP'
-  | 'DUPLICATE_SUBNET'
+  | 'DUP_INET_GROUP'
 
 export interface Measurement {
   participantAddress: string;
