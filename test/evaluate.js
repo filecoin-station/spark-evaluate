@@ -18,18 +18,27 @@ const VALID_TASK = {
   providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
   protocol: 'bitswap'
 }
+Object.freeze(VALID_TASK)
+
 const VALID_MEASUREMENT = {
   cid: VALID_TASK.cid,
   provider_address: VALID_TASK.providerAddress,
   protocol: VALID_TASK.protocol,
-  participantAddress: VALID_PARTICIPANT_ADDRESS
+  participantAddress: VALID_PARTICIPANT_ADDRESS,
+  inet_group: 'some-group-id',
+  finished_at: '2023-11-01T09:00:00.000Z'
 }
+// Fraud detection is mutating the measurements parsed from JSON
+// To prevent tests from accidentally mutating data used by subsequent tests,
+// we freeze this test data object. If we forget to clone this default measurement
+// then such test will immediately fail.
+Object.freeze(VALID_MEASUREMENT)
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 10; i++) {
-      rounds[0].push(VALID_MEASUREMENT)
+      rounds[0].push({ ...VALID_MEASUREMENT })
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
@@ -110,9 +119,10 @@ describe('evaluate', () => {
     const rounds = { 0: [] }
     for (let i = 0; i < 5; i++) {
       rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
-      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234' })
+      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
       rounds[0].push({
-        participantAddress: '0x567',
+        ...VALID_MEASUREMENT,
+        inet_group: 'group3',
         // invalid task
         cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
@@ -165,14 +175,14 @@ describe('fraud detection', () => {
 
     const measurements = [
       {
-        participantAddress: VALID_PARTICIPANT_ADDRESS,
+        ...VALID_MEASUREMENT,
         // valid task
         cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
         protocol: 'bitswap'
       },
       {
-        participantAddress: VALID_PARTICIPANT_ADDRESS,
+        ...VALID_MEASUREMENT,
         // invalid task
         cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
