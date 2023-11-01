@@ -6,6 +6,7 @@ import createDebug from 'debug'
 const { BigNumber } = ethers
 
 const debug = createDebug('test')
+const logger = { log: debug, error: debug }
 
 const recordTelemetry = (measurementName, fn) => {
   /* no-op */
@@ -48,7 +49,6 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log: debug, error: debug }
     await evaluate({
       rounds,
       roundIndex: 0,
@@ -76,7 +76,6 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log: debug, error: debug }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -100,7 +99,6 @@ describe('evaluate', () => {
         return { hash: '0x234' }
       }
     }
-    const logger = { log: debug, error: debug }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -136,7 +134,6 @@ describe('evaluate', () => {
         return { hash: '0x345' }
       }
     }
-    const logger = { log: debug, error: debug }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -163,7 +160,7 @@ describe('evaluate', () => {
 describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
     const sparkRoundDetails = {
-      roundId: 1234, // doesn't matte
+      roundId: 1234, // doesn't matter
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -194,6 +191,48 @@ describe('fraud detection', () => {
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'INVALID_TASK']
+    )
+  })
+
+  it('rejects tasks with no `inet_group` field', async () => {
+    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
+
+    // eslint-disable-next-line camelcase
+    const { inet_group, ...fields } = VALID_MEASUREMENT
+    const measurements = [{
+      ...fields
+      // missing inet_group
+    }]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+    assert.strictEqual(measurements[0].fraudAssessment, 'NO_INET_GROUP')
+  })
+
+  it('rejects tasks with no `finished_at` field', async () => {
+    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
+
+    // eslint-disable-next-line camelcase
+    const { finished_at, ...fields } = VALID_MEASUREMENT
+    const measurements = [{
+      ...fields
+      // missing finished_at
+    }]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+    assert.strictEqual(measurements[0].fraudAssessment, 'NO_FINISHED_AT')
+  })
+
+  it('rejects redundant measurements from the same inet group', async () => {
+    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
+    const measurements = [
+      { ...VALID_MEASUREMENT },
+      { ...VALID_MEASUREMENT }
+    ]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+    assert.deepStrictEqual(
+      measurements.map(m => m.fraudAssessment),
+      ['OK', 'DUP_INET_GROUP']
     )
   })
 })
