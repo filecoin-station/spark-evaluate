@@ -87,8 +87,12 @@ describe('evaluate', () => {
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
-    assert.strictEqual(setScoresCalls[0].scores.length, 0)
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
+      '0x000000000000000000000000000000000000dEaD'
+    ])
+    assert.deepStrictEqual(setScoresCalls[0].scores, [
+      MAX_SCORE
+    ])
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
@@ -110,8 +114,12 @@ describe('evaluate', () => {
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [])
-    assert.strictEqual(setScoresCalls[0].scores.length, 0)
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
+      '0x000000000000000000000000000000000000dEaD'
+    ])
+    assert.deepStrictEqual(setScoresCalls[0].scores, [
+      MAX_SCORE
+    ])
   })
   it('calculates reward shares', async () => {
     const rounds = { 0: [] }
