@@ -1,4 +1,4 @@
-import { evaluate, runFraudDetection } from '../lib/evaluate.js'
+import { MAX_SCORE, evaluate, runFraudDetection } from '../lib/evaluate.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import createDebug from 'debug'
@@ -154,6 +154,37 @@ describe('evaluate', () => {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
+  })
+
+  it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
+    const rounds = { 0: [] }
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234' })
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x456' })
+
+    const setScoresCalls = []
+    const ieContractWithSigner = {
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
+        return { hash: '0x345' }
+      }
+    }
+    const logger = { log: debug, error: debug }
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    await evaluate({
+      rounds,
+      roundIndex: 0,
+      ieContractWithSigner,
+      recordTelemetry,
+      fetchRoundDetails,
+      logger
+    })
+    assert.strictEqual(setScoresCalls.length, 1)
+    const { scores, participantAddresses } = setScoresCalls[0]
+    assert.strictEqual(scores.length, 4)
+    const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
+    assert.strictEqual(sum, MAX_SCORE)
+    assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
   })
 })
 
