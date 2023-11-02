@@ -158,9 +158,9 @@ describe('evaluate', () => {
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
     const rounds = { 0: [] }
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234' })
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x456' })
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
+    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
     const setScoresCalls = []
     const ieContractWithSigner = {
