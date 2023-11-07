@@ -12,8 +12,8 @@ import { fetchMeasurementsViaClient } from '../lib/preprocess.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
-  IE_CONTRACT_ADDRESS = '0x3113b83ccec38a18df936f31297de490485d7b2e',
-  RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
+  IE_CONTRACT_ADDRESS = '0xeeadb614b63dee83f0e7b4095094ae7c5d439ba2',
+  RPC_URL = 'https://api.node.glif.io/rpc/v0',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN
 } = process.env
@@ -33,7 +33,7 @@ const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
 console.log(
   'Wallet address:',
   signer.address,
-  newDelegatedEthAddress(signer.address, 't').toString()
+  newDelegatedEthAddress(signer.address, 'f').toString()
 )
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,
