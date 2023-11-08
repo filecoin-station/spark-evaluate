@@ -12,7 +12,7 @@ import { fetchMeasurementsViaClient } from '../lib/preprocess.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
-  IE_CONTRACT_ADDRESS = '0x8c9f415ee86e65ec72d08b05c42cdc40bfecb8e5',
+  IE_CONTRACT_ADDRESS = '0xaaef78eaf86dcf34f275288752e892424dda9341',
   RPC_URL = 'https://api.node.glif.io/rpc/v0',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN
