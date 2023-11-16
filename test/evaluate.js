@@ -1,4 +1,5 @@
 import { MAX_SCORE, evaluate, runFraudDetection } from '../lib/evaluate.js'
+import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import createDebug from 'debug'
@@ -8,10 +9,14 @@ const { BigNumber } = ethers
 const debug = createDebug('test')
 const logger = { log: debug, error: debug }
 
+const telemetry = []
 const recordTelemetry = (measurementName, fn) => {
-  /* no-op */
-  debug('recordTelemetry(%s)', measurementName)
+  const point = new Point(measurementName)
+  fn(point)
+  debug('recordTelemetry(%s): %o', measurementName, point.fields)
+  telemetry.push(point)
 }
+beforeEach(() => telemetry.splice(0))
 
 const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 const VALID_TASK = {
@@ -66,6 +71,11 @@ describe('evaluate', () => {
       setScoresCalls[0].scores[0].toString(),
       BigNumber.from(1_000_000_000_000_000).toString()
     )
+
+    const point = telemetry.find(p => p.name === 'evaluate')
+    assert(!!point,
+      `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assert.strictEqual(point.fields.unique_tasks, '1i')
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
@@ -93,6 +103,11 @@ describe('evaluate', () => {
     assert.deepStrictEqual(setScoresCalls[0].scores, [
       MAX_SCORE
     ])
+
+    const point = telemetry.find(p => p.name === 'evaluate')
+    assert(!!point,
+      `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assert.strictEqual(point.fields.unique_tasks, '0i')
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
