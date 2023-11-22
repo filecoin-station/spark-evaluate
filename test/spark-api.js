@@ -6,26 +6,26 @@ const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 describe('spark-api client', () => {
   it('fetches round details', async () => {
     const { retrievalTasks, ...details } = await fetchRoundDetails(
-      '0x381b50e8062757c404dec2bfae4da1b495341af9',
-      10,
+      '0xaaef78eaf86dcf34f275288752e892424dda9341',
+      407,
       recordTelemetry
     )
 
     assert.deepStrictEqual(details, {
-      roundId: '995' // BigInt serialized as String
+      roundId: '3405' // BigInt serialized as String
     })
 
-    assert.strictEqual(retrievalTasks.length, 30)
+    assert.strictEqual(retrievalTasks.length, 400)
     assert.deepStrictEqual(retrievalTasks.slice(0, 2), [
       {
-        cid: 'QmUen1QdStwcqYaRJKW59GfEk1y8TyqyrvisZ5Mm2ZwMhU',
-        protocol: 'bitswap',
-        providerAddress: '/dns4/elastic.dag.house/tcp/443/wss/p2p/QmQzqxhK82kAmKvARFZSkUVS6fo9sySaiogAnx5EnZ6ZmC'
+        cid: 'Qmcieq8Lf1r4qfifJkKpdpVzajdsbSGZmBiL3vy6syWo5T',
+        protocol: 'graphsync',
+        providerAddress: '/ip4/210.209.69.37/tcp/34568/p2p/12D3KooWSHG9vVStHMi9vhfgD1XaR221Ur6RjWcVsiY7WfVaX4QL'
       },
       {
-        cid: 'bafybeidijvhvuvizg2ofeqos7l2kd4uanbawzx6qazyko5kbvth6dlhn5e',
-        protocol: 'bitswap',
-        providerAddress: '/dns4/elastic.dag.house/tcp/443/wss/p2p/QmQzqxhK82kAmKvARFZSkUVS6fo9sySaiogAnx5EnZ6ZmC'
+        cid: 'QmejPgwMo5jzJDsArpGCn9Tz1gSQNXYU722pFe2kcLHzpq',
+        protocol: 'graphsync',
+        providerAddress: '/ip4/138.113.222.200/tcp/19013/p2p/12D3KooWCnJeMnur6ScjXXUo8ptMKac88fDbD8GELmdDrdg3FBk5'
       }
     ])
   })
