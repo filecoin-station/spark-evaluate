@@ -26,14 +26,21 @@ const VALID_TASK = {
 }
 Object.freeze(VALID_TASK)
 
+/** @type {import('../lib/typings').Measurement} */
 const VALID_MEASUREMENT = {
   cid: VALID_TASK.cid,
   provider_address: VALID_TASK.providerAddress,
   protocol: VALID_TASK.protocol,
   participantAddress: VALID_PARTICIPANT_ADDRESS,
   inet_group: 'some-group-id',
-  finished_at: '2023-11-01T09:00:00.000Z'
+  status_code: 200,
+  timeout: false,
+  car_too_large: false,
+  end_at: '2023-11-01T09:00:00.000Z',
+  finished_at: '2023-11-01T09:00:10.000Z',
+  retrievalResult: 'OK'
 }
+
 // Fraud detection is mutating the measurements parsed from JSON
 // To prevent tests from accidentally mutating data used by subsequent tests,
 // we freeze this test data object. If we forget to clone this default measurement
@@ -72,10 +79,16 @@ describe('evaluate', () => {
       BigNumber.from(1_000_000_000_000_000).toString()
     )
 
-    const point = telemetry.find(p => p.name === 'evaluate')
+    let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    // TODO: assert point fields
+
+    point = telemetry.find(p => p.name === 'retrieval_stats')
+    assert(!!point,
+      `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assert.strictEqual(point.fields.unique_tasks, '1i')
+    assert.strictEqual(point.fields.success_rate, '1')
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
@@ -104,9 +117,14 @@ describe('evaluate', () => {
       MAX_SCORE
     ])
 
-    const point = telemetry.find(p => p.name === 'evaluate')
+    let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    // TODO: assert point fields
+
+    point = telemetry.find(p => p.name === 'retrieval_stats')
+    assert(!!point,
+          `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assert.strictEqual(point.fields.unique_tasks, '0i')
   })
   it('handles unknown rounds', async () => {

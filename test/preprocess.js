@@ -1,4 +1,4 @@
-import { parseParticipantAddress, preprocess } from '../lib/preprocess.js'
+import { calculateRetrievalResult, parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 
@@ -31,7 +31,8 @@ describe('preprocess', () => {
       0: [{
         participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
         inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z'
+        finished_at: '2023-11-01T09:00.00.000Z',
+        retrievalResult: 'UNKNOWN_ERROR'
       }]
     })
     assert.deepStrictEqual(getCalls, [cid])
@@ -54,7 +55,8 @@ describe('preprocess', () => {
       0: [{
         participantAddress: '0x000000000000000000000000000000000000dEaD',
         inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z'
+        finished_at: '2023-11-01T09:00.00.000Z',
+        retrievalResult: 'UNKNOWN_ERROR'
       }]
     })
   })
@@ -82,5 +84,90 @@ describe('preprocess', () => {
   it('accepts ETH 0x address', () => {
     const converted = parseParticipantAddress('0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
     assert.strictEqual(converted, '0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
+  })
+})
+
+describe('calculateRetrievalResult', () => {
+  /** @type {import('../lib/typings').Measurement} */
+  const SUCCESSFUL_RETRIEVAL = {
+    id: 11009569,
+    spark_version: '1.5.2',
+    zinnia_version: '0.14.0',
+    participant_address: 'f410fgkhpcrbmdvic52o3nivftrjxr7nzw47updmuzra',
+    finished_at: '2023-11-01T09:42:03.246Z',
+    timeout: false,
+    start_at: '2023-11-01T09:40:03.393Z',
+    status_code: 200,
+    first_byte_at: '1970-01-01T00:00:00.000Z',
+    end_at: '1970-01-01T00:00:00.000Z',
+    byte_length: 1234,
+    attestation: null,
+    inet_group: 'ue49TX_JdYjI',
+    cid: 'bafkreihstuf2qcu3hs64ersidh46cjtilxcoipmzgu3pifwzmkqdjpraqq',
+    provider_address: '/ip4/108.89.91.150/tcp/46717/p2p/12D3KooWSsaFCtzDJUEhLQYDdwoFtdCMqqfk562UMvccFz12kYxU',
+    protocol: 'graphsync'
+  }
+
+  it('successful retrieval', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL
+    })
+    assert.strictEqual(result, 'OK')
+  })
+
+  it('TIMEOUT', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      timeout: true
+    })
+    assert.strictEqual(result, 'TIMEOUT')
+  })
+
+  it('CAR_TOO_LARGE', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      car_too_large: true
+    })
+    assert.strictEqual(result, 'CAR_TOO_LARGE')
+  })
+
+  it('BAD_GATEWAY', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 502
+    })
+    assert.strictEqual(result, 'BAD_GATEWAY')
+  })
+
+  it('GATEWAY_TIMEOUT', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 504
+    })
+    assert.strictEqual(result, 'GATEWAY_TIMEOUT')
+  })
+
+  it('SERVER_ERROR - 500', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 500
+    })
+    assert.strictEqual(result, 'SERVER_ERROR')
+  })
+
+  it('SERVER_ERROR - 503', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 503
+    })
+    assert.strictEqual(result, 'SERVER_ERROR')
+  })
+
+  it('UNKNOWN_ERROR - missing end_at', () => {
+    const result = calculateRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      end_at: undefined
+    })
+    assert.strictEqual(result, 'UNKNOWN_ERROR')
   })
 })
