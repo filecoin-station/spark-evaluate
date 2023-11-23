@@ -1,10 +1,7 @@
 import { MAX_SCORE, evaluate, runFraudDetection } from '../lib/evaluate.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
-import { ethers } from 'ethers'
 import createDebug from 'debug'
-
-const { BigNumber } = ethers
 
 const debug = createDebug('test')
 const logger = { log: debug, error: debug }
@@ -69,7 +66,7 @@ describe('evaluate', () => {
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
       setScoresCalls[0].scores[0].toString(),
-      BigNumber.from(1_000_000_000_000_000).toString()
+      (1_000_000_000_000_000n).toString()
     )
 
     const point = telemetry.find(p => p.name === 'evaluate')

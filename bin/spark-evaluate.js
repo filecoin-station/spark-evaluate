@@ -28,8 +28,10 @@ Sentry.init({
 assert(WALLET_SEED, 'WALLET_SEED required')
 assert(WEB3_STORAGE_API_TOKEN, 'WEB3_STORAGE_API_TOKEN required')
 
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
-const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
+const provider = new ethers.JsonRpcProvider(RPC_URL, null, {
+  batchMaxCount: 1
+})
+const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
   signer.address,
