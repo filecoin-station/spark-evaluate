@@ -61,6 +61,7 @@ export interface Measurement {
 
   status_code: number;
   timeout: boolean;
+  byte_length: number;
   car_too_large: boolean;
 }
 
