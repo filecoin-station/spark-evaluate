@@ -4,6 +4,11 @@ import { fetchRoundDetails } from '../lib/spark-api.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ethers } from 'ethers'
+
+const {
+  RPC_URL = 'https://api.node.glif.io/rpc/v0'
+} = process.env
 
 const [nodePath, selfPath, contractAddress, roundIndex, ...measurementCids] = process.argv
 
@@ -26,6 +31,35 @@ if (!roundIndex) {
 
 // TODO: fetch measurement CIDs from on-chain events
 if (!measurementCids.length) {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
+  provider.on('debug', console.log)
+  const ieContract = new ethers.Contract(
+    contractAddress,
+    JSON.parse(
+      await readFile(
+        fileURLToPath(new URL('../lib/abi.json', import.meta.url)),
+        'utf8'
+      )
+    ),
+    provider
+  )
+
+  console.log('Fetching MeasurementsAdded events from the ledger')
+  // TODO: filter only measurements for the given `roundIndex`
+  // See https://github.com/Meridian-IE/impact-evaluator/issues/57
+  // const filter = ieContract.filters.MeasurementsAdded()
+  const filter = { address: ieContract.address }
+  console.log(filter)
+
+  const logs = await provider.getLogs({ ...filter, fromBlock: -1900 })
+  console.log('logs', logs)
+  const events = await ieContract.queryFilter(
+    filter,
+    // max lookback period allowed by Glif.io, approx 16h40m
+    -1998
+  )
+  console.log('events', events)
+
   console.error('Missing required argument: measurements CID (at least one is required)')
   console.log(USAGE)
   process.exit(1)
