@@ -15,7 +15,7 @@ export const startEvaluate = ({
   const roundsSeen = []
 
   // Listen for events
-  ieContract.on('MeasurementsAdded', (cid, _roundIndex) => {
+  ieContract.on(ieContract.filters.MeasurementsAdded, (cid, _roundIndex) => {
     const roundIndex = Number(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
@@ -48,7 +48,7 @@ export const startEvaluate = ({
     })
   })
 
-  ieContract.on('RoundStart', _roundIndex => {
+  ieContract.on(ieContract.filters.RoundStart, _roundIndex => {
     const roundIndex = Number(_roundIndex)
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
