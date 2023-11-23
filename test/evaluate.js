@@ -275,6 +275,9 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'inet_groups', '1i')
     assertPointFieldValue(point, 'measurements', '1i')
 
+    assertPointFieldValue(point, 'result_rate_OK', '1')
+    assertPointFieldValue(point, 'result_rate_TIMEOUT', '0')
+
     point = telemetry.find(p => p.name === 'retrieval_stats_all')
     assert(!!point,
       `No telemetry point "retrieval_stats_all" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
@@ -283,6 +286,10 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
     assertPointFieldValue(point, 'measurements', '2i')
+
+    assertPointFieldValue(point, 'result_rate_OK', '0.5')
+    assertPointFieldValue(point, 'result_rate_TIMEOUT', '0')
+    assertPointFieldValue(point, 'result_rate_ERROR_500', '0.5')
   })
 })
 
