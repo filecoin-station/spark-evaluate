@@ -87,8 +87,8 @@ describe('evaluate', () => {
     point = telemetry.find(p => p.name === 'retrieval_stats')
     assert(!!point,
       `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '1i')
-    assert.strictEqual(point.fields.success_rate, '1')
+    assertPointFieldValue(point, 'unique_tasks', '1i')
+    assertPointFieldValue(point, 'success_rate', '1')
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
@@ -125,7 +125,7 @@ describe('evaluate', () => {
     point = telemetry.find(p => p.name === 'retrieval_stats')
     assert(!!point,
           `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '0i')
+    assertPointFieldValue(point, 'unique_tasks', '0i')
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
@@ -226,6 +226,55 @@ describe('evaluate', () => {
     const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
     assert.strictEqual(sum, MAX_SCORE)
     assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
+  })
+
+  it('reports retrieval stats for honest and for all measurements', async () => {
+    const measurements = [
+      {
+        ...VALID_MEASUREMENT
+      },
+      {
+        ...VALID_MEASUREMENT,
+        status_code: 500,
+        retrievalResult: 'ERROR_500',
+        // invalid task
+        cid: 'bafyinvalid',
+        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+        protocol: 'bitswap'
+      }
+    ]
+
+    const rounds = { 0: [...measurements] }
+
+    const setScoresCalls = []
+    const ieContractWithSigner = {
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
+        return { hash: '0x345' }
+      }
+    }
+    const logger = { log: debug, error: debug }
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    await evaluate({
+      rounds,
+      roundIndex: 0,
+      ieContractWithSigner,
+      recordTelemetry,
+      fetchRoundDetails,
+      logger
+    })
+
+    let point = telemetry.find(p => p.name === 'retrieval_stats')
+    assert(!!point,
+      `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'unique_tasks', '1i')
+    assertPointFieldValue(point, 'success_rate', '1')
+
+    point = telemetry.find(p => p.name === 'retrieval_stats_all')
+    assert(!!point,
+      `No telemetry point "retrieval_stats_all" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'unique_tasks', '2i')
+    assertPointFieldValue(point, 'success_rate', '0.5')
   })
 })
 
@@ -422,3 +471,12 @@ describe('fraud detection', () => {
     })
   })
 })
+
+const assertPointFieldValue = (point, fieldName, expectedValue) => {
+  const actualValue = point.fields[fieldName]
+  assert.strictEqual(
+    actualValue,
+    expectedValue,
+   `Expected ${point.name}.fields.${fieldName} to equal ${expectedValue} but found ${actualValue}`
+  )
+}
