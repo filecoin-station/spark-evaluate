@@ -271,16 +271,18 @@ describe('evaluate', () => {
       `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'unique_tasks', '1i')
     assertPointFieldValue(point, 'success_rate', '1')
-    assertPointFieldValue(point, 'participants', '1')
-    assertPointFieldValue(point, 'inet_groups', '1')
+    assertPointFieldValue(point, 'participants', '1i')
+    assertPointFieldValue(point, 'inet_groups', '1i')
+    assertPointFieldValue(point, 'measurements', '1i')
 
     point = telemetry.find(p => p.name === 'retrieval_stats_all')
     assert(!!point,
       `No telemetry point "retrieval_stats_all" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'unique_tasks', '2i')
     assertPointFieldValue(point, 'success_rate', '0.5')
-    assertPointFieldValue(point, 'participants', '2')
-    assertPointFieldValue(point, 'inet_groups', '2')
+    assertPointFieldValue(point, 'participants', '2i')
+    assertPointFieldValue(point, 'inet_groups', '2i')
+    assertPointFieldValue(point, 'measurements', '2i')
   })
 })
 
