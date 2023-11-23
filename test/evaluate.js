@@ -238,6 +238,7 @@ describe('evaluate', () => {
         status_code: 500,
         retrievalResult: 'ERROR_500',
         participantAddress: '0xcheater',
+        inet_group: 'abcd',
         // invalid task
         cid: 'bafyinvalid',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
@@ -271,6 +272,7 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'unique_tasks', '1i')
     assertPointFieldValue(point, 'success_rate', '1')
     assertPointFieldValue(point, 'participants', '1')
+    assertPointFieldValue(point, 'inet_groups', '1')
 
     point = telemetry.find(p => p.name === 'retrieval_stats_all')
     assert(!!point,
@@ -278,6 +280,7 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'unique_tasks', '2i')
     assertPointFieldValue(point, 'success_rate', '0.5')
     assertPointFieldValue(point, 'participants', '2')
+    assertPointFieldValue(point, 'inet_groups', '2')
   })
 })
 
