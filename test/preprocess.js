@@ -152,7 +152,7 @@ describe('calculateRetrievalResult', () => {
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 500
     })
-    assert.strictEqual(result, 'SERVER_ERROR')
+    assert.strictEqual(result, 'ERROR_500')
   })
 
   it('SERVER_ERROR - 503', () => {
@@ -160,7 +160,7 @@ describe('calculateRetrievalResult', () => {
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 503
     })
-    assert.strictEqual(result, 'SERVER_ERROR')
+    assert.strictEqual(result, 'ERROR_503')
   })
 
   it('UNKNOWN_ERROR - missing end_at', () => {

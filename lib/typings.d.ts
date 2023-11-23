@@ -1,5 +1,10 @@
 import { Point } from '@influxdata/influxdb-client'
 
+export {
+  Point
+}
+
+
 /**
  * Details of a retrieval task as returned by SPARK HTTP API.
  */
@@ -36,7 +41,7 @@ export type RetrievalResult =
   | 'CAR_TOO_LARGE'
   | 'BAD_GATEWAY'
   | 'GATEWAY_TIMEOUT'
-  | 'SERVER_ERROR'
+  | 'ERROR_500'
   | 'UNKNOWN_ERROR'
 
 export interface Measurement {
