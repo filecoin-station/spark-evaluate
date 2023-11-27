@@ -28,11 +28,11 @@ if (!roundIndexStr) {
   console.log(USAGE)
   process.exit(1)
 }
-const roundIndex = BigInt(roundIndexStr)
+const roundIndex = Number(roundIndexStr)
 
 // TODO: fetch measurement CIDs from on-chain events
 if (!measurementCids.length) {
-  measurementCids.push(...(await fetchMeasurementsFromChain(roundIndex)))
+  measurementCids.push(...(await fetchMeasurementsFromChain(BigInt(roundIndex))))
 }
 
 if (!measurementCids.length) {
@@ -64,7 +64,7 @@ console.log('==PREPROCESS==')
 const rounds = {}
 for (const cid of measurementCids) {
   await preprocess({
-    roundIndex: +(roundIndex).toString(),
+    roundIndex,
     rounds,
     cid,
     fetchMeasurements,
