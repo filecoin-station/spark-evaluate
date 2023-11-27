@@ -10,7 +10,7 @@ const {
   RPC_URL = 'https://api.node.glif.io/rpc/v0'
 } = process.env
 
-const [nodePath, selfPath, contractAddress, roundIndex, ...measurementCids] = process.argv
+const [nodePath, selfPath, contractAddress, roundIndexStr, ...measurementCids] = process.argv
 
 const USAGE = `
 Usage:
@@ -23,45 +23,20 @@ if (!contractAddress) {
   process.exit(1)
 }
 
-if (!roundIndex) {
+if (!roundIndexStr) {
   console.error('Missing required argument: roundIndex')
   console.log(USAGE)
   process.exit(1)
 }
+const roundIndex = BigInt(roundIndexStr)
 
 // TODO: fetch measurement CIDs from on-chain events
 if (!measurementCids.length) {
-  const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
-  provider.on('debug', console.log)
-  const ieContract = new ethers.Contract(
-    contractAddress,
-    JSON.parse(
-      await readFile(
-        fileURLToPath(new URL('../lib/abi.json', import.meta.url)),
-        'utf8'
-      )
-    ),
-    provider
-  )
+  measurementCids.push(...(await fetchMeasurementsFromChain(roundIndex)))
+}
 
-  console.log('Fetching MeasurementsAdded events from the ledger')
-  // TODO: filter only measurements for the given `roundIndex`
-  // See https://github.com/Meridian-IE/impact-evaluator/issues/57
-  // const filter = ieContract.filters.MeasurementsAdded()
-  const filter = { address: ieContract.address }
-  console.log(filter)
-
-  const logs = await provider.getLogs({ ...filter, fromBlock: -1900 })
-  console.log('logs', logs)
-  const events = await ieContract.queryFilter(
-    filter,
-    // max lookback period allowed by Glif.io, approx 16h40m
-    -1998
-  )
-  console.log('events', events)
-
-  console.error('Missing required argument: measurements CID (at least one is required)')
-  console.log(USAGE)
+if (!measurementCids.length) {
+  console.error('No measurements for round %s were found in smart-contract\'s event log.', roundIndex)
   process.exit(1)
 }
 
@@ -89,7 +64,7 @@ console.log('==PREPROCESS==')
 const rounds = {}
 for (const cid of measurementCids) {
   await preprocess({
-    roundIndex,
+    roundIndex: +(roundIndex).toString(),
     rounds,
     cid,
     fetchMeasurements,
@@ -120,3 +95,93 @@ await evaluate({
   logger: console,
   recordTelemetry
 })
+
+async function fetchMeasurementsFromChain (roundIndex) {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
+  // provider.on('debug', console.log)
+  const ieContract = new ethers.Contract(
+    contractAddress,
+    JSON.parse(
+      await readFile(
+        fileURLToPath(new URL('../lib/abi.json', import.meta.url)),
+        'utf8'
+      )
+    ),
+    provider
+  )
+
+  console.log('Fetching MeasurementsAdded events from the ledger')
+
+  const blockNumber = await provider.getBlockNumber()
+  // console.log('Current block number', blockNumber)
+
+  // TODO: filter only measurements for the given `roundIndex`
+  // See https://github.com/Meridian-IE/impact-evaluator/issues/57
+  const filter = ieContract.filters.MeasurementsAdded()
+  // console.log('filter: ', filter)
+
+  const req = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'eth_getLogs',
+    params: [
+      {
+        ...filter,
+        // max look-back period allowed by Glif.io is 2000 blocks (approx 16h40m)
+        // SPARK round is ~60 minutes, i.e. ~120 blocks
+        fromBlock: ethers.BigNumber.from(blockNumber - 1800).toHexString(),
+        toBlock: 'latest'
+      }
+    ]
+  }
+  // console.log('JSON RPC request: %o', req)
+
+  const res = await fetch(provider.connection.url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(req)
+  })
+
+  if (!res.ok) {
+    console.error('Cannot fetch event log. JSON RPC error %s\n%s', res.status, await res.text())
+    process.exit(1)
+  }
+
+  const body = await res.json()
+  if (body.error) {
+    console.error('Cannot fetch event log. JSON RPC error: %o', body.error)
+    process.exit(1)
+  }
+  // console.log(body.result)
+
+  /** @type {Array<{ cid: string, roundIndex: ethers.BigNumber, sender: string }>} */
+  const events = body.result.map((log) => {
+    const { name, args: { cid, roundIndex, sender } } = ieContract.interface.parseLog(log)
+    if (name !== 'MeasurementsAdded') throw new Error(`Unexpected event name: ${name}`)
+    return { cid, roundIndex, sender }
+  })
+
+  // console.log('events', events.map(({ cid, roundIndex, sender }) => ({ cid, round: roundIndex.toString(), sender })))
+
+  const prev = ethers.BigNumber.from(roundIndex - 1n)
+  const prevFound = events.some(e => e.roundIndex.eq(prev))
+  if (!prevFound) {
+    console.error(
+      'Incomplete round data. No measurements from the previous round %s were found.',
+      prev.toString()
+    )
+    process.exit(1)
+  }
+
+  const next = ethers.BigNumber.from(roundIndex + 1n)
+  const nextFound = events.some(e => e.roundIndex.eq(next))
+  if (!nextFound) {
+    console.error(
+      'Incomplete round data. No measurements from the next round %s were found.',
+      next.toString()
+    )
+    process.exit(1)
+  }
+
+  return events.filter(e => e.roundIndex.eq(roundIndex)).map(e => e.cid)
+}
