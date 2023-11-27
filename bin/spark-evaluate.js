@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/node'
+import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
 import { startEvaluate } from '../index.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
@@ -12,8 +13,6 @@ import { fetchMeasurementsViaClient } from '../lib/preprocess.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
-  IE_CONTRACT_ADDRESS = '0xaaef78eaf86dcf34f275288752e892424dda9341',
-  RPC_URL = 'https://api.node.glif.io/rpc/v0',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN
 } = process.env
