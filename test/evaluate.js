@@ -87,9 +87,9 @@ describe('evaluate', () => {
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     // TODO: assert point fields
 
-    point = telemetry.find(p => p.name === 'retrieval_stats')
+    point = telemetry.find(p => p.name === 'retrieval_stats_honest')
     assert(!!point,
-      `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+      `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'unique_tasks', '1i')
     assertPointFieldValue(point, 'success_rate', '1')
   })
@@ -125,9 +125,9 @@ describe('evaluate', () => {
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     // TODO: assert point fields
 
-    point = telemetry.find(p => p.name === 'retrieval_stats')
+    point = telemetry.find(p => p.name === 'retrieval_stats_honest')
     assert(!!point,
-          `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+          `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'measurements', '0i')
     assertPointFieldValue(point, 'unique_tasks', '0i')
     // no more fields are set for empty rounds
@@ -282,9 +282,9 @@ describe('evaluate', () => {
       logger
     })
 
-    let point = telemetry.find(p => p.name === 'retrieval_stats')
+    let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
     assert(!!point,
-      `No telemetry point "retrieval_stats" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+      `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     debug(point.name, point.fields)
 
     assertPointFieldValue(point, 'unique_tasks', '1i')
