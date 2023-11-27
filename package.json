@@ -14,6 +14,7 @@
     "@sentry/node": "^7.81.1",
     "debug": "^4.3.4",
     "ethers": "^5.7.2",
+    "hdr-histogram-js": "^3.0.0",
     "web3.storage": "^4.5.5"
   },
   "standard": {
