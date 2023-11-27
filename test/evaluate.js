@@ -108,6 +108,10 @@ describe('evaluate', () => {
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assert.strictEqual(point.fields.unique_tasks, '0i')
+
+    assert.strictEqual(point.fields.group_winning_min, '1')
+    assert.strictEqual(point.fields.group_winning_mean, '1')
+    assert.strictEqual(point.fields.group_winning_max, '1')
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
@@ -177,6 +181,14 @@ describe('evaluate', () => {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
+
+    const point = telemetry.find(p => p.name === 'evaluate')
+    assert(!!point,
+      `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assert.strictEqual(point.fields.unique_tasks, '1i')
+    assert.strictEqual(point.fields.group_winning_min, '1')
+    assert.strictEqual(point.fields.group_winning_mean, '1')
+    assert.strictEqual(point.fields.group_winning_max, '1')
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
