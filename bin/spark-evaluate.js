@@ -5,7 +5,6 @@ import assert from 'node:assert'
 import { ethers } from 'ethers'
 import { fileURLToPath } from 'node:url'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
-import { Web3Storage } from 'web3.storage'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurementsTrustless } from '../lib/preprocess.js'
@@ -14,8 +13,7 @@ const {
   SENTRY_ENVIRONMENT = 'development',
   IE_CONTRACT_ADDRESS = '0xaaef78eaf86dcf34f275288752e892424dda9341',
   RPC_URL = 'https://api.node.glif.io/rpc/v0',
-  WALLET_SEED,
-  WEB3_STORAGE_API_TOKEN
+  WALLET_SEED
 } = process.env
 
 Sentry.init({
@@ -26,7 +24,6 @@ Sentry.init({
 })
 
 assert(WALLET_SEED, 'WALLET_SEED required')
-assert(WEB3_STORAGE_API_TOKEN, 'WEB3_STORAGE_API_TOKEN required')
 
 const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
 const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
@@ -46,8 +43,7 @@ const ieContract = new ethers.Contract(
   provider
 )
 const ieContractWithSigner = ieContract.connect(signer)
-const web3Storage = new Web3Storage({ token: WEB3_STORAGE_API_TOKEN })
-const fetchMeasurements = (cid) => fetchMeasurementsTrustless(web3Storage, cid)
+const fetchMeasurements = (cid) => fetchMeasurementsTrustless(cid)
 
 startEvaluate({
   ieContract,

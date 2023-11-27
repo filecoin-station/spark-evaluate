@@ -7,7 +7,7 @@ Evaluate service
 ## Development
 
 ```bash
-$ WALLET_SEED=$(cat secrets/mnemonic) WEB3_STORAGE_API_TOKEN=$(cat secrets/web3storage) npm start
+$ WALLET_SEED=$(cat secrets/mnemonic) npm start
 $ npm test
 ```
 
