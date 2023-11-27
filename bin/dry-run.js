@@ -1,8 +1,8 @@
 import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
-
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurementsViaGateway } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
+import { Point } from '../lib/telemetry.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -45,7 +45,12 @@ if (!measurementCids.length) {
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
-const recordTelemetry = (measurementName, fn) => { /* no-op */ }
+const recordTelemetry = (measurementName, fn) => {
+  const point = new Point(measurementName)
+  fn(point)
+  console.log('TELEMETRY %s %o', measurementName, point.fields)
+}
+
 const fetchMeasurements = async (cid) => {
   const pathOfCachedResponse = path.join(cacheDir, cid + '.json')
   try {
