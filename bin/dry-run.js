@@ -1,5 +1,5 @@
 import { evaluate } from '../lib/evaluate.js'
-import { preprocess, fetchMeasurementsViaGateway } from '../lib/preprocess.js'
+import { preprocess, fetchMeasurementsTrusted } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -43,7 +43,7 @@ const fetchMeasurements = async (cid) => {
     if (err.code !== 'ENOENT') console.warn('Cannot read cached measurements:', err)
   }
 
-  const measurements = await fetchMeasurementsViaGateway(cid)
+  const measurements = await fetchMeasurementsTrusted(cid)
   await writeFile(pathOfCachedResponse, JSON.stringify(measurements))
   return measurements
 }

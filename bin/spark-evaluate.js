@@ -8,7 +8,7 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { Web3Storage } from 'web3.storage'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
-import { fetchMeasurementsViaClient } from '../lib/preprocess.js'
+import { fetchMeasurementsTrustless } from '../lib/preprocess.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -47,7 +47,7 @@ const ieContract = new ethers.Contract(
 )
 const ieContractWithSigner = ieContract.connect(signer)
 const web3Storage = new Web3Storage({ token: WEB3_STORAGE_API_TOKEN })
-const fetchMeasurements = (cid) => fetchMeasurementsViaClient(web3Storage, cid)
+const fetchMeasurements = (cid) => fetchMeasurementsTrustless(web3Storage, cid)
 
 startEvaluate({
   ieContract,
