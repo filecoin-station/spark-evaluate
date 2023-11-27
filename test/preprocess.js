@@ -1,4 +1,4 @@
-import { calculateRetrievalResult, parseParticipantAddress, preprocess } from '../lib/preprocess.js'
+import { getRetrievalResult, parseParticipantAddress, preprocess } from '../lib/preprocess.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 
@@ -87,7 +87,7 @@ describe('preprocess', () => {
   })
 })
 
-describe('calculateRetrievalResult', () => {
+describe('getRetrievalResult', () => {
   /** @type {import('../lib/typings').Measurement} */
   const SUCCESSFUL_RETRIEVAL = {
     id: 11009569,
@@ -109,14 +109,14 @@ describe('calculateRetrievalResult', () => {
   }
 
   it('successful retrieval', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL
     })
     assert.strictEqual(result, 'OK')
   })
 
   it('TIMEOUT', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       timeout: true
     })
@@ -124,7 +124,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('CAR_TOO_LARGE', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       car_too_large: true
     })
@@ -132,7 +132,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('BAD_GATEWAY', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 502
     })
@@ -140,7 +140,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('GATEWAY_TIMEOUT', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 504
     })
@@ -148,7 +148,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('SERVER_ERROR - 500', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 500
     })
@@ -156,7 +156,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('SERVER_ERROR - 503', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 503
     })
@@ -164,7 +164,7 @@ describe('calculateRetrievalResult', () => {
   })
 
   it('UNKNOWN_ERROR - missing end_at', () => {
-    const result = calculateRetrievalResult({
+    const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       end_at: undefined
     })
