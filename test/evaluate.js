@@ -3,6 +3,8 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import createDebug from 'debug'
+import { VALID_MEASUREMENT, VALID_TASK } from './helpers/test-data.js'
+import { assertPointFieldValue } from './helpers/assertions.js'
 
 const { BigNumber } = ethers
 
@@ -17,28 +19,6 @@ const recordTelemetry = (measurementName, fn) => {
   telemetry.push(point)
 }
 beforeEach(() => telemetry.splice(0))
-
-const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
-const VALID_TASK = {
-  cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-  protocol: 'bitswap'
-}
-Object.freeze(VALID_TASK)
-
-const VALID_MEASUREMENT = {
-  cid: VALID_TASK.cid,
-  provider_address: VALID_TASK.providerAddress,
-  protocol: VALID_TASK.protocol,
-  participantAddress: VALID_PARTICIPANT_ADDRESS,
-  inet_group: 'some-group-id',
-  finished_at: '2023-11-01T09:00:00.000Z'
-}
-// Fraud detection is mutating the measurements parsed from JSON
-// To prevent tests from accidentally mutating data used by subsequent tests,
-// we freeze this test data object. If we forget to clone this default measurement
-// then such test will immediately fail.
-Object.freeze(VALID_MEASUREMENT)
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
@@ -75,7 +55,7 @@ describe('evaluate', () => {
     const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '1i')
+    // TODO: assert point fields
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
@@ -104,10 +84,26 @@ describe('evaluate', () => {
       MAX_SCORE
     ])
 
-    const point = telemetry.find(p => p.name === 'evaluate')
+    let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '0i')
+
+    assertPointFieldValue(point, 'group_winning_min', '1')
+    assertPointFieldValue(point, 'group_winning_mean', '1')
+    assertPointFieldValue(point, 'group_winning_max', '1')
+    // TODO: assert point fields
+
+    point = telemetry.find(p => p.name === 'retrieval_stats_honest')
+    assert(!!point,
+          `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'measurements', '0i')
+    assertPointFieldValue(point, 'unique_tasks', '0i')
+    // no more fields are set for empty rounds
+    assert.deepStrictEqual(Object.keys(point.fields), [
+      'round_index',
+      'measurements',
+      'unique_tasks'
+    ])
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
@@ -177,6 +173,13 @@ describe('evaluate', () => {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
+
+    const point = telemetry.find(p => p.name === 'evaluate')
+    assert(!!point,
+      `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'group_winning_min', '1')
+    assertPointFieldValue(point, 'group_winning_mean', '1')
+    assertPointFieldValue(point, 'group_winning_max', '1')
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
@@ -208,6 +211,52 @@ describe('evaluate', () => {
     const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
     assert.strictEqual(sum, MAX_SCORE)
     assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
+  })
+
+  it('reports retrieval stats - honest & all', async () => {
+    const rounds = { 0: [] }
+    for (let i = 0; i < 5; i++) {
+      rounds[0].push({ ...VALID_MEASUREMENT })
+      rounds[0].push({
+        ...VALID_MEASUREMENT,
+        inet_group: 'group3',
+        // invalid task
+        cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
+        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+        protocol: 'bitswap',
+        retrievalResult: 'TIMEOUT'
+      })
+    }
+    const setScoresCalls = []
+    const ieContractWithSigner = {
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
+        return { hash: '0x345' }
+      }
+    }
+    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    await evaluate({
+      rounds,
+      roundIndex: 0,
+      ieContractWithSigner,
+      recordTelemetry,
+      fetchRoundDetails,
+      logger
+    })
+
+    let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
+    assert(!!point,
+      `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'measurements', '1i')
+    assertPointFieldValue(point, 'unique_tasks', '1i')
+    assertPointFieldValue(point, 'success_rate', '1')
+
+    point = telemetry.find(p => p.name === 'retrieval_stats_all')
+    assert(!!point,
+      `No telemetry point "retrieval_stats_all" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
+    assertPointFieldValue(point, 'measurements', '10i')
+    assertPointFieldValue(point, 'unique_tasks', '2i')
+    assertPointFieldValue(point, 'success_rate', '0.5')
   })
 })
 

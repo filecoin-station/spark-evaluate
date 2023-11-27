@@ -1,5 +1,10 @@
 import { Point } from '@influxdata/influxdb-client'
 
+export {
+  Point
+}
+
+
 /**
  * Details of a retrieval task as returned by SPARK HTTP API.
  */
@@ -28,9 +33,21 @@ export type FraudAssesment =
   | 'INVALID_TASK'
   | 'DUP_INET_GROUP'
 
+
+// When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
+export type RetrievalResult =
+  | 'OK'
+  | 'TIMEOUT'
+  | 'CAR_TOO_LARGE'
+  | 'BAD_GATEWAY'
+  | 'GATEWAY_TIMEOUT'
+  | 'ERROR_500'
+  | 'UNKNOWN_ERROR'
+
 export interface Measurement {
   participantAddress: string;
   fraudAssessment?: FraudAssesment;
+  retrievalResult?: RetrievalResult;
 
   cid: string;
   provider_address: string;
@@ -41,6 +58,11 @@ export interface Measurement {
   first_byte_at: string;
   end_at: string;
   finished_at: string;
+
+  status_code: number;
+  timeout: boolean;
+  byte_length: number;
+  car_too_large: boolean;
 }
 
 export interface GroupWinningStats {
