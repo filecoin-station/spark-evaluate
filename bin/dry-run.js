@@ -1,3 +1,5 @@
+import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
+
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurementsViaGateway } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -6,15 +8,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ethers } from 'ethers'
 
-const {
-  RPC_URL = 'https://api.node.glif.io/rpc/v0'
-} = process.env
-
-const [nodePath, selfPath, contractAddress, roundIndexStr, ...measurementCids] = process.argv
+const [nodePath, selfPath, ...args] = process.argv
+if (!args[0].startsWith('0x')) {
+  args.unshift(IE_CONTRACT_ADDRESS)
+}
+const [contractAddress, roundIndexStr, ...measurementCids] = args
 
 const USAGE = `
 Usage:
-  ${nodePath} ${selfPath} <contract-address> <round-index> <measurements-cid-1> [cid2 [cid3...]]
+  ${nodePath} ${selfPath} [contract-address] <round-index> [measurements-cid-1 [cid2 [cid3...]]]
 `
 
 if (!contractAddress) {
