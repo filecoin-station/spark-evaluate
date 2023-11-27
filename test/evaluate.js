@@ -87,18 +87,10 @@ describe('evaluate', () => {
     let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '0i')
-    assert.strictEqual(point.fields.measurements, '0i')
-    // no more fields are set for empty rounds
-    assert.deepStrictEqual(Object.keys(point.fields), [
-      'round_index',
-      'measurements',
-      'unique_tasks'
-    ])
 
-    assert.strictEqual(point.fields.group_winning_min, '1')
-    assert.strictEqual(point.fields.group_winning_mean, '1')
-    assert.strictEqual(point.fields.group_winning_max, '1')
+    assertPointFieldValue(point, 'group_winning_min', '1')
+    assertPointFieldValue(point, 'group_winning_mean', '1')
+    assertPointFieldValue(point, 'group_winning_max', '1')
     // TODO: assert point fields
 
     point = telemetry.find(p => p.name === 'retrieval_stats_honest')
@@ -106,6 +98,12 @@ describe('evaluate', () => {
           `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'measurements', '0i')
     assertPointFieldValue(point, 'unique_tasks', '0i')
+    // no more fields are set for empty rounds
+    assert.deepStrictEqual(Object.keys(point.fields), [
+      'round_index',
+      'measurements',
+      'unique_tasks'
+    ])
   })
   it('handles unknown rounds', async () => {
     const rounds = {}
@@ -179,10 +177,9 @@ describe('evaluate', () => {
     const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assert.strictEqual(point.fields.unique_tasks, '1i')
-    assert.strictEqual(point.fields.group_winning_min, '1')
-    assert.strictEqual(point.fields.group_winning_mean, '1')
-    assert.strictEqual(point.fields.group_winning_max, '1')
+    assertPointFieldValue(point, 'group_winning_min', '1')
+    assertPointFieldValue(point, 'group_winning_mean', '1')
+    assertPointFieldValue(point, 'group_winning_max', '1')
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
