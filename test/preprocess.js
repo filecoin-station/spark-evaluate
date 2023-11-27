@@ -1,13 +1,19 @@
 import { getRetrievalResult, parseParticipantAddress, preprocess } from '../lib/preprocess.js'
+import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
+import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
 
 const debug = createDebug('test')
 
+const telemetry = []
 const recordTelemetry = (measurementName, fn) => {
-  /* no-op */
-  debug('recordTelemetry(%s)', measurementName)
+  const point = new Point(measurementName)
+  fn(point)
+  debug('recordTelemetry(%s): %o', measurementName, point.fields)
+  telemetry.push(point)
 }
+beforeEach(() => telemetry.splice(0))
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
@@ -16,6 +22,7 @@ describe('preprocess', () => {
     const roundIndex = 0
     const measurements = [{
       participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
+      spark_version: '1.2.3',
       inet_group: 'ig1',
       finished_at: '2023-11-01T09:00.00.000Z'
     }]
@@ -30,12 +37,18 @@ describe('preprocess', () => {
     assert.deepStrictEqual(rounds, {
       0: [{
         participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
+        spark_version: '1.2.3',
         inet_group: 'ig1',
         finished_at: '2023-11-01T09:00.00.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
       }]
     })
     assert.deepStrictEqual(getCalls, [cid])
+
+    const point = assertRecordedTelemetryPoint(telemetry, 'spark_versions')
+    assertPointFieldValue(point, 'round_index', '0i')
+    assertPointFieldValue(point, 'v1.2.3', '1i')
+    assertPointFieldValue(point, 'total', '1i')
   })
   it('validates measurements', async () => {
     const rounds = {}
