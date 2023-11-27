@@ -32,7 +32,6 @@ if (!roundIndexStr) {
 }
 const roundIndex = Number(roundIndexStr)
 
-// TODO: fetch measurement CIDs from on-chain events
 if (!measurementCids.length) {
   measurementCids.push(...(await fetchMeasurementsFromChain(BigInt(roundIndex))))
 }
