@@ -3,6 +3,8 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import createDebug from 'debug'
+import { VALID_MEASUREMENT, VALID_TASK } from './helpers/test-data.js'
+import { assertPointFieldValue } from './helpers/assertions.js'
 
 const { BigNumber } = ethers
 
@@ -17,38 +19,6 @@ const recordTelemetry = (measurementName, fn) => {
   telemetry.push(point)
 }
 beforeEach(() => telemetry.splice(0))
-
-const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
-const VALID_TASK = {
-  cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-  protocol: 'bitswap'
-}
-Object.freeze(VALID_TASK)
-
-/** @type {import('../lib/typings').Measurement} */
-const VALID_MEASUREMENT = {
-  cid: VALID_TASK.cid,
-  provider_address: VALID_TASK.providerAddress,
-  protocol: VALID_TASK.protocol,
-  participantAddress: VALID_PARTICIPANT_ADDRESS,
-  inet_group: 'some-group-id',
-  status_code: 200,
-  timeout: false,
-  car_too_large: false,
-  start_at: '2023-11-01T09:00:00.000Z',
-  first_byte_at: '2023-11-01T09:00:01.000Z',
-  end_at: '2023-11-01T09:00:02.000Z',
-  finished_at: '2023-11-01T09:00:10.000Z',
-  byte_length: 1024,
-  retrievalResult: 'OK'
-}
-
-// Fraud detection is mutating the measurements parsed from JSON
-// To prevent tests from accidentally mutating data used by subsequent tests,
-// we freeze this test data object. If we forget to clone this default measurement
-// then such test will immediately fail.
-Object.freeze(VALID_MEASUREMENT)
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
@@ -82,16 +52,10 @@ describe('evaluate', () => {
       BigNumber.from(1_000_000_000_000_000).toString()
     )
 
-    let point = telemetry.find(p => p.name === 'evaluate')
+    const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     // TODO: assert point fields
-
-    point = telemetry.find(p => p.name === 'retrieval_stats_honest')
-    assert(!!point,
-      `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assertPointFieldValue(point, 'unique_tasks', '1i')
-    assertPointFieldValue(point, 'success_rate', '1')
   })
   it('handles empty rounds', async () => {
     const rounds = { 0: [] }
@@ -238,32 +202,20 @@ describe('evaluate', () => {
     assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
   })
 
-  it('reports retrieval stats for honest and for all measurements', async () => {
-    const measurements = [
-      {
-        ...VALID_MEASUREMENT
-      },
-      {
+  it('reports retrieval stats - honest & all', async () => {
+    const rounds = { 0: [] }
+    for (let i = 0; i < 5; i++) {
+      rounds[0].push({ ...VALID_MEASUREMENT })
+      rounds[0].push({
         ...VALID_MEASUREMENT,
-        status_code: 500,
-        retrievalResult: 'ERROR_500',
-        participantAddress: '0xcheater',
-        inet_group: 'abcd',
-        start_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '2023-11-01T09:00:10.000Z',
-        end_at: '2023-11-01T09:00:20.000Z',
-        finished_at: '2023-11-01T09:00:30.000Z',
-        byte_length: 2048,
-
+        inet_group: 'group3',
         // invalid task
-        cid: 'bafyinvalid',
+        cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-        protocol: 'bitswap'
-      }
-    ]
-
-    const rounds = { 0: [...measurements] }
-
+        protocol: 'bitswap',
+        retrievalResult: 'TIMEOUT'
+      })
+    }
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (_, participantAddresses, scores) {
@@ -271,7 +223,6 @@ describe('evaluate', () => {
         return { hash: '0x345' }
       }
     }
-    const logger = { log: debug, error: debug }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
       rounds,
@@ -285,57 +236,16 @@ describe('evaluate', () => {
     let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
     assert(!!point,
       `No telemetry point "retrieval_stats_honest" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    debug(point.name, point.fields)
-
+    assertPointFieldValue(point, 'measurements', '1i')
     assertPointFieldValue(point, 'unique_tasks', '1i')
     assertPointFieldValue(point, 'success_rate', '1')
-    assertPointFieldValue(point, 'participants', '1i')
-    assertPointFieldValue(point, 'inet_groups', '1i')
-    assertPointFieldValue(point, 'measurements', '1i')
-    assertPointFieldValue(point, 'download_bandwidth', '1024i')
-
-    assertPointFieldValue(point, 'result_rate_OK', '1')
-    assertPointFieldValue(point, 'result_rate_TIMEOUT', '0')
-
-    assertPointFieldValue(point, 'ttfb_p10', '1000i')
-    assertPointFieldValue(point, 'ttfb_mean', '1000i')
-    assertPointFieldValue(point, 'ttfb_p90', '1000i')
-
-    assertPointFieldValue(point, 'duration_p10', '2000i')
-    assertPointFieldValue(point, 'duration_mean', '2000i')
-    assertPointFieldValue(point, 'duration_p90', '2000i')
-
-    assertPointFieldValue(point, 'car_size_p10', '1024i')
-    assertPointFieldValue(point, 'car_size_mean', '1024i')
-    assertPointFieldValue(point, 'car_size_p90', '1024i')
 
     point = telemetry.find(p => p.name === 'retrieval_stats_all')
     assert(!!point,
       `No telemetry point "retrieval_stats_all" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    debug(point.name, point.fields)
-
+    assertPointFieldValue(point, 'measurements', '10i')
     assertPointFieldValue(point, 'unique_tasks', '2i')
     assertPointFieldValue(point, 'success_rate', '0.5')
-    assertPointFieldValue(point, 'participants', '2i')
-    assertPointFieldValue(point, 'inet_groups', '2i')
-    assertPointFieldValue(point, 'measurements', '2i')
-    assertPointFieldValue(point, 'download_bandwidth', '3072i')
-
-    assertPointFieldValue(point, 'result_rate_OK', '0.5')
-    assertPointFieldValue(point, 'result_rate_TIMEOUT', '0')
-    assertPointFieldValue(point, 'result_rate_ERROR_500', '0.5')
-
-    assertPointFieldValue(point, 'ttfb_min', '1000i')
-    assertPointFieldValue(point, 'ttfb_mean', '5500i')
-    assertPointFieldValue(point, 'ttfb_p90', '10000i')
-
-    assertPointFieldValue(point, 'duration_p10', '2000i')
-    assertPointFieldValue(point, 'duration_mean', '11000i')
-    assertPointFieldValue(point, 'duration_p90', '20000i')
-
-    assertPointFieldValue(point, 'car_size_p10', '1024i')
-    assertPointFieldValue(point, 'car_size_mean', '1536i')
-    assertPointFieldValue(point, 'car_size_p90', '2048i')
   })
 })
 
@@ -532,12 +442,3 @@ describe('fraud detection', () => {
     })
   })
 })
-
-const assertPointFieldValue = (point, fieldName, expectedValue) => {
-  const actualValue = point.fields[fieldName]
-  assert.strictEqual(
-    actualValue,
-    expectedValue,
-   `Expected ${point.name}.fields.${fieldName} to equal ${expectedValue} but found ${actualValue}`
-  )
-}
