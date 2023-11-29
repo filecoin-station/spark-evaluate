@@ -43,12 +43,11 @@ const ieContract = new ethers.Contract(
   provider
 )
 const ieContractWithSigner = ieContract.connect(signer)
-const fetchMeasurements = (cid) => fetchMeasurementsTrustless(cid)
 
 startEvaluate({
   ieContract,
   ieContractWithSigner,
-  fetchMeasurements,
+  fetchMeasurements: fetchMeasurementsTrustless,
   fetchRoundDetails,
   recordTelemetry,
   logger: console
