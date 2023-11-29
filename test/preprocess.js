@@ -183,4 +183,13 @@ describe('getRetrievalResult', () => {
     })
     assert.strictEqual(result, 'UNKNOWN_ERROR')
   })
+
+  it('UNKNOWN_ERROR - status_code is null', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      timeout: false,
+      status_code: null
+    })
+    assert.strictEqual(result, 'UNKNOWN_ERROR')
+  })
 })

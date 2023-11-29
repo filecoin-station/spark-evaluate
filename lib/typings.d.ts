@@ -59,7 +59,7 @@ export interface Measurement {
   end_at: string;
   finished_at: string;
 
-  status_code: number;
+  status_code: number | undefined | null;
   timeout: boolean;
   byte_length: number;
   car_too_large: boolean;
