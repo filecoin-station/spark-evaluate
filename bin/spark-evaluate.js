@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
-import { fetchMeasurementsTrustless } from '../lib/preprocess.js'
+import { fetchMeasurements } from '../lib/preprocess.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -47,7 +47,7 @@ const ieContractWithSigner = ieContract.connect(signer)
 startEvaluate({
   ieContract,
   ieContractWithSigner,
-  fetchMeasurements: fetchMeasurementsTrustless,
+  fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
   logger: console

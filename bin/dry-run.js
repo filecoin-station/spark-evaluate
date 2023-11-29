@@ -1,5 +1,5 @@
 import { evaluate } from '../lib/evaluate.js'
-import { preprocess, fetchMeasurementsTrustless } from '../lib/preprocess.js'
+import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -35,7 +35,7 @@ const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
 const recordTelemetry = (measurementName, fn) => { /* no-op */ }
-const fetchMeasurements = async (cid) => {
+const fetchMeasurementsWithCache = async (cid) => {
   const pathOfCachedResponse = path.join(cacheDir, cid + '.json')
   try {
     return JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
@@ -43,7 +43,7 @@ const fetchMeasurements = async (cid) => {
     if (err.code !== 'ENOENT') console.warn('Cannot read cached measurements:', err)
   }
 
-  const measurements = await fetchMeasurementsTrustless(cid)
+  const measurements = await fetchMeasurements(cid)
   await writeFile(pathOfCachedResponse, JSON.stringify(measurements))
   return measurements
 }
@@ -58,7 +58,7 @@ for (const cid of measurementCids) {
     roundIndex,
     rounds,
     cid,
-    fetchMeasurements,
+    fetchMeasurements: fetchMeasurementsWithCache,
     recordTelemetry,
     logger: console
   })
