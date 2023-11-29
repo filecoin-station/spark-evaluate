@@ -11,11 +11,14 @@
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
     "@influxdata/influxdb-client": "^1.33.2",
+    "@ipld/car": "^5.2.4",
     "@sentry/node": "^7.83.0",
+    "@web3-storage/car-block-validator": "^1.2.0",
     "debug": "^4.3.4",
     "ethers": "^5.7.2",
     "hdr-histogram-js": "^3.0.0",
-    "web3.storage": "^4.5.5"
+    "ipfs-car": "^1.0.0",
+    "ipfs-unixfs-exporter": "^13.2.2"
   },
   "standard": {
     "env": [

@@ -1,6 +1,6 @@
 import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
-import { preprocess, fetchMeasurementsViaGateway } from '../lib/preprocess.js'
+import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import { Point } from '../lib/telemetry.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
@@ -50,7 +50,7 @@ const recordTelemetry = (measurementName, fn) => {
   console.log('TELEMETRY %s %o', measurementName, point.fields)
 }
 
-const fetchMeasurements = async (cid) => {
+const fetchMeasurementsWithCache = async (cid) => {
   const pathOfCachedResponse = path.join(cacheDir, cid + '.json')
   try {
     return JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
@@ -58,7 +58,7 @@ const fetchMeasurements = async (cid) => {
     if (err.code !== 'ENOENT') console.warn('Cannot read cached measurements:', err)
   }
 
-  const measurements = await fetchMeasurementsViaGateway(cid)
+  const measurements = await fetchMeasurements(cid)
   await writeFile(pathOfCachedResponse, JSON.stringify(measurements))
   return measurements
 }
@@ -73,7 +73,7 @@ for (const cid of measurementCids) {
     roundIndex,
     rounds,
     cid,
-    fetchMeasurements,
+    fetchMeasurements: fetchMeasurementsWithCache,
     recordTelemetry,
     logger: console
   })
