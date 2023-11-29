@@ -11,7 +11,7 @@
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
     "@influxdata/influxdb-client": "^1.33.2",
-    "@sentry/node": "^7.82.0",
+    "@sentry/node": "^7.83.0",
     "debug": "^4.3.4",
     "ethers": "^5.7.2",
     "hdr-histogram-js": "^3.0.0",
