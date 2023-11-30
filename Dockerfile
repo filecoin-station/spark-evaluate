@@ -11,8 +11,8 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production
-# 3072MB available memory - 100MB for anything else
-ENV NODE_OPTIONS="--max-old-space-size=2972"
+# 4096MB available memory - 200MB for anything else
+ENV NODE_OPTIONS="--max-old-space-size=3896"
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
