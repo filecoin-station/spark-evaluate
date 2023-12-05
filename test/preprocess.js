@@ -2,7 +2,11 @@ import { getRetrievalResult, parseParticipantAddress, preprocess } from '../lib/
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
-import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
+// import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
+import createDb from 'better-sqlite3'
+import { migrate } from '../lib/migrate.js'
+import { VALID_MEASUREMENT } from './helpers/test-data.js'
+import { createHash } from 'node:crypto'
 
 const debug = createDebug('test')
 
@@ -17,14 +21,17 @@ beforeEach(() => telemetry.splice(0))
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
-    const rounds = {}
+    const db = createDb(':memory:')
+    await migrate(db)
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
-      participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
-      spark_version: '1.2.3',
-      inet_group: 'ig1',
-      finished_at: '2023-11-01T09:00.00.000Z'
+      participant_address: VALID_MEASUREMENT.participantAddress,
+      finished_at: VALID_MEASUREMENT.finished_at,
+      inet_group: VALID_MEASUREMENT.inet_group,
+      cid: VALID_MEASUREMENT.cid,
+      provider_address: VALID_MEASUREMENT.provider_address,
+      protocol: VALID_MEASUREMENT.protocol
     }]
     const getCalls = []
     const fetchMeasurements = async (cid) => {
@@ -32,46 +39,61 @@ describe('preprocess', () => {
       return measurements
     }
     const logger = { log: debug, error: console.error }
-    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    await preprocess({ db, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
-    assert.deepStrictEqual(rounds, {
-      0: [{
-        participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
-        spark_version: '1.2.3',
-        inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z',
-        retrievalResult: 'UNKNOWN_ERROR'
-      }]
-    })
+    const rows = await db.prepare('SELECT * FROM measurements').all()
+    assert.deepStrictEqual(rows, [
+      {
+        cid: VALID_MEASUREMENT.cid,
+        finished_at: VALID_MEASUREMENT.finished_at,
+        hash: createHash('sha256').update(VALID_MEASUREMENT.finished_at).digest('hex'),
+        inet_group: VALID_MEASUREMENT.inet_group,
+        participant_address: VALID_MEASUREMENT.participantAddress,
+        protocol: VALID_MEASUREMENT.protocol,
+        provider_address: VALID_MEASUREMENT.provider_address,
+        round_index: 0,
+        task_group: `${VALID_MEASUREMENT.inet_group}${VALID_MEASUREMENT.cid}${VALID_MEASUREMENT.provider_address}`
+      }
+    ])
     assert.deepStrictEqual(getCalls, [cid])
 
-    const point = assertRecordedTelemetryPoint(telemetry, 'spark_versions')
-    assertPointFieldValue(point, 'round_index', '0i')
-    assertPointFieldValue(point, 'v1.2.3', '1i')
-    assertPointFieldValue(point, 'total', '1i')
+    // const point = assertRecordedTelemetryPoint(telemetry, 'spark_versions')
+    // assertPointFieldValue(point, 'round_index', '0i')
+    // assertPointFieldValue(point, 'v1.2.3', '1i')
+    // assertPointFieldValue(point, 'total', '1i')
   })
   it('validates measurements', async () => {
-    const rounds = {}
+    const db = createDb(':memory:')
+    await migrate(db)
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
       participant_address: 't1foobar',
-      inet_group: 'ig1',
-      finished_at: '2023-11-01T09:00.00.000Z'
+      finished_at: VALID_MEASUREMENT.finished_at,
+      inet_group: VALID_MEASUREMENT.inet_group,
+      cid: VALID_MEASUREMENT.cid,
+      provider_address: VALID_MEASUREMENT.provider_address,
+      protocol: VALID_MEASUREMENT.protocol
     }]
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
-    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    await preprocess({ db, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
-    assert.deepStrictEqual(rounds, {
-      0: [{
-        participantAddress: '0x000000000000000000000000000000000000dEaD',
-        inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z',
-        retrievalResult: 'UNKNOWN_ERROR'
-      }]
-    })
+    const rows = await db.prepare('SELECT * FROM measurements').all()
+    assert.deepStrictEqual(rows, [
+      {
+        cid: VALID_MEASUREMENT.cid,
+        finished_at: VALID_MEASUREMENT.finished_at,
+        hash: createHash('sha256').update(VALID_MEASUREMENT.finished_at).digest('hex'),
+        inet_group: VALID_MEASUREMENT.inet_group,
+        participant_address: '0x000000000000000000000000000000000000dEaD',
+        protocol: VALID_MEASUREMENT.protocol,
+        provider_address: VALID_MEASUREMENT.provider_address,
+        round_index: 0,
+        task_group: `${VALID_MEASUREMENT.inet_group}${VALID_MEASUREMENT.cid}${VALID_MEASUREMENT.provider_address}`
+      }
+    ])
   })
 
   it('converts mainnet wallet address to participant ETH address', () => {

@@ -8,9 +8,9 @@ export const startEvaluate = ({
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
-  logger
+  logger,
+  db
 }) => {
-  const rounds = {}
   const cidsSeen = []
   const roundsSeen = []
 
@@ -24,7 +24,7 @@ export const startEvaluate = ({
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
     preprocess({
-      rounds,
+      db,
       cid,
       roundIndex,
       fetchMeasurements,
@@ -57,7 +57,7 @@ export const startEvaluate = ({
     console.log('Event: RoundStart', { roundIndex })
     // Evaluate previous round
     evaluate({
-      rounds,
+      db,
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
       fetchRoundDetails,

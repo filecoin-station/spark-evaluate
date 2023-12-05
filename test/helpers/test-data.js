@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 
 export const VALID_TASK = {
@@ -25,8 +27,26 @@ export const VALID_MEASUREMENT = {
   retrievalResult: 'OK'
 }
 
-// Fraud detection is mutating the measurements parsed from JSON
-// To prevent tests from accidentally mutating data used by subsequent tests,
-// we freeze this test data object. If we forget to clone this default measurement
-// then such test will immediately fail.
-Object.freeze(VALID_MEASUREMENT)
+export const insertMeasurement = async (
+  db,
+  measurement,
+  { randomizeFinishedAt = true } = {}
+) => {
+  const finishedAt = randomizeFinishedAt
+    ? new Date(
+      new Date() - Math.round(Math.random() * 10000)
+    ).toISOString()
+    : measurement.finished_at
+  const insert = db.prepare(`
+    INSERT into measurements
+    (round_index, inet_group, finished_at, hash, participant_address, cid, provider_address, protocol)
+    VALUES
+    (@roundIndex, @inet_group, @finished_at, @hash, @participantAddress, @cid, @provider_address, @protocol)
+  `)
+  await insert.run({
+    ...measurement,
+    roundIndex: 0,
+    finished_at: finishedAt,
+    hash: createHash('sha256').update(finishedAt).digest('hex')
+  })
+}

@@ -14,6 +14,7 @@
     "@ipld/car": "^5.2.4",
     "@sentry/node": "^7.84.0",
     "@web3-storage/car-block-validator": "^1.2.0",
+    "better-sqlite3": "^9.2.0",
     "debug": "^4.3.4",
     "ethers": "^5.7.2",
     "hdr-histogram-js": "^3.0.0",

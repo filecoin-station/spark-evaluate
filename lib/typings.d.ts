@@ -71,6 +71,12 @@ export interface GroupWinningStats {
   mean: number;
 }
 
-export interface FraudDetectionStats {
-  groupWinning: GroupWinningStats
+export interface FraudAssessmentCounts {
+  OK: number;
+  INVALID_TASK: number;
+  DUP_INET_GROUP: number;
+}
+
+export interface fraudDetectionResults {
+  [participantAddress: string]: FraudAssessmentCounts
 }

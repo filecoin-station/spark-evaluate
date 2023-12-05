@@ -9,6 +9,8 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
+import createDb from 'better-sqlite3'
+import { migrate } from '../lib/migrate.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -42,6 +44,8 @@ const ieContract = new ethers.Contract(
   provider
 )
 const ieContractWithSigner = ieContract.connect(signer)
+const db = createDb('/tmp/db.sqlite')
+await migrate(db)
 
 startEvaluate({
   ieContract,
@@ -49,5 +53,6 @@ startEvaluate({
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
-  logger: console
+  logger: console,
+  db
 })
