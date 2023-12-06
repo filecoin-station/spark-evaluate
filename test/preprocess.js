@@ -33,6 +33,7 @@ describe('preprocess', () => {
     }
     const logger = { log: debug, error: console.error }
     await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    stripStringsLookupTable(rounds)
 
     assert.deepStrictEqual(rounds, {
       0: [new Measurement({
@@ -62,6 +63,8 @@ describe('preprocess', () => {
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
     await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    stripStringsLookupTable(rounds)
+
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
@@ -99,6 +102,10 @@ describe('preprocess', () => {
     assert.strictEqual(converted, '0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
   })
 })
+
+const stripStringsLookupTable = (rounds) => {
+  for (const r of Object.values(rounds)) delete r._strings
+}
 
 describe('getRetrievalResult', () => {
   /** @type {import('../lib/typings').Measurement} */
