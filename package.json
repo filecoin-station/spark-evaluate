@@ -18,7 +18,8 @@
     "ethers": "^5.7.2",
     "hdr-histogram-js": "^3.0.0",
     "ipfs-car": "^1.0.0",
-    "ipfs-unixfs-exporter": "^13.2.2"
+    "ipfs-unixfs-exporter": "^13.2.2",
+    "split2": "^4.2.0"
   },
   "standard": {
     "env": [

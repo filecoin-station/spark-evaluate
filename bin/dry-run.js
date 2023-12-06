@@ -71,7 +71,6 @@ const rounds = {}
 for (const cid of measurementCids) {
   await preprocess({
     roundIndex,
-    rounds,
     cid,
     fetchMeasurements: fetchMeasurementsWithCache,
     recordTelemetry,
