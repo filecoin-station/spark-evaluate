@@ -24,7 +24,10 @@ describe('preprocess', () => {
       participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
       spark_version: '1.2.3',
       inet_group: 'ig1',
-      finished_at: '2023-11-01T09:00.00.000Z'
+      finished_at: '2023-11-01T09:00:00.000Z',
+      first_byte_at: '2023-11-01T09:00:01.000Z',
+      start_at: '2023-11-01T09:00:02.000Z',
+      end_at: '2023-11-01T09:00:03.000Z'
     }]
     const getCalls = []
     const fetchMeasurements = async (cid) => {
@@ -39,7 +42,10 @@ describe('preprocess', () => {
         participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
         spark_version: '1.2.3',
         inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z',
+        finished_at: '2023-11-01T09:00:00.000Z',
+        first_byte_at: '2023-11-01T09:00:01.000Z',
+        start_at: '2023-11-01T09:00:02.000Z',
+        end_at: '2023-11-01T09:00:03.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
       })]
     })
@@ -57,7 +63,10 @@ describe('preprocess', () => {
     const measurements = [{
       participant_address: 't1foobar',
       inet_group: 'ig1',
-      finished_at: '2023-11-01T09:00.00.000Z'
+      finished_at: '2023-11-01T09:00:00.000Z',
+      first_byte_at: '2023-11-01T09:00:01.000Z',
+      start_at: '2023-11-01T09:00:02.000Z',
+      end_at: '2023-11-01T09:00:03.000Z'
     }]
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
@@ -68,7 +77,10 @@ describe('preprocess', () => {
       0: [new Measurement({
         participant_address: '0x000000000000000000000000000000000000dEaD',
         inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00.00.000Z',
+        finished_at: '2023-11-01T09:00:00.000Z',
+        first_byte_at: '2023-11-01T09:00:01.000Z',
+        start_at: '2023-11-01T09:00:02.000Z',
+        end_at: '2023-11-01T09:00:03.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
       })]
     })
