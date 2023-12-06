@@ -1,4 +1,4 @@
-import { getRetrievalResult, parseParticipantAddress, preprocess } from '../lib/preprocess.js'
+import { getRetrievalResult, parseParticipantAddress, preprocess, Measurement } from '../lib/preprocess.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
@@ -35,13 +35,13 @@ describe('preprocess', () => {
     await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
     assert.deepStrictEqual(rounds, {
-      0: [{
-        participantAddress: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
+      0: [new Measurement({
+        participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
         spark_version: '1.2.3',
         inet_group: 'ig1',
         finished_at: '2023-11-01T09:00.00.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
-      }]
+      })]
     })
     assert.deepStrictEqual(getCalls, [cid])
 
@@ -65,12 +65,12 @@ describe('preprocess', () => {
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
     assert.deepStrictEqual(rounds, {
-      0: [{
-        participantAddress: '0x000000000000000000000000000000000000dEaD',
+      0: [new Measurement({
+        participant_address: '0x000000000000000000000000000000000000dEaD',
         inet_group: 'ig1',
         finished_at: '2023-11-01T09:00.00.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
-      }]
+      })]
     })
   })
 
