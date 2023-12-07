@@ -17,10 +17,10 @@ export const VALID_MEASUREMENT = {
   status_code: 200,
   timeout: false,
   car_too_large: false,
-  start_at: '2023-11-01T09:00:00.000Z',
-  first_byte_at: '2023-11-01T09:00:01.000Z',
-  end_at: '2023-11-01T09:00:02.000Z',
-  finished_at: '2023-11-01T09:00:10.000Z',
+  start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
+  first_byte_at: new Date('2023-11-01T09:00:01.000Z').getTime(),
+  end_at: new Date('2023-11-01T09:00:02.000Z').getTime(),
+  finished_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
   byte_length: 1024,
   retrievalResult: 'OK'
 }

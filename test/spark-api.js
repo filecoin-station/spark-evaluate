@@ -4,7 +4,8 @@ import { fetchRoundDetails } from '../lib/spark-api.js'
 const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 
 describe('spark-api client', () => {
-  it('fetches round details', async () => {
+  it('fetches round details', async function () {
+    this.timeout(10_000)
     const { retrievalTasks, ...details } = await fetchRoundDetails(
       '0xaaef78eaf86dcf34f275288752e892424dda9341',
       407,
