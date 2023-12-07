@@ -46,20 +46,19 @@ export type RetrievalResult =
   | 'ERROR_500'
   | 'UNKNOWN_ERROR'
 
-export interface Measurement {
-  participantAddress: string;
-  fraudAssessment?: FraudAssesment;
-  retrievalResult?: RetrievalResult;
+// Data coming from spark-api and spark-publish
+export interface RawMeasurement {
+  participant_address: string;
 
   cid: string;
   provider_address: string;
   protocol: string;
   inet_group: string;
 
-  start_at: number;
-  first_byte_at: number;
-  end_at: number;
-  finished_at: number;
+  start_at: string;
+  first_byte_at: string;
+  end_at: string;
+  finished_at: string;
 
   status_code: number | undefined | null;
   timeout: boolean;
