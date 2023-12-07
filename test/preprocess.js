@@ -37,8 +37,9 @@ describe('preprocess', () => {
     const logger = { log: debug, error: console.error }
     await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
-    assert.deepStrictEqual(rounds, {
-      0: [new Measurement({
+    assert.deepStrictEqual(Object.keys(rounds), ['0'])
+    assert.deepStrictEqual(rounds[0].measurements, [
+      new Measurement({
         participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
         spark_version: '1.2.3',
         inet_group: 'ig1',
@@ -47,8 +48,8 @@ describe('preprocess', () => {
         start_at: '2023-11-01T09:00:02.000Z',
         end_at: '2023-11-01T09:00:03.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
-      })]
-    })
+      })
+    ])
     assert.deepStrictEqual(getCalls, [cid])
 
     const point = assertRecordedTelemetryPoint(telemetry, 'spark_versions')
@@ -71,10 +72,12 @@ describe('preprocess', () => {
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
     await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+
+    assert.deepStrictEqual(Object.keys(rounds), ['0'])
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
-    assert.deepStrictEqual(rounds, {
-      0: [new Measurement({
+    assert.deepStrictEqual(rounds[0].measurements, [
+      new Measurement({
         participant_address: '0x000000000000000000000000000000000000dEaD',
         inet_group: 'ig1',
         finished_at: '2023-11-01T09:00:00.000Z',
@@ -82,8 +85,8 @@ describe('preprocess', () => {
         start_at: '2023-11-01T09:00:02.000Z',
         end_at: '2023-11-01T09:00:03.000Z',
         retrievalResult: 'UNKNOWN_ERROR'
-      })]
-    })
+      })
+    ])
   })
 
   it('converts mainnet wallet address to participant ETH address', () => {

@@ -79,7 +79,7 @@ for (const cid of measurementCids) {
   })
 }
 
-console.log('Fetched %s measurements', rounds[roundIndex].length)
+console.log('Fetched %s measurements', rounds[roundIndex].measurements.length)
 
 console.log('==EVALUATE==')
 const ieContractWithSigner = {

@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 import createDebug from 'debug'
 import { VALID_MEASUREMENT, VALID_TASK } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
+import { RoundData } from '../lib/round.js'
 
 const { BigNumber } = ethers
 
@@ -22,9 +23,9 @@ beforeEach(() => telemetry.splice(0))
 
 describe('evaluate', () => {
   it('evaluates measurements', async () => {
-    const rounds = { 0: [] }
+    const rounds = { 0: new RoundData() }
     for (let i = 0; i < 10; i++) {
-      rounds[0].push({ ...VALID_MEASUREMENT })
+      rounds[0].measurements.push({ ...VALID_MEASUREMENT })
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
@@ -58,7 +59,7 @@ describe('evaluate', () => {
     // TODO: assert point fields
   })
   it('handles empty rounds', async () => {
-    const rounds = { 0: [] }
+    const rounds = { 0: new RoundData() }
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -133,11 +134,11 @@ describe('evaluate', () => {
     ])
   })
   it('calculates reward shares', async () => {
-    const rounds = { 0: [] }
+    const rounds = { 0: new RoundData() }
     for (let i = 0; i < 5; i++) {
-      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
-      rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
-      rounds[0].push({
+      rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
+      rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
+      rounds[0].measurements.push({
         ...VALID_MEASUREMENT,
         inet_group: 'group3',
         // invalid task
@@ -183,10 +184,10 @@ describe('evaluate', () => {
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
-    const rounds = { 0: [] }
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
-    rounds[0].push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
+    const rounds = { 0: new RoundData() }
+    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
+    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
+    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
     const setScoresCalls = []
     const ieContractWithSigner = {
@@ -214,10 +215,10 @@ describe('evaluate', () => {
   })
 
   it('reports retrieval stats - honest & all', async () => {
-    const rounds = { 0: [] }
+    const rounds = { 0: new RoundData() }
     for (let i = 0; i < 5; i++) {
-      rounds[0].push({ ...VALID_MEASUREMENT })
-      rounds[0].push({
+      rounds[0].measurements.push({ ...VALID_MEASUREMENT })
+      rounds[0].measurements.push({
         ...VALID_MEASUREMENT,
         inet_group: 'group3',
         // invalid task
