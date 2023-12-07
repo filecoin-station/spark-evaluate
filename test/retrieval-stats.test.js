@@ -58,7 +58,7 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'success_rate', '0.25')
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
-    assertPointFieldValue(point, 'download_bandwidth', '209720320i')
+    assertPointFieldValue(point, 'download_bandwidth', '209718272i')
 
     assertPointFieldValue(point, 'result_rate_OK', '0.25')
     assertPointFieldValue(point, 'result_rate_TIMEOUT', '0.25')
@@ -73,9 +73,9 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'duration_mean', '18500i')
     assertPointFieldValue(point, 'duration_p90', '41000i')
 
-    assertPointFieldValue(point, 'car_size_p10', '1331i')
-    assertPointFieldValue(point, 'car_size_mean', '52430080i')
-    assertPointFieldValue(point, 'car_size_p90', '146801254i')
+    assertPointFieldValue(point, 'car_size_p10', '1228i')
+    assertPointFieldValue(point, 'car_size_mean', '69906090i')
+    assertPointFieldValue(point, 'car_size_p90', '167772569i')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
