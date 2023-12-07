@@ -1,6 +1,7 @@
+import assert from 'node:assert'
 import createDebug from 'debug'
 import { Point } from '../lib/telemetry.js'
-import { buildRetrievalStats } from '../lib/retrieval-stats.js'
+import { buildRetrievalStats, getValueAtPercentile } from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
 
@@ -66,15 +67,15 @@ describe('retrieval statistics', () => {
 
     assertPointFieldValue(point, 'ttfb_min', '1000i')
     assertPointFieldValue(point, 'ttfb_mean', '4000i')
-    assertPointFieldValue(point, 'ttfb_p90', '10000i')
+    assertPointFieldValue(point, 'ttfb_p90', '8199i')
 
     assertPointFieldValue(point, 'duration_p10', '2000i')
     assertPointFieldValue(point, 'duration_mean', '18500i')
-    assertPointFieldValue(point, 'duration_p90', '50000i')
+    assertPointFieldValue(point, 'duration_p90', '41000i')
 
-    assertPointFieldValue(point, 'car_size_p10', '1024i')
+    assertPointFieldValue(point, 'car_size_p10', '1331i')
     assertPointFieldValue(point, 'car_size_mean', '52430080i')
-    assertPointFieldValue(point, 'car_size_p90', '209715200i')
+    assertPointFieldValue(point, 'car_size_p90', '146801254i')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
@@ -107,5 +108,14 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'duration_p10', undefined)
     assertPointFieldValue(point, 'duration_mean', undefined)
     assertPointFieldValue(point, 'duration_p90', undefined)
+  })
+})
+
+describe('getValueAtPercentile', () => {
+  it('interpolates the values', () => {
+    assert.strictEqual(
+      getValueAtPercentile([10, 20, 30], 90),
+      28
+    )
   })
 })
