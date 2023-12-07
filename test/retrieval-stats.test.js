@@ -1,6 +1,7 @@
+import assert from 'node:assert'
 import createDebug from 'debug'
 import { Point } from '../lib/telemetry.js'
-import { buildRetrievalStats } from '../lib/retrieval-stats.js'
+import { buildRetrievalStats, getValueAtPercentile } from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
 
@@ -107,5 +108,14 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'duration_p10', undefined)
     assertPointFieldValue(point, 'duration_mean', undefined)
     assertPointFieldValue(point, 'duration_p90', undefined)
+  })
+})
+
+describe('getValueAtPercentile', () => {
+  it('interpolates the values', () => {
+    assert.strictEqual(
+      getValueAtPercentile([10, 20, 30], 90),
+      28
+    )
   })
 })
