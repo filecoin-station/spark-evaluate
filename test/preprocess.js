@@ -1,4 +1,4 @@
-import { getRetrievalResult, parseParticipantAddress, preprocess, Measurement } from '../lib/preprocess.js'
+import { getRetrievalResult, parseParticipantAddress, preprocess, Measurement, parseMeasurements } from '../lib/preprocess.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
@@ -109,6 +109,22 @@ describe('preprocess', () => {
   it('accepts ETH 0x address', () => {
     const converted = parseParticipantAddress('0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
     assert.strictEqual(converted, '0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
+  })
+})
+
+describe('parseMeasurements', () => {
+  const measurements = [{ foo: 'bar' }, { beep: 'boop' }]
+  it('parses a JSON array', () => {
+    assert.deepStrictEqual(
+      parseMeasurements(JSON.stringify(measurements)),
+      measurements
+    )
+  })
+  it('parses NDJSON', () => {
+    assert.deepStrictEqual(
+      parseMeasurements(measurements.map(m => JSON.stringify(m)).join('\n')),
+      measurements
+    )
   })
 })
 
