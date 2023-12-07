@@ -101,6 +101,8 @@ await evaluate({
   recordTelemetry
 })
 
+console.log(process.memoryUsage())
+
 async function fetchMeasurementsFromChain (roundIndex) {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
   // provider.on('debug', console.log)

@@ -54,10 +54,10 @@ export interface Measurement {
   protocol: string;
   inet_group: string;
 
-  start_at: string;
-  first_byte_at: string;
-  end_at: string;
-  finished_at: string;
+  start_at: number;
+  first_byte_at: number;
+  end_at: number;
+  finished_at: number;
 
   status_code: number | undefined | null;
   timeout: boolean;

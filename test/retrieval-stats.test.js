@@ -17,10 +17,10 @@ describe('retrieval statistics', () => {
         timeout: true,
         retrievalResult: 'TIMEOUT',
 
-        start_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '2023-11-01T09:00:10.000Z',
-        end_at: '2023-11-01T09:00:50.000Z',
-        finished_at: '2023-11-01T09:00:30.000Z',
+        start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
+        first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
+        end_at: new Date('2023-11-01T09:00:50.000Z').getTime(),
+        finished_at: new Date('2023-11-01T09:00:30.000Z').getTime(),
         byte_length: 2048
       },
       {
@@ -35,10 +35,10 @@ describe('retrieval statistics', () => {
         retrievalResult: 'ERROR_500',
         participantAddress: '0xcheater',
         inet_group: 'abcd',
-        start_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '2023-11-01T09:00:10.000Z',
-        end_at: '2023-11-01T09:00:20.000Z',
-        finished_at: '2023-11-01T09:00:30.000Z',
+        start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
+        first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
+        end_at: new Date('2023-11-01T09:00:20.000Z').getTime(),
+        finished_at: new Date('2023-11-01T09:00:30.000Z').getTime(),
         byte_length: 2048,
 
         // invalid task
@@ -81,8 +81,8 @@ describe('retrieval statistics', () => {
     const measurements = [
       {
         ...VALID_MEASUREMENT,
-        start_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '1970-01-01T00:00:00.000Z'
+        start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
+        first_byte_at: new Date('1970-01-01T00:00:00.000Z').getTime()
       }
     ]
     const point = new Point('stats')
@@ -97,8 +97,8 @@ describe('retrieval statistics', () => {
     const measurements = [
       {
         ...VALID_MEASUREMENT,
-        start_at: '2023-11-01T09:00:00.000Z',
-        end_at: '1970-01-01T00:00:00.000Z'
+        start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
+        end_at: new Date('1970-01-01T00:00:00.000Z').getTime()
       }
     ]
     const point = new Point('stats')
