@@ -1,7 +1,11 @@
 import assert from 'node:assert'
 import createDebug from 'debug'
 import { Point } from '../lib/telemetry.js'
-import { buildRetrievalStats, getValueAtPercentile } from '../lib/retrieval-stats.js'
+import {
+  buildRetrievalStats,
+  getValueAtPercentile,
+  recordSubnetsPerTask
+} from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
 
@@ -119,5 +123,46 @@ describe('getValueAtPercentile', () => {
       getValueAtPercentile([10, 20, 30], 90),
       28
     )
+  })
+})
+
+describe('recordSubnetsPerTasks', () => {
+  it('reports unique subnets', async () => {
+    const measurements = [
+      // task 1
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig1'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        participantAddress: '0xanother',
+        inet_group: 'ig1'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig2'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig3'
+      },
+
+      // task 2
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'bafyanother'
+      }
+
+    ]
+
+    const point = new Point('subnets_per_task')
+    recordSubnetsPerTask(measurements, point)
+    debug(point.name, point.fields)
+
+    assertPointFieldValue(point, 'min', '1i')
+    assertPointFieldValue(point, 'mean', '2i') // (4+1)/2 rounded down
+    assertPointFieldValue(point, 'p50', '2i') // (4+1)/2 rounded down
+    assertPointFieldValue(point, 'max', '3i')
   })
 })
