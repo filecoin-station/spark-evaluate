@@ -37,7 +37,7 @@ describe('retrieval statistics', () => {
         participantAddress: '0xcheater',
         inet_group: 'abcd',
         start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
-        first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
+        first_byte_at: new Date('2023-11-01T09:10:10.000Z').getTime(),
         end_at: new Date('2023-11-01T09:00:20.000Z').getTime(),
         finished_at: new Date('2023-11-01T09:00:30.000Z').getTime(),
         byte_length: 2048,
@@ -68,6 +68,7 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'ttfb_min', '1000i')
     assertPointFieldValue(point, 'ttfb_mean', '4000i')
     assertPointFieldValue(point, 'ttfb_p90', '8199i')
+    assertPointFieldValue(point, 'ttfb_max', '10000i')
 
     assertPointFieldValue(point, 'duration_p10', '2000i')
     assertPointFieldValue(point, 'duration_mean', '18500i')
@@ -76,6 +77,7 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'car_size_p10', '1228i')
     assertPointFieldValue(point, 'car_size_mean', '69906090i')
     assertPointFieldValue(point, 'car_size_p90', '167772569i')
+    assertPointFieldValue(point, 'car_size_max', '209715200i')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
