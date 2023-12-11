@@ -137,6 +137,7 @@ describe('recordSubnetsPerTasks', () => {
       {
         ...VALID_MEASUREMENT,
         participantAddress: '0xanother',
+        // duplicate measurement in the same subnet, should be ignored
         inet_group: 'ig1'
       },
       {
@@ -161,8 +162,8 @@ describe('recordSubnetsPerTasks', () => {
     debug(point.name, point.fields)
 
     assertPointFieldValue(point, 'min', '1i')
-    assertPointFieldValue(point, 'mean', '2i') // (4+1)/2 rounded down
-    assertPointFieldValue(point, 'p50', '2i') // (4+1)/2 rounded down
+    assertPointFieldValue(point, 'mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'p50', '2i') // (3+1)/2 rounded down
     assertPointFieldValue(point, 'max', '3i')
   })
 })
