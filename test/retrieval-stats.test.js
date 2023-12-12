@@ -248,4 +248,36 @@ describe('recordCommitteeSizes', () => {
     assertPointFieldValue(point, 'instances_p50', '2i') // (3+1)/2 rounded down
     assertPointFieldValue(point, 'instances_max', '3i')
   })
+
+  it('reports number of all measurements', async () => {
+    const measurements = [
+      // task 1
+      {
+        ...VALID_MEASUREMENT
+      },
+      {
+        ...VALID_MEASUREMENT
+
+      },
+      {
+        ...VALID_MEASUREMENT
+      },
+
+      // task 2
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'bafyanother'
+      }
+
+    ]
+
+    const point = new Point('committees')
+    recordCommitteeSizes(measurements, point)
+    debug(point.name, point.fields)
+
+    assertPointFieldValue(point, 'measurements_min', '1i')
+    assertPointFieldValue(point, 'measurements_mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'measurements_p50', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'measurements_max', '3i')
+  })
 })
