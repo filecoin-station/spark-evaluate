@@ -4,7 +4,7 @@ import { Point } from '../lib/telemetry.js'
 import {
   buildRetrievalStats,
   getValueAtPercentile,
-  recordSubnetsPerTask
+  recordCommitteeSizes
 } from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
@@ -126,7 +126,7 @@ describe('getValueAtPercentile', () => {
   })
 })
 
-describe('recordSubnetsPerTasks', () => {
+describe('recordCommitteeSizes', () => {
   it('reports unique subnets', async () => {
     const measurements = [
       // task 1
@@ -157,13 +157,95 @@ describe('recordSubnetsPerTasks', () => {
 
     ]
 
-    const point = new Point('subnets_per_task')
-    recordSubnetsPerTask(measurements, point)
+    const point = new Point('committees')
+    recordCommitteeSizes(measurements, point)
     debug(point.name, point.fields)
 
-    assertPointFieldValue(point, 'min', '1i')
-    assertPointFieldValue(point, 'mean', '2i') // (3+1)/2 rounded down
-    assertPointFieldValue(point, 'p50', '2i') // (3+1)/2 rounded down
-    assertPointFieldValue(point, 'max', '3i')
+    assertPointFieldValue(point, 'subnets_min', '1i')
+    assertPointFieldValue(point, 'subnets_mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'subnets_p50', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'subnets_max', '3i')
+  })
+
+  it('reports unique participants', async () => {
+    const measurements = [
+      // task 1
+      {
+        ...VALID_MEASUREMENT,
+        participantAddress: '0xone'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig1',
+        // duplicate measurement by the same participant, should be ignored
+        participantAddress: '0xone'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        participantAddress: '0xtwo'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        participantAddress: '0xthree'
+      },
+
+      // task 2
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'bafyanother'
+      }
+
+    ]
+
+    const point = new Point('committees')
+    recordCommitteeSizes(measurements, point)
+    debug(point.name, point.fields)
+
+    assertPointFieldValue(point, 'participants_min', '1i')
+    assertPointFieldValue(point, 'participants_mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'participants_p50', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'participants_max', '3i')
+  })
+
+  it('reports unique instances', async () => {
+    const measurements = [
+      // task 1
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig1',
+        participantAddress: '0xone'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        // duplicate measurement by the same participant in the same subnet, should be ignored
+        inet_group: 'ig1',
+        participantAddress: '0xone'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        // same participant address but different subnet
+        inet_group: 'ig2',
+        participantAddress: '0xone'
+      },
+      {
+        ...VALID_MEASUREMENT
+      },
+
+      // task 2
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'bafyanother'
+      }
+
+    ]
+
+    const point = new Point('committees')
+    recordCommitteeSizes(measurements, point)
+    debug(point.name, point.fields)
+
+    assertPointFieldValue(point, 'instances_min', '1i')
+    assertPointFieldValue(point, 'instances_mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'instances_p50', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'instances_max', '3i')
   })
 })
