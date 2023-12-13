@@ -207,7 +207,7 @@ describe('recordCommitteeSizes', () => {
     assertPointFieldValue(point, 'participants_max', '3i')
   })
 
-  it('reports unique instances', async () => {
+  it('reports unique nodes', async () => {
     const measurements = [
       // task 1
       {
@@ -243,10 +243,10 @@ describe('recordCommitteeSizes', () => {
     recordCommitteeSizes(measurements, point)
     debug(point.name, point.fields)
 
-    assertPointFieldValue(point, 'instances_min', '1i')
-    assertPointFieldValue(point, 'instances_mean', '2i') // (3+1)/2 rounded down
-    assertPointFieldValue(point, 'instances_p50', '2i') // (3+1)/2 rounded down
-    assertPointFieldValue(point, 'instances_max', '3i')
+    assertPointFieldValue(point, 'nodes_min', '1i')
+    assertPointFieldValue(point, 'nodes_mean', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'nodes_p50', '2i') // (3+1)/2 rounded down
+    assertPointFieldValue(point, 'nodes_max', '3i')
   })
 
   it('reports number of all measurements', async () => {
