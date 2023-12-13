@@ -20,6 +20,7 @@ export interface RetrievalTask {
 export interface RoundDetails {
   roundId: string; // BigInt serialized as String (JSON does not support BigInt)
   retrievalTasks: RetrievalTask[];
+  maxTasksPerNode: number;
 }
 
 export type RecordTelemetryFn = (
@@ -32,6 +33,7 @@ export type FraudAssesment =
   | 'OK'
   | 'INVALID_TASK'
   | 'DUP_INET_GROUP'
+  | 'TOO_MANY_TASKS'
 
 
 // When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
