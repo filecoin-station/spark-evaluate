@@ -456,4 +456,45 @@ describe('fraud detection', () => {
       }
     })
   })
+
+  it('rejects measurements above maxTasksPerNode', async () => {
+    const sparkRoundDetails = {
+      roundId: 1234,
+      retrievalTasks: [
+        {
+          ...VALID_TASK,
+          cid: 'cid1'
+        }, {
+          ...VALID_TASK,
+          cid: 'cid2'
+        }, {
+          ...VALID_TASK,
+          cid: 'cid3'
+        }
+      ],
+      maxTasksPerNode: 1
+    }
+    const measurements = [
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'cid1',
+        inet_group: 'group1'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'cid2',
+        inet_group: 'group1'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'cid3'
+      }
+    ]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+    assert.deepStrictEqual(
+      measurements.map(m => m.fraudAssessment),
+      ['OK', 'TOO_MANY_TASKS', 'OK']
+    )
+  })
 })
