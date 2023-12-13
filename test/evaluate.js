@@ -56,7 +56,7 @@ describe('evaluate', () => {
     const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assertPointFieldValue(point, 'total_instances', '1i')
+    assertPointFieldValue(point, 'total_nodes', '1i')
     // TODO: assert more point fields
   })
   it('handles empty rounds', async () => {
@@ -183,7 +183,7 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'group_winning_mean', '1')
     assertPointFieldValue(point, 'group_winning_max', '1')
 
-    assertPointFieldValue(point, 'total_instances', '3i')
+    assertPointFieldValue(point, 'total_nodes', '3i')
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
