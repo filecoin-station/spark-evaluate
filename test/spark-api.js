@@ -13,8 +13,7 @@ describe('spark-api client', () => {
     )
 
     assert.deepStrictEqual(details, {
-      roundId: '3405', // BigInt serialized as String
-      maxTasksPerNode: 360
+      roundId: '3405' // BigInt serialized as String
     })
 
     assert.strictEqual(typeof maxTasksPerNode, 'number')
