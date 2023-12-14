@@ -82,6 +82,10 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'car_size_mean', '69906090i')
     assertPointFieldValue(point, 'car_size_p90', '167772569i')
     assertPointFieldValue(point, 'car_size_max', '209715200i')
+
+    assertPointFieldValue(point, 'tasks_per_node_p5', '1i')
+    assertPointFieldValue(point, 'tasks_per_node_p50', '2i')
+    assertPointFieldValue(point, 'tasks_per_node_p95', '2i')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
