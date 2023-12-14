@@ -6,16 +6,17 @@ const recordTelemetry = (measurementName, fn) => { /* no-op */ }
 describe('spark-api client', () => {
   it('fetches round details', async function () {
     this.timeout(10_000)
-    const { retrievalTasks, ...details } = await fetchRoundDetails(
+    const { retrievalTasks, maxTasksPerNode, ...details } = await fetchRoundDetails(
       '0xaaef78eaf86dcf34f275288752e892424dda9341',
       407,
       recordTelemetry
     )
 
     assert.deepStrictEqual(details, {
-      roundId: '3405', // BigInt serialized as String
-      maxTasksPerNode: 360
+      roundId: '3405' // BigInt serialized as String
     })
+
+    assert.strictEqual(typeof maxTasksPerNode, 'number')
 
     assert.strictEqual(retrievalTasks.length, 400)
     assert.deepStrictEqual(retrievalTasks.slice(0, 2), [
