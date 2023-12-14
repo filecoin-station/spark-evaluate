@@ -13,7 +13,8 @@ describe('spark-api client', () => {
     )
 
     assert.deepStrictEqual(details, {
-      roundId: '3405' // BigInt serialized as String
+      roundId: '3405', // BigInt serialized as String
+      maxTasksPerNode: 360
     })
 
     assert.strictEqual(retrievalTasks.length, 400)
