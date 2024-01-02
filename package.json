@@ -17,7 +17,7 @@
     "debug": "^4.3.4",
     "ethers": "^5.7.2",
     "ipfs-car": "^1.1.0",
-    "ipfs-unixfs-exporter": "^13.2.2"
+    "ipfs-unixfs-exporter": "^13.2.5"
   },
   "standard": {
     "env": [
