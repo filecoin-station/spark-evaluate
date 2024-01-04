@@ -1,4 +1,4 @@
-import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
+import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -105,7 +105,10 @@ await evaluate({
 console.log(process.memoryUsage())
 
 async function fetchMeasurementsFromChain (roundIndex) {
-  const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
+  const provider = new ethers.providers.JsonRpcProvider({
+    url: RPC_URL,
+    headers: rpcHeaders
+  })
   // provider.on('debug', console.log)
   const ieContract = new ethers.Contract(
     contractAddress,

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node'
-import { IE_CONTRACT_ADDRESS, RPC_URL } from '../lib/config.js'
+import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { startEvaluate } from '../index.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
@@ -24,7 +24,10 @@ Sentry.init({
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
+const provider = new ethers.providers.JsonRpcProvider({
+  url: RPC_URL,
+  headers: rpcHeaders
+})
 const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
 console.log(
   'Wallet address:',
