@@ -124,7 +124,7 @@ describe('retrieval statistics', () => {
 describe('getValueAtPercentile', () => {
   it('interpolates the values', () => {
     assert.strictEqual(
-      getValueAtPercentile([10, 20, 30], 90),
+      getValueAtPercentile([10, 20, 30], 0.9),
       28
     )
   })
