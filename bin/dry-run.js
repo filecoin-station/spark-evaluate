@@ -8,6 +8,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ethers } from 'ethers'
 
+const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
+await mkdir(cacheDir, { recursive: true })
+
 const [nodePath, selfPath, ...args] = process.argv
 if (!args[0].startsWith('0x')) {
   args.unshift(IE_CONTRACT_ADDRESS)
@@ -33,16 +36,13 @@ if (!roundIndexStr) {
 const roundIndex = Number(roundIndexStr)
 
 if (!measurementCids.length) {
-  measurementCids.push(...(await fetchMeasurementsFromChain(BigInt(roundIndex))))
+  measurementCids.push(...(await fetchMeasurementsAddedEvents(BigInt(roundIndex))))
 }
 
 if (!measurementCids.length) {
   console.error('No measurements for round %s were found in smart-contract\'s event log.', roundIndex)
   process.exit(1)
 }
-
-const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
-await mkdir(cacheDir, { recursive: true })
 
 const recordTelemetry = (measurementName, fn) => {
   const point = new Point(measurementName)
@@ -104,7 +104,20 @@ await evaluate({
 
 console.log(process.memoryUsage())
 
-async function fetchMeasurementsFromChain (roundIndex) {
+async function fetchMeasurementsAddedEvents (roundIndex) {
+  const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
+  try {
+    return JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.warn('Cannot read cached list of measurement CIDs:', err)
+  }
+
+  const list = await fetchMeasurementsAddedFromChain(roundIndex)
+  await writeFile(pathOfCachedResponse, JSON.stringify(list))
+  return list
+}
+
+async function fetchMeasurementsAddedFromChain (roundIndex) {
   const provider = new ethers.providers.JsonRpcProvider({
     url: RPC_URL,
     headers: rpcHeaders
