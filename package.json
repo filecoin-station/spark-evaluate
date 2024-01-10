@@ -12,7 +12,7 @@
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
     "@influxdata/influxdb-client": "^1.33.2",
-    "@ipld/car": "^5.2.5",
+    "@ipld/car": "^5.2.6",
     "@sentry/node": "^7.92.0",
     "@web3-storage/car-block-validator": "^1.2.0",
     "debug": "^4.3.4",
