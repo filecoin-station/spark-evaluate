@@ -13,7 +13,7 @@ Usage:
    Replace "auth" with the auth from the `spark-db` connection string stored in 1Password.
 
    ```sh
-   DATABASE_URL="postgres://auth@localhost:5454/spark" node bin/get-unique-values.js participant_address <range-start> <range-end>
+   DATABASE_URL="postgres://auth@localhost:5454/spark" node bin/get-unique-measurement-values.js participant_address <range-start> <range-end>
    ```
 
    This will get all unique participant addresses committed between range-start (inclusive) and range-end (exclusive).
