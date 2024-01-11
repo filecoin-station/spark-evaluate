@@ -3,9 +3,13 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import createDebug from 'debug'
-import { VALID_MEASUREMENT, VALID_TASK } from './helpers/test-data.js'
+import { VALID_MEASUREMENT, VALID_TASK, today } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
 import { RoundData } from '../lib/round.js'
+import { DATABASE_URL } from '../lib/config.js'
+import pg from 'pg'
+import { beforeEach } from 'mocha'
+import { migrate } from '../lib/migrate.js'
 
 const { BigNumber } = ethers
 
@@ -22,6 +26,21 @@ const recordTelemetry = (measurementName, fn) => {
 beforeEach(() => telemetry.splice(0))
 
 describe('evaluate', () => {
+  let pgClient
+  before(async () => {
+    pgClient = new pg.Client({ connectionString: DATABASE_URL })
+    await pgClient.connect()
+    await migrate(pgClient)
+  })
+
+  beforeEach(async () => {
+    await pgClient.query('DELETE FROM retrievals')
+  })
+
+  after(async () => {
+    await pgClient.end()
+  })
+
   it('evaluates measurements', async () => {
     const rounds = { 0: new RoundData() }
     for (let i = 0; i < 10; i++) {
@@ -58,7 +77,15 @@ describe('evaluate', () => {
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
     assertPointFieldValue(point, 'total_nodes', '1i')
     // TODO: assert more point fields
+
+    const { rows: publicStats } = await pgClient.query('SELECT * FROM retrievals')
+    assert.deepStrictEqual(publicStats, [{
+      day: today(),
+      total: 10,
+      successful: 10
+    }])
   })
+
   it('handles empty rounds', async () => {
     const rounds = { 0: new RoundData() }
     const setScoresCalls = []

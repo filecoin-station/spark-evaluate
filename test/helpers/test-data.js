@@ -30,3 +30,12 @@ export const VALID_MEASUREMENT = {
 // we freeze this test data object. If we forget to clone this default measurement
 // then such test will immediately fail.
 Object.freeze(VALID_MEASUREMENT)
+
+export const today = () => {
+  const d = new Date()
+  d.setHours(0)
+  d.setMinutes(0)
+  d.setSeconds(0)
+  d.setMilliseconds(0)
+  return d
+}

@@ -24,6 +24,8 @@ Sentry.init({
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 
+await import('./migrate.js')
+
 const provider = new ethers.providers.JsonRpcProvider({
   url: RPC_URL,
   headers: rpcHeaders
