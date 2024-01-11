@@ -4,5 +4,8 @@ import pg from 'pg'
 
 const client = new pg.Client({ connectionString: DATABASE_URL })
 await client.connect()
-await migrate(client)
-await client.end()
+try {
+  await migrate(client)
+} finally {
+  await client.end()
+}
