@@ -9,6 +9,7 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
+import http from 'node:http'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -45,6 +46,9 @@ const ieContract = new ethers.Contract(
   provider
 )
 const ieContractWithSigner = ieContract.connect(signer)
+
+// FIXME fly.io
+http.createServer((_, res) => res.end()).listen(8080)
 
 startEvaluate({
   ieContract,
