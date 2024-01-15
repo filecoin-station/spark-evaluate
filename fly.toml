@@ -3,10 +3,3 @@ primary_region = "cdg"
 
 [env]
   SENTRY_ENVIRONMENT = "production"
-
-[[services]]
-  internal_port = 8080
-  protocol = "tcp"
-  [[services.ports]]
-    handlers = ["http"]
-    port = 8080
