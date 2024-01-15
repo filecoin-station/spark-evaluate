@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node'
-import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
+import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { startEvaluate } from '../index.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
@@ -9,6 +9,7 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
+import { migrateWithDbConfig } from '../lib/migrate.js'
 import http from 'node:http'
 
 const {
@@ -25,7 +26,7 @@ Sentry.init({
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 
-await import('./migrate.js')
+await migrateWithDbConfig({ connectionString: DATABASE_URL })
 
 const provider = new ethers.providers.JsonRpcProvider({
   url: RPC_URL,

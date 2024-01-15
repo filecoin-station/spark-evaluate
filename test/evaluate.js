@@ -9,7 +9,7 @@ import { RoundData } from '../lib/round.js'
 import { DATABASE_URL } from '../lib/config.js'
 import pg from 'pg'
 import { beforeEach } from 'mocha'
-import { migrate } from '../lib/migrate.js'
+import { migrateWithPgClient } from '../lib/migrate.js'
 
 const { BigNumber } = ethers
 
@@ -30,7 +30,7 @@ describe('evaluate', () => {
   before(async () => {
     pgClient = new pg.Client({ connectionString: DATABASE_URL })
     await pgClient.connect()
-    await migrate(pgClient)
+    await migrateWithPgClient(pgClient)
   })
 
   beforeEach(async () => {
