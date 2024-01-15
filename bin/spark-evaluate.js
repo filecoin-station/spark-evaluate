@@ -9,7 +9,7 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
-import { migrateWithDbConfig } from '../lib/migrate.js'
+import { migrateWithPgConfig } from '../lib/migrate.js'
 import http from 'node:http'
 
 const {
@@ -26,7 +26,7 @@ Sentry.init({
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 
-await migrateWithDbConfig({ connectionString: DATABASE_URL })
+await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
 const provider = new ethers.providers.JsonRpcProvider({
   url: RPC_URL,
