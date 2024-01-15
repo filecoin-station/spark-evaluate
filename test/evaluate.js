@@ -25,11 +25,16 @@ const recordTelemetry = (measurementName, fn) => {
 }
 beforeEach(() => telemetry.splice(0))
 
+const createPgClient = async () => {
+  const pgClient = new pg.Client({ connectionString: DATABASE_URL })
+  await pgClient.connect()
+  return pgClient
+}
+
 describe('evaluate', () => {
   let pgClient
   before(async () => {
-    pgClient = new pg.Client({ connectionString: DATABASE_URL })
-    await pgClient.connect()
+    pgClient = await createPgClient()
     await migrateWithPgClient(pgClient)
   })
 
@@ -60,6 +65,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
+      createPgClient,
       logger
     })
     assert.deepStrictEqual(rounds, {})
@@ -102,6 +108,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
+      createPgClient,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -150,6 +157,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
+      createPgClient,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -189,6 +197,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
+      createPgClient,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -234,6 +243,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
+      createPgClient,
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
@@ -272,6 +282,7 @@ describe('evaluate', () => {
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
+      createPgClient,
       logger
     })
 

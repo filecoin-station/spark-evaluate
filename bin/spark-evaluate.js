@@ -10,6 +10,7 @@ import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
+import pg from 'pg'
 import http from 'node:http'
 
 const {
@@ -50,6 +51,12 @@ const ieContract = new ethers.Contract(
 )
 const ieContractWithSigner = ieContract.connect(signer)
 
+const createPgClient = async () => {
+  const pgClient = new pg.Client({ connectionString: DATABASE_URL })
+  await pgClient.connect()
+  return pgClient
+}
+
 // FIXME fly.io
 http.createServer((_, res) => res.end()).listen(8080)
 
@@ -59,5 +66,6 @@ startEvaluate({
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
+  createPgClient,
   logger: console
 })
