@@ -34,7 +34,7 @@ describe('evaluate', () => {
   })
 
   beforeEach(async () => {
-    await pgClient.query('DELETE FROM retrievals')
+    await pgClient.query('DELETE FROM retrieval_stats')
   })
 
   after(async () => {
@@ -78,7 +78,7 @@ describe('evaluate', () => {
     assertPointFieldValue(point, 'total_nodes', '1i')
     // TODO: assert more point fields
 
-    const { rows: publicStats } = await pgClient.query('SELECT * FROM retrievals')
+    const { rows: publicStats } = await pgClient.query('SELECT * FROM retrieval_stats')
     assert.deepStrictEqual(publicStats, [{
       day: today(),
       total: 10,
