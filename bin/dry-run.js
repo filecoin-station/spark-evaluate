@@ -99,6 +99,7 @@ await evaluate({
   fetchRoundDetails,
   ieContractWithSigner,
   logger: console,
+  createPgClient,
   recordTelemetry
 })
 
@@ -208,4 +209,15 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   }
 
   return events.filter(e => e.roundIndex.eq(roundIndex)).map(e => e.cid)
+}
+
+function createPgClient () {
+  return {
+    async query () {
+      return { rows: [] }
+    },
+    async end () {
+      // no-op
+    }
+  }
 }
