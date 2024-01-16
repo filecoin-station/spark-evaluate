@@ -64,6 +64,7 @@ await startEvaluate({
   ieContractWithSigner,
   provider,
   rpcUrl: RPC_URL,
+  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,

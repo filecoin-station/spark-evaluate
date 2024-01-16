@@ -9,6 +9,7 @@ export const startEvaluate = async ({
   ieContractWithSigner,
   provider,
   rpcUrl,
+  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
@@ -81,7 +82,12 @@ export const startEvaluate = async ({
   }
 
   // Listen for events
-  const it = onContractEvent({ contract: ieContract, provider, rpcUrl })
+  const it = onContractEvent({
+    contract: ieContract,
+    provider,
+    rpcUrl,
+    rpcHeaders
+  })
   for await (const event of it) {
     if (event.name === 'MeasurementsAdded') {
       onMeasurementsAdded(...event.args)
