@@ -11,7 +11,6 @@ import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
-import http from 'node:http'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -56,9 +55,6 @@ const createPgClient = async () => {
   await pgClient.connect()
   return pgClient
 }
-
-// FIXME fly.io
-http.createServer((_, res) => res.end()).listen(8080)
 
 startEvaluate({
   ieContract,
