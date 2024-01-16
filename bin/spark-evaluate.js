@@ -35,7 +35,6 @@ const provider = new ethers.JsonRpcProvider(
   null,
   { batchMaxCount: 1 }
 )
-provider.on('debug', m => console.log(JSON.stringify(m, null, 2)))
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
