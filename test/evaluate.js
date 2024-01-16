@@ -54,6 +54,9 @@ describe('evaluate', () => {
       async setScores (roundIndex, participantAddresses, scores) {
         setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     await evaluate({
@@ -96,6 +99,9 @@ describe('evaluate', () => {
       async setScores (roundIndex, participantAddresses, scores) {
         setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
@@ -145,6 +151,9 @@ describe('evaluate', () => {
       async setScores (roundIndex, participantAddresses, scores) {
         setScoresCalls.push({ roundIndex, participantAddresses, scores })
         return { hash: '0x234' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
@@ -185,6 +194,9 @@ describe('evaluate', () => {
       async setScores (_, participantAddresses, scores) {
         setScoresCalls.push({ participantAddresses, scores })
         return { hash: '0x345' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
@@ -230,6 +242,9 @@ describe('evaluate', () => {
       async setScores (_, participantAddresses, scores) {
         setScoresCalls.push({ participantAddresses, scores })
         return { hash: '0x345' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     const logger = { log: debug, error: debug }
@@ -270,6 +285,9 @@ describe('evaluate', () => {
       async setScores (_, participantAddresses, scores) {
         setScoresCalls.push({ participantAddresses, scores })
         return { hash: '0x345' }
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
