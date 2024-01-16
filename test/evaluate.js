@@ -71,8 +71,8 @@ describe('evaluate', () => {
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
-      setScoresCalls[0].scores[0].toString(),
-      String(1000000000000000n)
+      setScoresCalls[0].scores[0],
+      1000000000000000n
     )
 
     const point = telemetry.find(p => p.name === 'evaluate')
