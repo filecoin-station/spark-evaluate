@@ -2,10 +2,13 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
+import { onContractEvent } from './lib/on-contract-event.js'
 
-export const startEvaluate = ({
+export const startEvaluate = async ({
   ieContract,
   ieContractWithSigner,
+  provider,
+  rpcUrl,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
@@ -18,8 +21,7 @@ export const startEvaluate = ({
   const cidsSeen = []
   const roundsSeen = []
 
-  // Listen for events
-  ieContract.on('MeasurementsAdded', (cid, _roundIndex) => {
+  const onMeasurementsAdded = (cid, _roundIndex) => {
     const roundIndex = Number(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
@@ -50,9 +52,9 @@ export const startEvaluate = ({
         }
       })
     })
-  })
+  }
 
-  ieContract.on('RoundStart', _roundIndex => {
+  const onRoundStart = (_roundIndex) => {
     const roundIndex = Number(_roundIndex)
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
@@ -76,5 +78,15 @@ export const startEvaluate = ({
         }
       })
     })
-  })
+  }
+
+  // Listen for events
+  const it = onContractEvent({ contract: ieContract, provider, rpcUrl })
+  for await (const event of it) {
+    if (event.name === 'MeasurementsAdded') {
+      onMeasurementsAdded(...event.args)
+    } else if (event.name === 'RoundStart') {
+      onRoundStart(...event.args)
+    }
+  }
 }

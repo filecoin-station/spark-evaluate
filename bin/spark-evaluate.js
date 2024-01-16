@@ -59,9 +59,11 @@ const createPgClient = async () => {
   return pgClient
 }
 
-startEvaluate({
+await startEvaluate({
   ieContract,
   ieContractWithSigner,
+  provider,
+  rpcUrl: RPC_URL,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
