@@ -28,11 +28,14 @@ assert(WALLET_SEED, 'WALLET_SEED required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
-const provider = new ethers.providers.JsonRpcProvider({
-  url: RPC_URL,
-  headers: rpcHeaders
-})
-const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
+const fetchRequest = new ethers.FetchRequest(RPC_URL)
+fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
+const provider = new ethers.JsonRpcProvider(
+  fetchRequest,
+  null,
+  { batchMaxCount: 1 }
+)
+const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
   signer.address,
@@ -56,9 +59,12 @@ const createPgClient = async () => {
   return pgClient
 }
 
-startEvaluate({
+await startEvaluate({
   ieContract,
   ieContractWithSigner,
+  provider,
+  rpcUrl: RPC_URL,
+  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,

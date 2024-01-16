@@ -16,7 +16,7 @@
     "@sentry/node": "^7.93.0",
     "@web3-storage/car-block-validator": "^1.2.0",
     "debug": "^4.3.4",
-    "ethers": "^5.7.2",
+    "ethers": "^6.10.0",
     "ipfs-car": "^1.1.0",
     "ipfs-unixfs-exporter": "^13.2.5",
     "just-percentile": "^4.2.0",
