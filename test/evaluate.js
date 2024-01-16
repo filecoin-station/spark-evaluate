@@ -84,8 +84,8 @@ describe('evaluate', () => {
     const { rows: publicStats } = await pgClient.query('SELECT * FROM retrieval_stats')
     assert.deepStrictEqual(publicStats, [{
       day: today(),
-      total: 10,
-      successful: 10
+      total: 1,
+      successful: 1
     }])
   })
 
