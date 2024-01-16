@@ -1,7 +1,6 @@
 import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS, createSetScoresBuckets, SetScoresBucket } from '../lib/evaluate.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
-import { ethers } from 'ethers'
 import createDebug from 'debug'
 import { VALID_MEASUREMENT, VALID_TASK, today } from './helpers/test-data.js'
 import { assertPointFieldValue } from './helpers/assertions.js'
@@ -10,8 +9,6 @@ import { DATABASE_URL } from '../lib/config.js'
 import pg from 'pg'
 import { beforeEach } from 'mocha'
 import { migrateWithPgClient } from '../lib/migrate.js'
-
-const { BigNumber } = ethers
 
 const debug = createDebug('test')
 const logger = { log: debug, error: debug }
@@ -75,7 +72,7 @@ describe('evaluate', () => {
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
       setScoresCalls[0].scores[0].toString(),
-      BigNumber.from(1_000_000_000_000_000).toString()
+      String(1000000000000000n)
     )
 
     const point = telemetry.find(p => p.name === 'evaluate')
@@ -541,14 +538,14 @@ describe('set scores buckets', () => {
   it('splits contract calls with many participants', async () => {
     const participants = {}
     for (let i = 0; i < MAX_SET_SCORES_PARTICIPANTS + 1; i++) {
-      participants[`0x${i}`] = BigNumber.from(1_000_000_000_000_000)
+      participants[`0x${i}`] = 1000000000000000n
     }
     const buckets = createSetScoresBuckets(participants)
     assert.strictEqual(buckets.length, 2)
     assert.strictEqual(buckets[0].size, MAX_SET_SCORES_PARTICIPANTS)
     assert.strictEqual(buckets[1].size, 1)
     const bucket = new SetScoresBucket()
-    bucket.add(`0x${MAX_SET_SCORES_PARTICIPANTS}`, BigNumber.from(1_000_000_000_000_000))
+    bucket.add(`0x${MAX_SET_SCORES_PARTICIPANTS}`, 1000000000000000n)
     assert.deepStrictEqual(buckets[1], bucket)
   })
 })
