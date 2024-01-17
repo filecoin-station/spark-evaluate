@@ -101,7 +101,14 @@ await evaluate({
   fetchRoundDetails,
   ieContractWithSigner,
   logger: console,
-  recordTelemetry
+  recordTelemetry,
+
+  // We don't want dry runs to update data in `sparks_stats`, therefore we are passing a stub
+  // connection factory that creates no-op clients. This also keeps the setup simpler. The person
+  // executing a dry run does not need access to any Postgres instance.
+  // Evaluate uses the PG client only for updating the statistics, it's not reading any data.
+  // Thus it's safe to inject a no-op client.
+  createPgClient: createNoopPgClient
 })
 
 console.log(process.memoryUsage())
@@ -210,4 +217,15 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   }
 
   return events.filter(e => e.roundIndex.eq(roundIndex)).map(e => e.cid)
+}
+
+function createNoopPgClient () {
+  return {
+    async query () {
+      return { rows: [] }
+    },
+    async end () {
+      // no-op
+    }
+  }
 }
