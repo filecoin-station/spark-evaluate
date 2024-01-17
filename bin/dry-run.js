@@ -83,7 +83,9 @@ console.log('Fetched %s measurements', rounds[roundIndex].measurements.length)
 
 console.log('==EVALUATE==')
 const ieContractWithSigner = {
-  address: contractAddress,
+  async getAddress () {
+    return contractAddress
+  },
   async setScores (_roundIndex, participantAddresses, scores) {
     console.log('==EVALUATION RESULTS==')
     console.log('participants:', participantAddresses)
