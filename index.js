@@ -20,8 +20,8 @@ export const startEvaluate = async ({
   assert(typeof createPgClient === 'function', 'createPgClient must be a function')
 
   const rounds = {
-    current: new RoundData(),
-    previous: new RoundData()
+    current: null,
+    previous: null
   }
   const cidsSeen = []
   const roundsSeen = []
@@ -31,6 +31,15 @@ export const startEvaluate = async ({
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
     if (cidsSeen.length > 1000) cidsSeen.shift()
+
+    if (!rounds.current) {
+      rounds.current = new RoundData(roundIndex)
+    } else if (rounds.current.index !== roundIndex) {
+      // This should never happen
+      throw new Error(
+        `Round index mismatch: ${rounds.current.index} !== ${roundIndex}`
+      )
+    }
 
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
@@ -68,7 +77,7 @@ export const startEvaluate = async ({
     console.log('Event: RoundStart', { roundIndex })
 
     rounds.previous = rounds.current
-    rounds.current = new RoundData()
+    rounds.current = new RoundData(roundIndex)
 
     // Evaluate previous round
     evaluate({
