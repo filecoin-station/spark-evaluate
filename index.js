@@ -76,6 +76,11 @@ export const startEvaluate = async ({
 
     console.log('Event: RoundStart', { roundIndex })
 
+    if (!rounds.current) {
+      console.error('No current round data available, skipping evaluation')
+      return
+    }
+
     rounds.previous = rounds.current
     rounds.current = new RoundData(roundIndex)
 
