@@ -44,9 +44,9 @@ describe('evaluate', () => {
   })
 
   it('evaluates measurements', async () => {
-    const rounds = { 0: new RoundData() }
+    const round = new RoundData()
     for (let i = 0; i < 10; i++) {
-      rounds[0].measurements.push({ ...VALID_MEASUREMENT })
+      round.measurements.push({ ...VALID_MEASUREMENT })
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
@@ -60,7 +60,7 @@ describe('evaluate', () => {
       }
     }
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       fetchRoundDetails,
@@ -68,7 +68,6 @@ describe('evaluate', () => {
       createPgClient,
       logger
     })
-    assert.deepStrictEqual(rounds, {})
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
@@ -93,7 +92,7 @@ describe('evaluate', () => {
   })
 
   it('handles empty rounds', async () => {
-    const rounds = { 0: new RoundData() }
+    const round = new RoundData()
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -106,7 +105,7 @@ describe('evaluate', () => {
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       fetchRoundDetails,
@@ -145,7 +144,7 @@ describe('evaluate', () => {
     ])
   })
   it('handles unknown rounds', async () => {
-    const rounds = {}
+    const round = new RoundData()
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -158,7 +157,7 @@ describe('evaluate', () => {
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       fetchRoundDetails,
@@ -176,11 +175,11 @@ describe('evaluate', () => {
     ])
   })
   it('calculates reward shares', async () => {
-    const rounds = { 0: new RoundData() }
+    const round = new RoundData()
     for (let i = 0; i < 5; i++) {
-      rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
-      rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
-      rounds[0].measurements.push({
+      round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
+      round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
+      round.measurements.push({
         ...VALID_MEASUREMENT,
         inet_group: 'group3',
         // invalid task
@@ -201,7 +200,7 @@ describe('evaluate', () => {
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       recordTelemetry,
@@ -232,10 +231,10 @@ describe('evaluate', () => {
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
-    const rounds = { 0: new RoundData() }
-    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
-    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
-    rounds[0].measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
+    const round = new RoundData()
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
     const setScoresCalls = []
     const ieContractWithSigner = {
@@ -250,7 +249,7 @@ describe('evaluate', () => {
     const logger = { log: debug, error: debug }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       recordTelemetry,
@@ -267,10 +266,10 @@ describe('evaluate', () => {
   })
 
   it('reports retrieval stats - honest & all', async () => {
-    const rounds = { 0: new RoundData() }
+    const round = new RoundData()
     for (let i = 0; i < 5; i++) {
-      rounds[0].measurements.push({ ...VALID_MEASUREMENT })
-      rounds[0].measurements.push({
+      round.measurements.push({ ...VALID_MEASUREMENT })
+      round.measurements.push({
         ...VALID_MEASUREMENT,
         inet_group: 'group3',
         // invalid task
@@ -292,7 +291,7 @@ describe('evaluate', () => {
     }
     const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
     await evaluate({
-      rounds,
+      round,
       roundIndex: 0,
       ieContractWithSigner,
       recordTelemetry,

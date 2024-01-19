@@ -3,6 +3,7 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
+import { RoundData } from '../lib/round.js'
 
 const debug = createDebug('test')
 
@@ -17,7 +18,7 @@ beforeEach(() => telemetry.splice(0))
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
-    const rounds = {}
+    const round = new RoundData()
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
@@ -35,10 +36,9 @@ describe('preprocess', () => {
       return measurements
     }
     const logger = { log: debug, error: console.error }
-    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    await preprocess({ round, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
-    assert.deepStrictEqual(Object.keys(rounds), ['0'])
-    assert.deepStrictEqual(rounds[0].measurements, [
+    assert.deepStrictEqual(round.measurements, [
       new Measurement({
         participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
         spark_version: '1.2.3',
@@ -58,7 +58,7 @@ describe('preprocess', () => {
     assertPointFieldValue(point, 'total', '1i')
   })
   it('validates measurements', async () => {
-    const rounds = {}
+    const round = new RoundData()
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
@@ -71,12 +71,11 @@ describe('preprocess', () => {
     }]
     const fetchMeasurements = async (_cid) => measurements
     const logger = { log: debug, error: debug }
-    await preprocess({ rounds, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
+    await preprocess({ round, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
-    assert.deepStrictEqual(Object.keys(rounds), ['0'])
     // We allow invalid participant address for now.
     // We should update this test when we remove this temporary workaround.
-    assert.deepStrictEqual(rounds[0].measurements, [
+    assert.deepStrictEqual(round.measurements, [
       new Measurement({
         participant_address: '0x000000000000000000000000000000000000dEaD',
         inet_group: 'ig1',

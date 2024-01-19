@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { onContractEvent } from './lib/on-contract-event.js'
+import { RoundData } from './lib/round.js'
 
 export const startEvaluate = async ({
   ieContract,
@@ -18,7 +19,10 @@ export const startEvaluate = async ({
 }) => {
   assert(typeof createPgClient === 'function', 'createPgClient must be a function')
 
-  const rounds = {}
+  const rounds = {
+    current: new RoundData(),
+    previous: new RoundData()
+  }
   const cidsSeen = []
   const roundsSeen = []
 
@@ -31,7 +35,7 @@ export const startEvaluate = async ({
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
     preprocess({
-      rounds,
+      round: rounds.current,
       cid,
       roundIndex,
       fetchMeasurements,
@@ -62,9 +66,13 @@ export const startEvaluate = async ({
     if (roundsSeen.length > 1000) roundsSeen.shift()
 
     console.log('Event: RoundStart', { roundIndex })
+
+    rounds.previous = rounds.current
+    rounds.current = new RoundData()
+
     // Evaluate previous round
     evaluate({
-      rounds,
+      round: rounds.previous,
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
       fetchRoundDetails,
