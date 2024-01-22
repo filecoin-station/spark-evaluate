@@ -18,7 +18,7 @@
     "debug": "^4.3.4",
     "ethers": "^6.10.0",
     "ipfs-car": "^1.1.0",
-    "ipfs-unixfs-exporter": "^13.2.5",
+    "ipfs-unixfs-exporter": "^13.4.0",
     "just-percentile": "^4.2.0",
     "pg": "^8.11.3",
     "postgrator": "^7.2.0"
