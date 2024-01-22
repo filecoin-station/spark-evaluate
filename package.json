@@ -20,6 +20,7 @@
     "ipfs-car": "^1.1.0",
     "ipfs-unixfs-exporter": "^13.4.0",
     "just-percentile": "^4.2.0",
+    "p-retry": "^6.2.0",
     "pg": "^8.11.3",
     "postgrator": "^7.2.0"
   },
