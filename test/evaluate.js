@@ -44,7 +44,7 @@ describe('evaluate', () => {
   })
 
   it('evaluates measurements', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     for (let i = 0; i < 10; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT })
     }
@@ -92,7 +92,7 @@ describe('evaluate', () => {
   })
 
   it('handles empty rounds', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -144,7 +144,7 @@ describe('evaluate', () => {
     ])
   })
   it('handles unknown rounds', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -175,7 +175,7 @@ describe('evaluate', () => {
     ])
   })
   it('calculates reward shares', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     for (let i = 0; i < 5; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
       round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
@@ -231,7 +231,7 @@ describe('evaluate', () => {
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
@@ -266,7 +266,7 @@ describe('evaluate', () => {
   })
 
   it('reports retrieval stats - honest & all', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     for (let i = 0; i < 5; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT })
       round.measurements.push({

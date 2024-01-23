@@ -18,7 +18,7 @@ beforeEach(() => telemetry.splice(0))
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
@@ -58,7 +58,7 @@ describe('preprocess', () => {
     assertPointFieldValue(point, 'total', '1i')
   })
   it('validates measurements', async () => {
-    const round = new RoundData()
+    const round = new RoundData(0)
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
