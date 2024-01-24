@@ -13,7 +13,7 @@
     "@glif/filecoin-address": "^3.0.0",
     "@influxdata/influxdb-client": "^1.33.2",
     "@ipld/car": "^5.2.6",
-    "@sentry/node": "^7.94.1",
+    "@sentry/node": "^7.95.0",
     "@web3-storage/car-block-validator": "^1.2.0",
     "debug": "^4.3.4",
     "ethers": "^6.10.0",
