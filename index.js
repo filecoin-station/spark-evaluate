@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { onContractEvent } from './lib/on-contract-event.js'
+import { RoundData } from './lib/round.js'
 
 export const startEvaluate = async ({
   ieContract,
@@ -18,7 +19,10 @@ export const startEvaluate = async ({
 }) => {
   assert(typeof createPgClient === 'function', 'createPgClient must be a function')
 
-  const rounds = {}
+  const rounds = {
+    current: null,
+    previous: null
+  }
   const cidsSeen = []
   const roundsSeen = []
 
@@ -28,10 +32,19 @@ export const startEvaluate = async ({
     cidsSeen.push(cid)
     if (cidsSeen.length > 1000) cidsSeen.shift()
 
+    if (!rounds.current) {
+      rounds.current = new RoundData(roundIndex)
+    } else if (rounds.current.index !== roundIndex) {
+      // This should never happen
+      throw new Error(
+        `Round index mismatch: ${rounds.current.index} !== ${roundIndex}`
+      )
+    }
+
     console.log('Event: MeasurementsAdded', { roundIndex })
     // Preprocess
     preprocess({
-      rounds,
+      round: rounds.current,
       cid,
       roundIndex,
       fetchMeasurements,
@@ -62,9 +75,18 @@ export const startEvaluate = async ({
     if (roundsSeen.length > 1000) roundsSeen.shift()
 
     console.log('Event: RoundStart', { roundIndex })
+
+    if (!rounds.current) {
+      console.error('No current round data available, skipping evaluation')
+      return
+    }
+
+    rounds.previous = rounds.current
+    rounds.current = new RoundData(roundIndex)
+
     // Evaluate previous round
     evaluate({
-      rounds,
+      round: rounds.previous,
       roundIndex: roundIndex - 1,
       ieContractWithSigner,
       fetchRoundDetails,
