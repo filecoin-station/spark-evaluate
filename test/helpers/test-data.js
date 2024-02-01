@@ -22,7 +22,8 @@ export const VALID_MEASUREMENT = {
   end_at: new Date('2023-11-01T09:00:02.000Z').getTime(),
   finished_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
   byte_length: 1024,
-  retrievalResult: 'OK'
+  retrievalResult: 'OK',
+  indexerResult: 'OK'
 }
 
 // Fraud detection is mutating the measurements parsed from JSON
