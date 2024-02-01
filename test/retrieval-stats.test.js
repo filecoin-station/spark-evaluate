@@ -21,6 +21,7 @@ describe('retrieval statistics', () => {
         ...VALID_MEASUREMENT,
         timeout: true,
         retrievalResult: 'TIMEOUT',
+        indexerResult: 'HTTP_NOT_ADVERTISED',
 
         start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
         first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
@@ -32,12 +33,14 @@ describe('retrieval statistics', () => {
         ...VALID_MEASUREMENT,
         carTooLarge: true,
         retrievalResult: 'CAR_TOO_LARGE',
+        indexerResult: 'ERROR_404',
         byte_length: 200 * 1024 * 1024
       },
       {
         ...VALID_MEASUREMENT,
         status_code: 500,
         retrievalResult: 'ERROR_500',
+        indexerResult: 'NO_VALID_ADVERTISEMENT',
         participantAddress: '0xcheater',
         inet_group: 'abcd',
         start_at: new Date('2023-11-01T09:00:00.000Z').getTime(),
@@ -86,6 +89,11 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'tasks_per_node_p5', '1i')
     assertPointFieldValue(point, 'tasks_per_node_p50', '2i')
     assertPointFieldValue(point, 'tasks_per_node_p95', '2i')
+
+    assertPointFieldValue(point, 'indexer_rate_OK', '0.25')
+    assertPointFieldValue(point, 'indexer_rate_ERROR_404', '0.25')
+    assertPointFieldValue(point, 'indexer_rate_HTTP_NOT_ADVERTISED', '0.25')
+    assertPointFieldValue(point, 'indexer_rate_NO_VALID_ADVERTISEMENT', '0.25')
   })
 
   it('handles first_byte_at set to unix epoch', () => {

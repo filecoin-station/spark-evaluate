@@ -148,7 +148,8 @@ describe('getRetrievalResult', () => {
     inet_group: 'ue49TX_JdYjI',
     cid: 'bafkreihstuf2qcu3hs64ersidh46cjtilxcoipmzgu3pifwzmkqdjpraqq',
     provider_address: '/ip4/108.89.91.150/tcp/46717/p2p/12D3KooWSsaFCtzDJUEhLQYDdwoFtdCMqqfk562UMvccFz12kYxU',
-    protocol: 'graphsync'
+    protocol: 'graphsync',
+    indexerResult: 'OK'
   }
 
   it('successful retrieval', () => {
@@ -221,5 +222,29 @@ describe('getRetrievalResult', () => {
       status_code: null
     })
     assert.strictEqual(result, 'UNKNOWN_ERROR')
+  })
+
+  it('missing indexer result -> OK', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      indexerResult: undefined
+    })
+    assert.strictEqual(result, 'OK')
+  })
+
+  it('IPNI HTTP_NOT_ADVERTISED -> OK', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      indexerResult: 'HTTP_NOT_ADVERTISED'
+    })
+    assert.strictEqual(result, 'OK')
+  })
+
+  it('IPNI errors', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      indexerResult: 'ERROR_FETCH'
+    })
+    assert.strictEqual(result, 'IPNI_ERROR_FETCH')
   })
 })
