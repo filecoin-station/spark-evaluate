@@ -18,7 +18,7 @@
     "debug": "^4.3.4",
     "ethers": "^6.10.0",
     "ipfs-car": "^1.2.0",
-    "ipfs-unixfs-exporter": "^13.4.0",
+    "ipfs-unixfs-exporter": "^13.5.0",
     "just-percentile": "^4.2.0",
     "on-contract-event": "^1.0.0",
     "p-retry": "^6.2.0",
