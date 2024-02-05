@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
-import { onContractEvent } from './lib/on-contract-event.js'
+import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
 
 export const startEvaluate = async ({
