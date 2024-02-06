@@ -20,7 +20,7 @@
     "ipfs-car": "^1.2.0",
     "ipfs-unixfs-exporter": "^13.5.0",
     "just-percentile": "^4.2.0",
-    "on-contract-event": "^1.0.0",
+    "on-contract-event": "^1.0.1",
     "p-retry": "^6.2.0",
     "pg": "^8.11.3",
     "postgrator": "^7.2.0"
