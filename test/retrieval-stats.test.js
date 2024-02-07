@@ -31,9 +31,10 @@ describe('retrieval statistics', () => {
       },
       {
         ...VALID_MEASUREMENT,
+        cid: 'bafyanother',
         carTooLarge: true,
         retrievalResult: 'CAR_TOO_LARGE',
-        indexerResult: 'ERROR_404',
+        indexerResult: undefined,
         byte_length: 200 * 1024 * 1024
       },
       {
@@ -61,7 +62,7 @@ describe('retrieval statistics', () => {
     debug('stats', point.fields)
 
     assertPointFieldValue(point, 'measurements', '4i')
-    assertPointFieldValue(point, 'unique_tasks', '2i')
+    assertPointFieldValue(point, 'unique_tasks', '3i')
     assertPointFieldValue(point, 'success_rate', '0.25')
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
@@ -91,9 +92,14 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'tasks_per_node_p95', '2i')
 
     assertPointFieldValue(point, 'indexer_rate_OK', '0.25')
-    assertPointFieldValue(point, 'indexer_rate_ERROR_404', '0.25')
+    assertPointFieldValue(point, 'indexer_rate_UNDEFINED', '0.25')
     assertPointFieldValue(point, 'indexer_rate_HTTP_NOT_ADVERTISED', '0.25')
     assertPointFieldValue(point, 'indexer_rate_NO_VALID_ADVERTISEMENT', '0.25')
+
+    // There are three unique tasks in our measurements, but one of the task does not have
+    // any measurement with indexer result. From the two remaining tasks, only one of them
+    // has a measurement reporting that HTTP retrieval was advertised to IPNI
+    assertPointFieldValue(point, 'rate_tasks_advertising_http', '0.5')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
