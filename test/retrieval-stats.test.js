@@ -99,7 +99,7 @@ describe('retrieval statistics', () => {
     // There are three unique tasks in our measurements, but one of the task does not have
     // any measurement with indexer result. From the two remaining tasks, only one of them
     // has a measurement reporting that HTTP retrieval was advertised to IPNI
-    assertPointFieldValue(point, 'rate_tasks_advertising_http', '0.5')
+    assertPointFieldValue(point, 'rate_of_deals_advertising_http', '0.5')
   })
 
   it('handles first_byte_at set to unix epoch', () => {
