@@ -23,6 +23,7 @@ describe('public-stats', () => {
   let today
   beforeEach(async () => {
     await pgClient.query('DELETE FROM retrieval_stats')
+    await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_participants')
     // empty `participants` table in such way that the next participants.id will be always 1
     await pgClient.query('TRUNCATE TABLE participants RESTART IDENTITY CASCADE')
@@ -133,6 +134,39 @@ describe('public-stats', () => {
       const second = await mapParticipantsToIds(pgClient, participants)
       second.sort()
       assert.deepStrictEqual(second, [1, 2, 3, 4])
+    })
+  })
+
+  describe('indexer_query_stats', () => {
+    it('creates or updates the row for today', async () => {
+      /** @type {import('../lib/preprocess').Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+        { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+        { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' }
+      ]
+      await updatePublicStats({ createPgClient, honestMeasurements })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, total, advertising_http FROM indexer_query_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, total: 3, advertising_http: 1 }
+      ])
+
+      // Notice: this measurement is for the same task as honestMeasurements[0], therefore it's
+      // effectively ignored as the other measurement was successful.
+      honestMeasurements.push({ ...VALID_MEASUREMENT, indexerResult: 'UNKNOWN_ERROR' })
+      // This is a measurement for a new task.
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
+      await updatePublicStats({ createPgClient, honestMeasurements })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, total, advertising_http FROM indexer_query_stats'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, total: 3 + 4, advertising_http: 1 + 1 }
+      ])
     })
   })
 
