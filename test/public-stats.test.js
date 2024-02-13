@@ -148,10 +148,10 @@ describe('public-stats', () => {
       await updatePublicStats({ createPgClient, honestMeasurements })
 
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, total, advertising_http FROM indexer_query_stats'
+        'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
       )
       assert.deepStrictEqual(created, [
-        { day: today, total: 3, advertising_http: 1 }
+        { day: today, deals_tested: 3, deals_advertising_http: 1 }
       ])
 
       // Notice: this measurement is for the same task as honestMeasurements[0], therefore it's
@@ -162,10 +162,10 @@ describe('public-stats', () => {
       await updatePublicStats({ createPgClient, honestMeasurements })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, total, advertising_http FROM indexer_query_stats'
+        'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
       )
       assert.deepStrictEqual(updated, [
-        { day: today, total: 3 + 4, advertising_http: 1 + 1 }
+        { day: today, deals_tested: 3 + 4, deals_advertising_http: 1 + 1 }
       ])
     })
   })
