@@ -34,7 +34,7 @@ export type FraudAssesment =
   | 'INVALID_TASK'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
-  | 'NO_INDEXER_RESULT'
+  | 'IPNI_NOT_QUERIED'
 
 
 // When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
