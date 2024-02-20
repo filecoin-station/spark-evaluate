@@ -549,6 +549,36 @@ describe('fraud detection', () => {
       ['OK', 'TOO_MANY_TASKS', 'OK']
     )
   })
+
+  it('rejects measurements missing indexer result', async () => {
+    const sparkRoundDetails = {
+      roundId: 1234, // doesn't matter
+      retrievalTasks: [
+        {
+          cid: VALID_MEASUREMENT.cid
+        }
+      ]
+    }
+
+    const measurements = [
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'group1',
+        indexerResult: 'OK'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'group2',
+        indexerResult: undefined
+      }
+    ]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+    assert.deepStrictEqual(
+      measurements.map(m => m.fraudAssessment),
+      ['OK', 'IPNI_NOT_QUERIED']
+    )
+  })
 })
 
 describe('set scores buckets', () => {
