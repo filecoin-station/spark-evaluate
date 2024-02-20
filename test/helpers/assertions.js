@@ -1,5 +1,8 @@
 import assert from 'node:assert'
 
+/**
+ * @returns {import('../../lib/telemetry').Point}
+ */
 export const assertRecordedTelemetryPoint = (recordings, name) => {
   const point = recordings.find(p => p.name === name)
   assert(!!point,
