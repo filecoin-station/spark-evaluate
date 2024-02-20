@@ -331,5 +331,54 @@ describe('preprocess-evaluate integration', () => {
     })
 
     // TODO: query `public_stats` table
+
+    // Asserting all 8k participants & their scores would be too much code to have here.
+    // Let's check a smaller number of participants & their scores as a smoke test.
+
+    assert.deepStrictEqual(ieContractWithSigner.participantAddresses.slice(0, 20), [
+      '0xBE36aeB2d73F5f5E4eec5580E3135ce4D61d1597',
+      '0xbCbcc7e404424E3E80be10BdBf80E71b3dB78F64',
+      '0x4EE4671E8eDaA5aD749F7bce21dCf6E970d193FB',
+      '0xA035eF87dA35ee9c0674659301C71712D645cb91',
+      '0x5A45f28AEef32Da96Db5b6C435081A677BDfe938',
+      '0x5Bd2a35b960B67295F12a850A9324Fea50E6B411',
+      '0x809ECAAE36dd5AFEc4f3fE0370d8D834209A7BcD',
+      '0xcc313F29D7B55Da624cF86728fC1558f35358250',
+      '0xA860eefe8A03662C7348bB4529781dd214062441',
+      '0x488BBeb02dBcBa7667Ae003Ac30795a65d015827',
+      '0xb2400f2ff17d24F68Dc8Fc86138D673573c43000',
+      '0x04e50401Bd39740286c8D1A92cF39B4D4D071963',
+      '0x132ac8d0BE41874079463C26496C88b7E1536349',
+      '0x4bF2e19Ab601144a0465bA16cBB78007e9032f7b',
+      '0x6D7ACB2C38d412E4655A9cB227a72B3d16C91015',
+      '0x2C288857FC07741cdC34AB36811f392c905cAA83',
+      '0x07221f9fab99C7298e20f182771222dfE1181091',
+      '0x146ffDa604B3a8eFd6c2F828Ade9C8a59C0BAdE9',
+      '0x1dfA207dd8d6d1bA0836000b77dDdC02a3dA32C0',
+      '0xc9549D267D39e494770297a589a5A0BF3171D169'
+    ])
+
+    assert.deepStrictEqual(ieContractWithSigner.scores.slice(0, 20), [
+      125691302161n,
+      125691302161n,
+      377073906485n,
+      125691302161n,
+      377073906485n,
+      125691302161n,
+      125691302161n,
+      125691302161n,
+      879839115133n,
+      125691302161n,
+      125691302161n,
+      377073906485n,
+      251382604323n,
+      125691302161n,
+      125691302161n,
+      1131221719457n,
+      125691302161n,
+      628456510809n,
+      125691302161n,
+      125691302161n
+    ])
   })
 })
