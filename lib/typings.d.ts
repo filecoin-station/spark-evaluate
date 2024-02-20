@@ -66,6 +66,7 @@ export interface Measurement {
   timeout: boolean;
   byte_length: number;
   car_too_large: boolean;
+  indexer_result: string | undefined | null;
 }
 
 export interface GroupWinningStats {

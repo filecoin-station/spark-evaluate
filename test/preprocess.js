@@ -149,7 +149,7 @@ describe('getRetrievalResult', () => {
     cid: 'bafkreihstuf2qcu3hs64ersidh46cjtilxcoipmzgu3pifwzmkqdjpraqq',
     provider_address: '/ip4/108.89.91.150/tcp/46717/p2p/12D3KooWSsaFCtzDJUEhLQYDdwoFtdCMqqfk562UMvccFz12kYxU',
     protocol: 'graphsync',
-    indexerResult: 'OK'
+    indexer_result: 'OK'
   }
 
   it('successful retrieval', () => {
@@ -227,7 +227,15 @@ describe('getRetrievalResult', () => {
   it('missing indexer result -> IPNI_NOT_QUERIED', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
-      indexerResult: undefined
+      indexer_result: undefined
+    })
+    assert.strictEqual(result, 'IPNI_NOT_QUERIED')
+  })
+
+  it('indexer result is null -> IPNI_NOT_QUERIED', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      indexer_result: null
     })
     assert.strictEqual(result, 'IPNI_NOT_QUERIED')
   })
@@ -235,7 +243,7 @@ describe('getRetrievalResult', () => {
   it('IPNI HTTP_NOT_ADVERTISED -> OK', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
-      indexerResult: 'HTTP_NOT_ADVERTISED'
+      indexer_result: 'HTTP_NOT_ADVERTISED'
     })
     assert.strictEqual(result, 'OK')
   })
@@ -243,7 +251,7 @@ describe('getRetrievalResult', () => {
   it('IPNI errors', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
-      indexerResult: 'ERROR_FETCH'
+      indexer_result: 'ERROR_FETCH'
     })
     assert.strictEqual(result, 'IPNI_ERROR_FETCH')
   })
