@@ -224,12 +224,12 @@ describe('getRetrievalResult', () => {
     assert.strictEqual(result, 'UNKNOWN_ERROR')
   })
 
-  it('missing indexer result -> OK', () => {
+  it('missing indexer result -> IPNI_NOT_QUERIED', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       indexerResult: undefined
     })
-    assert.strictEqual(result, 'OK')
+    assert.strictEqual(result, 'IPNI_NOT_QUERIED')
   })
 
   it('IPNI HTTP_NOT_ADVERTISED -> OK', () => {
