@@ -10,7 +10,7 @@
     "standard": "^17.1.0"
   },
   "dependencies": {
-    "@glif/filecoin-address": "^3.0.2",
+    "@glif/filecoin-address": "^3.0.4",
     "@influxdata/influxdb-client": "^1.33.2",
     "@ipld/car": "^5.3.0",
     "@sentry/node": "^7.104.0",
