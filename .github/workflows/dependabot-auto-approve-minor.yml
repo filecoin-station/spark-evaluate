@@ -13,6 +13,7 @@ jobs:
         dependencyStartsWith:
           - '@sentry/'
           - mocha
+          - '@glif/'
     steps:
       - name: Dependabot metadata
         id: metadata
