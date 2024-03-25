@@ -10,8 +10,7 @@ export {
  */
 export interface RetrievalTask {
   cid: String;
-  providerAddress: String;
-  protocol: String;
+  minerId: String;
 }
 
 /**

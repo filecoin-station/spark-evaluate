@@ -323,8 +323,7 @@ describe('fraud detection', () => {
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-          providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-          protocol: 'bitswap'
+          minerId: 'f1test'
         }
       ]
     }
@@ -334,22 +333,26 @@ describe('fraud detection', () => {
         ...VALID_MEASUREMENT,
         // valid task
         cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-        protocol: 'bitswap'
+        minerId: 'f1test'
       },
       {
         ...VALID_MEASUREMENT,
-        // invalid task
+        // invalid task - wrong CID
         cid: 'bafyreicnokmhmrnlp2wjhyk2haep4tqxiptwfrp2rrs7rzq7uk766chqvq',
-        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-        protocol: 'bitswap'
+        minerId: 'f1test'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        // invalid task - wrong minerId
+        cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
+        minerId: 'f1bad'
       }
     ]
 
     await runFraudDetection(1, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
-      ['OK', 'INVALID_TASK']
+      ['OK', 'INVALID_TASK', 'INVALID_TASK']
     )
   })
 
@@ -377,12 +380,14 @@ describe('fraud detection', () => {
   it('picks different inet-group member to reward for each task', async () => {
     // We have two participants in the same inet group
     // They both complete the same valid tasks
-    // Ideally, our algorithm should assign one reward to each one
+    // Ideally, our algorithm should assign same reward to each one
     const sparkRoundDetails = {
       roundId: 1234,
       retrievalTasks: [
-        { ...VALID_TASK, cid: 'cid1' },
-        { ...VALID_TASK, cid: 'cid2' }
+        { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
+        { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
+        { ...VALID_TASK, cid: 'cid1', minerId: 'f1second' },
+        { ...VALID_TASK, cid: 'cid2', minerId: 'f1second' }
       ]
     }
     // hard-coded to get deterministic results
@@ -416,6 +421,10 @@ describe('fraud detection', () => {
       [
         'pa1::OK',
         'pa1::DUP_INET_GROUP',
+        'pa1::OK',
+        'pa1::DUP_INET_GROUP',
+        'pa2::DUP_INET_GROUP',
+        'pa2::OK',
         'pa2::DUP_INET_GROUP',
         'pa2::OK'
       ]
@@ -555,7 +564,8 @@ describe('fraud detection', () => {
       roundId: 1234, // doesn't matter
       retrievalTasks: [
         {
-          cid: VALID_MEASUREMENT.cid
+          cid: VALID_MEASUREMENT.cid,
+          minerId: 'f1test'
         }
       ]
     }
