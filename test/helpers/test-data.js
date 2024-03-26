@@ -2,16 +2,16 @@ export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000
 
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-  protocol: 'bitswap'
+  minerId: 'f1test'
 }
 Object.freeze(VALID_TASK)
 
 /** @type {import('../lib/typings').Measurement} */
 export const VALID_MEASUREMENT = {
   cid: VALID_TASK.cid,
-  provider_address: VALID_TASK.providerAddress,
-  protocol: VALID_TASK.protocol,
+  minerId: VALID_TASK.minerId,
+  provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+  protocol: 'bitswap',
   participantAddress: VALID_PARTICIPANT_ADDRESS,
   inet_group: 'some-group-id',
   status_code: 200,

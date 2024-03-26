@@ -133,6 +133,23 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'duration_mean', undefined)
     assertPointFieldValue(point, 'duration_p90', undefined)
   })
+
+  it('includes minerId in task definition', () => {
+    const measurements = [
+      {
+        ...VALID_MEASUREMENT,
+        minerId: 'f1one'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        minerId: 'f1two'
+      }
+    ]
+    const point = new Point('stats')
+    buildRetrievalStats(measurements, point)
+    debug('stats', point.fields)
+    assertPointFieldValue(point, 'unique_tasks', '2i')
+  })
 })
 
 describe('getValueAtPercentile', () => {
@@ -172,7 +189,6 @@ describe('recordCommitteeSizes', () => {
         ...VALID_MEASUREMENT,
         cid: 'bafyanother'
       }
-
     ]
 
     const point = new Point('committees')
