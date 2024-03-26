@@ -45,7 +45,7 @@ describe('public-stats', () => {
   })
 
   describe('retrieval_stats', () => {
-    it('creates or updates the row for today', async () => {
+    it('creates or updates the row for today - one miner only', async () => {
       /** @type {import('../lib/preprocess').Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
@@ -68,6 +68,36 @@ describe('public-stats', () => {
       )
       assert.deepStrictEqual(updated, [
         { day: today, total: 2 + 3, successful: 1 + 1 }
+      ])
+    })
+
+    it('creates or updates the row for today - multiple miners', async () => {
+      /** @type {import('../lib/preprocess').Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'TIMEOUT' },
+        { ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'OK' }
+      ]
+      await updatePublicStats({ createPgClient, honestMeasurements })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, miner_id: 'f1first', total: 2, successful: 1 },
+        { day: today, miner_id: 'f1second', total: 1, successful: 1 }
+      ])
+
+      honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
+      await updatePublicStats({ createPgClient, honestMeasurements })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1first', total: 2 + 3, successful: 1 + 1 },
+        { day: today, miner_id: 'f1second', total: 1 + 2, successful: 1 + 1 }
       ])
     })
   })
