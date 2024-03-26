@@ -1,12 +1,5 @@
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 
-export const VALID_TASK_WITH_PROVIDER_PROTOCOL = {
-  cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  providerAddress: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-  protocol: 'bitswap'
-}
-Object.freeze(VALID_TASK_WITH_PROVIDER_PROTOCOL)
-
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
   minerId: 'f1test'
