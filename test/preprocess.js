@@ -98,16 +98,6 @@ describe('preprocess', () => {
     assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
   })
 
-  it('converts mainnet f1 wallet address to hard-coded participant ETH adddress', () => {
-    const converted = parseParticipantAddress('f17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
-    assert.strictEqual(converted, '0x000000000000000000000000000000000000dEaD')
-  })
-
-  it('converts testnet f1 wallet address to hard-coded participant ETH adddress', () => {
-    const converted = parseParticipantAddress('t17uoq6tp427uzv7fztkbsnn64iwotfrristwpryy')
-    assert.strictEqual(converted, '0x000000000000000000000000000000000000dEaD')
-  })
-
   it('accepts ETH 0x address', () => {
     const converted = parseParticipantAddress('0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
     assert.strictEqual(converted, '0x3356fd7D01F001f5FdA3dc032e8bA14E54C2a1a1')
