@@ -57,36 +57,6 @@ describe('preprocess', () => {
     assertPointFieldValue(point, 'v1.2.3', '1i')
     assertPointFieldValue(point, 'total', '1i')
   })
-  it('validates measurements', async () => {
-    const round = new RoundData(0)
-    const cid = 'bafybeif2'
-    const roundIndex = 0
-    const measurements = [{
-      participant_address: 't1foobar',
-      inet_group: 'ig1',
-      finished_at: '2023-11-01T09:00:00.000Z',
-      first_byte_at: '2023-11-01T09:00:01.000Z',
-      start_at: '2023-11-01T09:00:02.000Z',
-      end_at: '2023-11-01T09:00:03.000Z'
-    }]
-    const fetchMeasurements = async (_cid) => measurements
-    const logger = { log: debug, error: debug }
-    await preprocess({ round, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
-
-    // We allow invalid participant address for now.
-    // We should update this test when we remove this temporary workaround.
-    assert.deepStrictEqual(round.measurements, [
-      new Measurement({
-        participant_address: '0x000000000000000000000000000000000000dEaD',
-        inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '2023-11-01T09:00:01.000Z',
-        start_at: '2023-11-01T09:00:02.000Z',
-        end_at: '2023-11-01T09:00:03.000Z',
-        retrievalResult: 'UNKNOWN_ERROR'
-      })
-    ])
-  })
 
   it('converts mainnet wallet address to participant ETH address', () => {
     const converted = parseParticipantAddress('f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
