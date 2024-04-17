@@ -4,7 +4,7 @@ import { beforeEach, describe, it } from 'mocha'
 
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
-import { VALID_MEASUREMENT } from './helpers/test-data.js'
+import { VALID_MEASUREMENT, VALID_STATION_ID } from './helpers/test-data.js'
 import { updateDailyNodeMetrics } from '../lib/platform-stats.js'
 
 const createPgClient = async () => {
@@ -15,15 +15,16 @@ const createPgClient = async () => {
 
 describe('platform-stats', () => {
   let pgClient
-
   before(async () => {
     pgClient = await createPgClient()
     await migrateWithPgClient(pgClient)
   })
 
+  let today
   beforeEach(async () => {
     await pgClient.query('DELETE FROM daily_node_metrics')
     await pgClient.query('BEGIN TRANSACTION')
+    today = await getCurrentDate()
   })
 
   afterEach(async () => {
@@ -34,29 +35,40 @@ describe('platform-stats', () => {
     await pgClient.end()
   })
 
-  it('updates daily node metrics with new measurements', async () => {
-    const honestMeasurements = [
-      { ...VALID_MEASUREMENT, station_id: 'station1' },
-      { ...VALID_MEASUREMENT, station_id: 'station2' }
-    ]
+  describe('updateDailyNodeMetrics', () => {
+    it('updates daily node metrics for today with multiple measurements', async () => {
+      const validStationId2 = VALID_STATION_ID.slice(0, -1) + '1'
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
+        { ...VALID_MEASUREMENT, stationId: validStationId2 }
+      ]
 
-    await updateDailyNodeMetrics(pgClient, honestMeasurements)
+      await updateDailyNodeMetrics(pgClient, honestMeasurements)
 
-    const { rows } = await pgClient.query('SELECT station_id FROM daily_node_metrics')
-    assert.strictEqual(rows.length, 2)
-    assert.deepStrictEqual(rows.map(row => row.station_id).sort(), ['station1', 'station2'])
+      const { rows } = await pgClient.query('SELECT station_id, metric_date::TEXT FROM daily_node_metrics ORDER BY station_id')
+      assert.strictEqual(rows.length, 2)
+      assert.deepStrictEqual(rows, [
+        { station_id: VALID_STATION_ID, metric_date: today },
+        { station_id: validStationId2, metric_date: today }
+      ])
+    })
+
+    it('ignores duplicate measurements for the same station on the same day', async () => {
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
+      ]
+
+      await updateDailyNodeMetrics(pgClient, honestMeasurements)
+
+      const { rows } = await pgClient.query('SELECT station_id, metric_date::TEXT FROM daily_node_metrics')
+      assert.strictEqual(rows.length, 1)
+      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, metric_date: today }])
+    })
   })
 
-  it('ignores duplicate measurements for the same station on the same day', async () => {
-    const honestMeasurements = [
-      { ...VALID_MEASUREMENT, station_id: 'station1' },
-      { ...VALID_MEASUREMENT, station_id: 'station1' } // Duplicate station_id
-    ]
-
-    await updateDailyNodeMetrics(pgClient, honestMeasurements)
-
-    const { rows } = await pgClient.query('SELECT station_id FROM daily_node_metrics')
-    assert.strictEqual(rows.length, 1)
-    assert.strictEqual(rows[0].station_id, 'station1')
-  })
+  const getCurrentDate = async () => {
+    const { rows: [{ today }] } = await pgClient.query('SELECT now()::DATE::TEXT as today')
+    return today
+  }
 })

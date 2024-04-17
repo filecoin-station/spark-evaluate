@@ -3,6 +3,7 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
+import { VALID_STATION_ID } from './helpers/test-data.js'
 import { RoundData } from '../lib/round.js'
 
 const debug = createDebug('test')
@@ -23,6 +24,7 @@ describe('preprocess', () => {
     const roundIndex = 0
     const measurements = [{
       participant_address: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
+      station_id: VALID_STATION_ID,
       spark_version: '1.2.3',
       inet_group: 'ig1',
       finished_at: '2023-11-01T09:00:00.000Z',
@@ -41,6 +43,7 @@ describe('preprocess', () => {
     assert.deepStrictEqual(round.measurements, [
       new Measurement({
         participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
+        station_id: VALID_STATION_ID,
         spark_version: '1.2.3',
         inet_group: 'ig1',
         finished_at: '2023-11-01T09:00:00.000Z',
@@ -97,6 +100,7 @@ describe('getRetrievalResult', () => {
     spark_version: '1.5.2',
     zinnia_version: '0.14.0',
     participant_address: 'f410fgkhpcrbmdvic52o3nivftrjxr7nzw47updmuzra',
+    station_id: VALID_STATION_ID,
     finished_at: '2023-11-01T09:42:03.246Z',
     timeout: false,
     start_at: '2023-11-01T09:40:03.393Z',

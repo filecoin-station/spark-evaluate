@@ -1,4 +1,5 @@
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
+export const VALID_STATION_ID = '6400000000000000000000000000000000000000000000000000000000000000'
 
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -13,6 +14,7 @@ export const VALID_MEASUREMENT = {
   provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
   protocol: 'bitswap',
   participantAddress: VALID_PARTICIPANT_ADDRESS,
+  stationId: VALID_STATION_ID,
   inet_group: 'some-group-id',
   status_code: 200,
   timeout: false,
@@ -23,8 +25,7 @@ export const VALID_MEASUREMENT = {
   finished_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
   byte_length: 1024,
   retrievalResult: 'OK',
-  indexerResult: 'OK',
-  station_id: 'station1'
+  indexerResult: 'OK'
 }
 
 // Fraud detection is mutating the measurements parsed from JSON
