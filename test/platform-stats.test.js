@@ -23,6 +23,10 @@ describe('platform-stats', () => {
   let today
   beforeEach(async () => {
     await pgClient.query('DELETE FROM daily_node_metrics')
+
+    // Run all tests inside a transaction to ensure `now()` always returns the same value
+    // See https://dba.stackexchange.com/a/63549/125312
+    // This avoids subtle race conditions when the tests are executed around midnight.
     await pgClient.query('BEGIN TRANSACTION')
     today = await getCurrentDate()
   })
@@ -45,11 +49,11 @@ describe('platform-stats', () => {
 
       await updateDailyNodeMetrics(pgClient, honestMeasurements)
 
-      const { rows } = await pgClient.query('SELECT station_id, metric_date::TEXT FROM daily_node_metrics ORDER BY station_id')
+      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_node_metrics ORDER BY station_id')
       assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
-        { station_id: VALID_STATION_ID, metric_date: today },
-        { station_id: validStationId2, metric_date: today }
+        { station_id: VALID_STATION_ID, day: today },
+        { station_id: validStationId2, day: today }
       ])
     })
 
@@ -61,9 +65,9 @@ describe('platform-stats', () => {
 
       await updateDailyNodeMetrics(pgClient, honestMeasurements)
 
-      const { rows } = await pgClient.query('SELECT station_id, metric_date::TEXT FROM daily_node_metrics')
+      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_node_metrics')
       assert.strictEqual(rows.length, 1)
-      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, metric_date: today }])
+      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
     })
   })
 
