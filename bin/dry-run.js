@@ -132,6 +132,12 @@ async function fetchMeasurementsAddedEvents (roundIndex) {
 }
 
 async function createIeContract () {
+  if (RPC_URL.includes('glif')) {
+    if (!rpcHeaders.Authorization) {
+      throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
+    }
+  }
+
   const fetchRequest = new ethers.FetchRequest(RPC_URL)
   fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
   const provider = new ethers.JsonRpcProvider(
