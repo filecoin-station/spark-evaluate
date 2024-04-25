@@ -1,4 +1,4 @@
-// IMPORTANT! We must run dotenv config as the very first thing before importing anything else
+// dotenv must be imported before importing anything else
 import 'dotenv/config'
 
 import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
@@ -132,10 +132,8 @@ async function fetchMeasurementsAddedEvents (roundIndex) {
 }
 
 async function createIeContract () {
-  if (RPC_URL.includes('glif')) {
-    if (!rpcHeaders.Authorization) {
-      throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
-    }
+  if (RPC_URL.includes('glif') && !process.env.GLIF_TOKEN) {
+    throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
   }
 
   const fetchRequest = new ethers.FetchRequest(RPC_URL)
