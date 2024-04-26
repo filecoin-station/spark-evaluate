@@ -107,7 +107,8 @@ const ieContractWithSigner = {
   }
 }
 
-await evaluate({
+const started = Date.now()
+const { ignoredErrors } = await evaluate({
   roundIndex,
   round,
   fetchRoundDetails,
@@ -117,7 +118,17 @@ await evaluate({
   createPgClient
 })
 
+console.log('Duration: %sms', Date.now() - started)
 console.log(process.memoryUsage())
+
+if (ignoredErrors.length) {
+  console.log('**ERRORS**')
+  for (const err of ignoredErrors) {
+    console.log()
+    console.log(err)
+  }
+  process.exit(1)
+}
 
 async function fetchMeasurementsAddedEvents (roundIndex) {
   const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
