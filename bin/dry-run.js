@@ -1,7 +1,7 @@
 // dotenv must be imported before importing anything else
 import 'dotenv/config'
 
-import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
+import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -10,6 +10,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ethers } from 'ethers'
+import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
@@ -54,6 +55,12 @@ const recordTelemetry = (measurementName, fn) => {
   const point = new Point(measurementName)
   fn(point)
   console.log('TELEMETRY %s %o', measurementName, point.fields)
+}
+
+const createPgClient = async () => {
+  const pgClient = new pg.Client({ connectionString: DATABASE_URL })
+  await pgClient.connect()
+  return pgClient
 }
 
 const fetchMeasurementsWithCache = async (cid) => {
@@ -107,13 +114,7 @@ await evaluate({
   ieContractWithSigner,
   logger: console,
   recordTelemetry,
-
-  // We don't want dry runs to update data in `sparks_stats`, therefore we are passing a stub
-  // connection factory that creates no-op clients. This also keeps the setup simpler. The person
-  // executing a dry run does not need access to any Postgres instance.
-  // Evaluate uses the PG client only for updating the statistics, it's not reading any data.
-  // Thus it's safe to inject a no-op client.
-  createPgClient: createNoopPgClient
+  createPgClient
 })
 
 console.log(process.memoryUsage())
@@ -203,15 +204,4 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
 async function fetchLastRoundIndex () {
   const { ieContract } = await createIeContract()
   return await ieContract.currentRoundIndex()
-}
-
-function createNoopPgClient () {
-  return {
-    async query () {
-      return { rows: [] }
-    },
-    async end () {
-      // no-op
-    }
-  }
 }
