@@ -26,6 +26,11 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm test
+      - name: Evaluate the last Spark round in a dry-run mode
+        run: node bin/dry-run.js
+        env:
+          GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
+
 
   docker-build:
     runs-on: ubuntu-latest
