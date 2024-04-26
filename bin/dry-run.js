@@ -38,7 +38,7 @@ if (roundIndexStr) {
 } else {
   console.log('Round index not specified, fetching the last round index from the smart contract')
   const currentRoundIndex = await fetchLastRoundIndex()
-  roundIndex = Number(currentRoundIndex - 1n)
+  roundIndex = Number(currentRoundIndex - 2n)
 }
 
 if (!measurementCids.length) {
