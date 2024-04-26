@@ -176,7 +176,7 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
 
   /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
   const events = rawEvents.map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
-  console.log('events', events)
+  // console.log('events', events)
 
   const prev = roundIndex - 1n
   const prevFound = events.some(e => e.roundIndex === prev)
