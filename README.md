@@ -45,13 +45,30 @@ $ WALLET_SEED=$(cat secrets/mnemonic) npm start
 
 You can perform a dry-run evaluation of a given Meridan round using the script `bin/dry-run.js`.
 
-At the moment, the script requires CID(s) of measurements to load. (In the future, we may discover
-those CIDs from on-chain events.)
+1. Get your GLIF API access token at https://api.node.glif.io/
 
-Example: evaluate round `273` of Meridian version `0x3113b83ccec38a18df936f31297de490485d7b2e` with measurements from CID `bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4z`.
+2. Save the token to the `.env` file in project's root directory:
+
+   ```ini
+   GLIF_TOKEN="...your-token..."
+   ```
+
+3. Run the dry-run script. By default, the script evaluates the last round of the current smart contract version.
+
+   ```shell
+   node bin/dry-run.js
+   ```
+
+You can optionally specify the smart contract address, round index and list of CIDs of measurements
+to load.  For example, run the following command to evaluate round `273` of the Meridian version
+`0x3113b83ccec38a18df936f31297de490485d7b2e` with measurements from CID
+`bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4z`:
 
 ```shell
-❯ node bin/dry-run.js 0x3113b83ccec38a18df936f31297de490485d7b2e 273 bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4
+node bin/dry-run.js \
+  0x3113b83ccec38a18df936f31297de490485d7b2e \
+  273 \
+  bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4
 ```
 
 ## Deployment

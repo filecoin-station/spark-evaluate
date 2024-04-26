@@ -1,3 +1,6 @@
+// dotenv must be imported before importing anything else
+import 'dotenv/config'
+
 import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
@@ -13,7 +16,7 @@ const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
 const [nodePath, selfPath, ...args] = process.argv
-if (!args[0].startsWith('0x')) {
+if (args.length === 0 || !args[0].startsWith('0x')) {
   args.unshift(IE_CONTRACT_ADDRESS)
 }
 const [contractAddress, roundIndexStr, ...measurementCids] = args
@@ -29,12 +32,14 @@ if (!contractAddress) {
   process.exit(1)
 }
 
-if (!roundIndexStr) {
-  console.error('Missing required argument: roundIndex')
-  console.log(USAGE)
-  process.exit(1)
+let roundIndex
+if (roundIndexStr) {
+  roundIndex = Number(roundIndexStr)
+} else {
+  console.log('Round index not specified, fetching the last round index from the smart contract')
+  const currentRoundIndex = await fetchLastRoundIndex()
+  roundIndex = Number(currentRoundIndex - 1n)
 }
-const roundIndex = Number(roundIndexStr)
 
 if (!measurementCids.length) {
   measurementCids.push(...(await fetchMeasurementsAddedEvents(BigInt(roundIndex))))
@@ -126,7 +131,11 @@ async function fetchMeasurementsAddedEvents (roundIndex) {
   return list
 }
 
-async function fetchMeasurementsAddedFromChain (roundIndex) {
+async function createIeContract () {
+  if (RPC_URL.includes('glif') && !process.env.GLIF_TOKEN) {
+    throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
+  }
+
   const fetchRequest = new ethers.FetchRequest(RPC_URL)
   fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
   const provider = new ethers.JsonRpcProvider(
@@ -145,6 +154,12 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
     ),
     provider
   )
+
+  return { provider, ieContract }
+}
+
+async function fetchMeasurementsAddedFromChain (roundIndex) {
+  const { provider, ieContract } = await createIeContract()
 
   console.log('Fetching MeasurementsAdded events from the ledger')
 
@@ -183,6 +198,11 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   }
 
   return events.filter(e => e.roundIndex === roundIndex).map(e => e.cid)
+}
+
+async function fetchLastRoundIndex () {
+  const { ieContract } = await createIeContract()
+  return await ieContract.currentRoundIndex()
 }
 
 function createNoopPgClient () {

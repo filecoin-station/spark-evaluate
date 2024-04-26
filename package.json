@@ -6,6 +6,7 @@
     "test": "standard && mocha"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "mocha": "^10.4.0",
     "standard": "^17.1.0"
   },
