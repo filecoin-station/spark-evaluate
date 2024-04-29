@@ -1,4 +1,7 @@
-import { IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
+// dotenv must be imported before importing anything else
+import 'dotenv/config'
+
+import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -7,13 +10,14 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ethers } from 'ethers'
+import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
 const [nodePath, selfPath, ...args] = process.argv
-if (!args[0].startsWith('0x')) {
+if (args.length === 0 || !args[0].startsWith('0x')) {
   args.unshift(IE_CONTRACT_ADDRESS)
 }
 const [contractAddress, roundIndexStr, ...measurementCids] = args
@@ -29,12 +33,14 @@ if (!contractAddress) {
   process.exit(1)
 }
 
-if (!roundIndexStr) {
-  console.error('Missing required argument: roundIndex')
-  console.log(USAGE)
-  process.exit(1)
+let roundIndex
+if (roundIndexStr) {
+  roundIndex = Number(roundIndexStr)
+} else {
+  console.log('Round index not specified, fetching the last round index from the smart contract')
+  const currentRoundIndex = await fetchLastRoundIndex()
+  roundIndex = Number(currentRoundIndex - 2n)
 }
-const roundIndex = Number(roundIndexStr)
 
 if (!measurementCids.length) {
   measurementCids.push(...(await fetchMeasurementsAddedEvents(BigInt(roundIndex))))
@@ -49,6 +55,12 @@ const recordTelemetry = (measurementName, fn) => {
   const point = new Point(measurementName)
   fn(point)
   console.log('TELEMETRY %s %o', measurementName, point.fields)
+}
+
+const createPgClient = async () => {
+  const pgClient = new pg.Client({ connectionString: DATABASE_URL })
+  await pgClient.connect()
+  return pgClient
 }
 
 const fetchMeasurementsWithCache = async (cid) => {
@@ -95,23 +107,28 @@ const ieContractWithSigner = {
   }
 }
 
-await evaluate({
+const started = Date.now()
+const { ignoredErrors } = await evaluate({
   roundIndex,
   round,
   fetchRoundDetails,
   ieContractWithSigner,
   logger: console,
   recordTelemetry,
-
-  // We don't want dry runs to update data in `sparks_stats`, therefore we are passing a stub
-  // connection factory that creates no-op clients. This also keeps the setup simpler. The person
-  // executing a dry run does not need access to any Postgres instance.
-  // Evaluate uses the PG client only for updating the statistics, it's not reading any data.
-  // Thus it's safe to inject a no-op client.
-  createPgClient: createNoopPgClient
+  createPgClient
 })
 
+console.log('Duration: %sms', Date.now() - started)
 console.log(process.memoryUsage())
+
+if (ignoredErrors.length) {
+  console.log('**ERRORS**')
+  for (const err of ignoredErrors) {
+    console.log()
+    console.log(err)
+  }
+  process.exit(1)
+}
 
 async function fetchMeasurementsAddedEvents (roundIndex) {
   const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
@@ -126,7 +143,11 @@ async function fetchMeasurementsAddedEvents (roundIndex) {
   return list
 }
 
-async function fetchMeasurementsAddedFromChain (roundIndex) {
+async function createIeContract () {
+  if (RPC_URL.includes('glif') && !process.env.GLIF_TOKEN) {
+    throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
+  }
+
   const fetchRequest = new ethers.FetchRequest(RPC_URL)
   fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
   const provider = new ethers.JsonRpcProvider(
@@ -146,6 +167,12 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
     provider
   )
 
+  return { provider, ieContract }
+}
+
+async function fetchMeasurementsAddedFromChain (roundIndex) {
+  const { provider, ieContract } = await createIeContract()
+
   console.log('Fetching MeasurementsAdded events from the ledger')
 
   const blockNumber = await provider.getBlockNumber()
@@ -160,7 +187,7 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
 
   /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
   const events = rawEvents.map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
-  console.log('events', events)
+  // console.log('events', events)
 
   const prev = roundIndex - 1n
   const prevFound = events.some(e => e.roundIndex === prev)
@@ -185,13 +212,7 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   return events.filter(e => e.roundIndex === roundIndex).map(e => e.cid)
 }
 
-function createNoopPgClient () {
-  return {
-    async query () {
-      return { rows: [] }
-    },
-    async end () {
-      // no-op
-    }
-  }
+async function fetchLastRoundIndex () {
+  const { ieContract } = await createIeContract()
+  return await ieContract.currentRoundIndex()
 }

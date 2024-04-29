@@ -26,6 +26,11 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm test
+      - name: Evaluate the last Spark round in dry-run mode
+        run: node bin/dry-run.js
+        env:
+          GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
+
 
   docker-build:
     runs-on: ubuntu-latest
@@ -61,7 +66,7 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - if: failure()
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: filecoin-station-incidents
           payload: |
