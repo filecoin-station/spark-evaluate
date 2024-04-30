@@ -5,7 +5,7 @@ import { beforeEach, describe, it } from 'mocha'
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
 import { VALID_MEASUREMENT, VALID_STATION_ID } from './helpers/test-data.js'
-import { updateDailyStationStats } from '../lib/platform-stats.js'
+import { updateDailyStationStats, updateDailyFilStats } from '../lib/platform-stats.js'
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -23,6 +23,7 @@ describe('platform-stats', () => {
   let today
   beforeEach(async () => {
     await pgClient.query('DELETE FROM daily_stations')
+    await pgClient.query('DELETE FROM daily_fil')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -71,6 +72,35 @@ describe('platform-stats', () => {
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+    })
+  })
+
+  describe('updateDailyFilStats', () => {
+    it('should correctly update daily FIL stats with new transfer events', async () => {
+      await updateDailyFilStats(pgClient, { to: 'address1', amount: 100 })
+      await updateDailyFilStats(pgClient, { to: 'address1', amount: 200 })
+
+      const { rows } = await pgClient.query(`
+        SELECT to_address, amount FROM daily_fil
+        WHERE to_address = $1
+      `, ['address1'])
+      assert.strictEqual(rows.length, 1)
+      assert.strictEqual(rows[0].amount, '300')
+    })
+
+    it('should handle multiple addresses in daily FIL stats', async () => {
+      await updateDailyFilStats(pgClient, { to: 'address1', amount: 50 })
+      await updateDailyFilStats(pgClient, { to: 'address2', amount: 150 })
+
+      const { rows } = await pgClient.query(`
+        SELECT to_address, amount FROM daily_fil
+        ORDER BY to_address
+      `)
+      assert.strictEqual(rows.length, 2)
+      assert.deepStrictEqual(rows, [
+        { to_address: 'address1', amount: '50' },
+        { to_address: 'address2', amount: '150' }
+      ])
     })
   })
 

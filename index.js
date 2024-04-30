@@ -4,6 +4,7 @@ import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
+import { updateDailyFilStats } from './lib/platform-stats.js'
 
 export const startEvaluate = async ({
   ieContract,
@@ -103,6 +104,13 @@ export const startEvaluate = async ({
     })
   }
 
+  const onTransfer = async (to, amount) => {
+    const pgClient = await createPgClient()
+    const transferEvent = { to, amount }
+    console.log('Event: Transfer', transferEvent)
+    updateDailyFilStats(pgClient, transferEvent)
+  }
+
   // Listen for events
   const it = onContractEvent({
     contract: ieContract,
@@ -115,6 +123,8 @@ export const startEvaluate = async ({
       onMeasurementsAdded(...event.args)
     } else if (event.name === 'RoundStart') {
       onRoundStart(...event.args)
+    } else if (event.name === 'Transfer') {
+      await onTransfer(...event.args)
     }
   }
 }
