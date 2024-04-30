@@ -13,7 +13,7 @@ Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
  - Database: spark_stats
 
 Alternatively, set the environment variable `$DATABASE_URL` with
-`postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`.
+`postgres://${USER}:${PASS}@${HOST}:${PORT}/${DATABASE}`.
 
 The Postgres user and database need to exist already, and the user
 needs full management permissions for the database.
