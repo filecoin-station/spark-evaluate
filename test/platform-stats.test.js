@@ -72,6 +72,19 @@ describe('platform-stats', () => {
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
     })
+
+    it('ignores measurements without .stationId', async () => {
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: null },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
+      ]
+
+      await updateDailyStationStats(pgClient, honestMeasurements)
+
+      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
+      assert.strictEqual(rows.length, 1)
+      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+    })
   })
 
   const getCurrentDate = async () => {
