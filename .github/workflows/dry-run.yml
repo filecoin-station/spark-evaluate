@@ -1,11 +1,8 @@
 name: Dry Run
 on:
-  push:
   # Run on all branches in our repo, so that we test dry-run for our PRs too
-  # branches: [main]
   # Don't run on forks, which don't have access to secrets
-  # pull_request:
-  #  branches: [main]
+  push
 
 jobs:
   dry-run:
