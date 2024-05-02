@@ -51,13 +51,6 @@ export const startEvaluate = async ({
       recordTelemetry,
       logger
     }).catch(err => {
-      // See https://github.com/filecoin-station/spark-evaluate/issues/36
-      // Because each error message contains unique CID, Sentry is not able to group these errors
-      // Let's wrap the error message in a new Error object as a cause
-      if (typeof err === 'string' && err.match(/ENOENT: no such file or directory, open.*\/bafy/)) {
-        err = new Error('web3.storage cannot find block\'s temp file', { cause: err })
-      }
-
       console.error(err)
       Sentry.captureException(err, {
         extras: {
