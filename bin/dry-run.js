@@ -89,14 +89,24 @@ console.log('Evaluating round %s of contract %s', roundIndex, contractAddress)
 console.log('==PREPROCESS==')
 const round = new RoundData(roundIndex)
 for (const cid of measurementCids) {
-  await preprocess({
-    roundIndex,
-    round,
-    cid,
-    fetchMeasurements: fetchMeasurementsWithCache,
-    recordTelemetry,
-    logger: console
-  })
+  try {
+    await preprocess({
+      roundIndex,
+      round,
+      cid,
+      fetchMeasurements: fetchMeasurementsWithCache,
+      recordTelemetry,
+      logger: console
+    })
+  } catch (err) {
+    console.error(err)
+    Sentry.captureException(err, {
+      extras: {
+        roundIndex,
+        measurementsCid: cid
+      }
+    })
+  }
 }
 
 console.log('Fetched %s measurements', round.measurements.length)
