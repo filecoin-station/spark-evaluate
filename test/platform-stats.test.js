@@ -51,13 +51,14 @@ describe('platform-stats', () => {
       await updateDailyStationStats(pgClient, honestMeasurements)
 
       const { rows } = await pgClient.query(`
-        SELECT station_id, day::TEXT, honest_measurement_count FROM daily_stations
+        SELECT station_id, day::TEXT, accepted_measurement_count
+        FROM daily_stations
         ORDER BY station_id`
       )
       assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
-        { station_id: VALID_STATION_ID, day: today, honest_measurement_count: 1 },
-        { station_id: VALID_STATION_ID_2, day: today, honest_measurement_count: 1 }
+        { station_id: VALID_STATION_ID, day: today, accepted_measurement_count: 1 },
+        { station_id: VALID_STATION_ID_2, day: today, accepted_measurement_count: 1 }
       ])
     })
 
@@ -71,13 +72,14 @@ describe('platform-stats', () => {
       await updateDailyStationStats(pgClient, honestMeasurements)
 
       const { rows } = await pgClient.query(`
-        SELECT station_id, day::TEXT, honest_measurement_count FROM daily_stations
+        SELECT station_id, day::TEXT, accepted_measurement_count
+        FROM daily_stations
         ORDER BY station_id`
       )
       assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
-        { station_id: VALID_STATION_ID, day: today, honest_measurement_count: 2 },
-        { station_id: VALID_STATION_ID_2, day: today, honest_measurement_count: 1 }
+        { station_id: VALID_STATION_ID, day: today, accepted_measurement_count: 2 },
+        { station_id: VALID_STATION_ID_2, day: today, accepted_measurement_count: 1 }
       ])
     })
   })
