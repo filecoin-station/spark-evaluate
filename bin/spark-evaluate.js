@@ -39,7 +39,10 @@ const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
   signer.address,
-  newDelegatedEthAddress(signer.address, 'f').toString()
+  newDelegatedEthAddress(
+    /** @type {any} */(signer.address),
+    /** @type {import('@glif/filecoin-address').CoinType} */ ('f')
+  ).toString()
 )
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,

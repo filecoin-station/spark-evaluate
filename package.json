@@ -7,9 +7,9 @@
     "test:lint": "standard",
     "test:unit": "mocha",
     "test:types": "tsc -p ."
-
   },
   "devDependencies": {
+    "@types/pg": "^8.11.5",
     "dotenv": "^16.4.5",
     "mocha": "^10.4.0",
     "standard": "^17.1.0",
