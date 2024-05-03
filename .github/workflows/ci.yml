@@ -32,6 +32,40 @@ jobs:
       - run: npm ci
       - run: npm test
 
+  dry-run:
+    # Don't run on pull requests from forks - they don't have access to secrets
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run migrate
+      - name: Evaluate the last Spark round in dry-run mode
+        run: node bin/dry-run.js
+        env:
+          GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
+
   docker-build:
     runs-on: ubuntu-latest
     permissions:
