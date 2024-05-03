@@ -29,6 +29,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run migrate
       - name: Evaluate the last Spark round in dry-run mode
         run: node bin/dry-run.js
         env:
