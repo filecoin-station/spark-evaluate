@@ -5,7 +5,12 @@ import { beforeEach, describe, it } from 'mocha'
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
 import { VALID_MEASUREMENT, VALID_STATION_ID } from './helpers/test-data.js'
-import { updateDailyStationStats } from '../lib/platform-stats.js'
+import {
+  mapParticipantsToIds,
+  updateDailyParticipants,
+  updateDailyStationStats,
+  updatePlatformStats
+} from '../lib/platform-stats.js'
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -23,6 +28,10 @@ describe('platform-stats', () => {
   let today
   beforeEach(async () => {
     await pgClient.query('DELETE FROM daily_stations')
+
+    await pgClient.query('DELETE FROM daily_participants')
+    // empty `participants` table in such way that the next participants.id will be always 1
+    await pgClient.query('TRUNCATE TABLE participants RESTART IDENTITY CASCADE')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -71,6 +80,84 @@ describe('platform-stats', () => {
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+    })
+
+    it('ignores measurements without .stationId', async () => {
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: null },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
+      ]
+
+      await updateDailyStationStats(pgClient, honestMeasurements)
+
+      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
+      assert.strictEqual(rows.length, 1)
+      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+    })
+  })
+
+  describe('daily_participants', () => {
+    it('submits daily_participants data for today', async () => {
+      /** @type {import('../lib/preprocess').Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, participantAddress: '0x10' },
+        { ...VALID_MEASUREMENT, participantAddress: '0x10' },
+        { ...VALID_MEASUREMENT, participantAddress: '0x20' }
+      ]
+      await updatePlatformStats(pgClient, honestMeasurements)
+
+      const { rows } = await pgClient.query(
+        'SELECT day::TEXT, participant_id FROM daily_participants'
+      )
+      assert.deepStrictEqual(rows, [
+        { day: today, participant_id: 1 },
+        { day: today, participant_id: 2 }
+      ])
+    })
+
+    it('creates a new daily_participants row', async () => {
+      await updateDailyParticipants(pgClient, new Set(['0x10', '0x20']))
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, participant_id FROM daily_participants'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, participant_id: 1 },
+        { day: today, participant_id: 2 }
+      ])
+    })
+
+    it('handles participants already seen today', async () => {
+      await updateDailyParticipants(pgClient, new Set(['0x10', '0x20']))
+      await updateDailyParticipants(pgClient, new Set(['0x10', '0x30', '0x20']))
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, participant_id FROM daily_participants'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, participant_id: 1 },
+        { day: today, participant_id: 2 },
+        { day: today, participant_id: 3 }
+      ])
+    })
+
+    it('maps new participant addresses to new ids', async () => {
+      const ids = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      ids.sort()
+      assert.deepStrictEqual(ids, [1, 2])
+    })
+
+    it('maps existing participants to their existing ids', async () => {
+      const participants = new Set(['0x10', '0x20'])
+      const first = await mapParticipantsToIds(pgClient, participants)
+      first.sort()
+      assert.deepStrictEqual(first, [1, 2])
+
+      participants.add('0x30')
+      participants.add('0x40')
+      const second = await mapParticipantsToIds(pgClient, participants)
+      second.sort()
+      assert.deepStrictEqual(second, [1, 2, 3, 4])
     })
   })
 
