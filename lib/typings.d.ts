@@ -43,6 +43,9 @@ export type RetrievalResult =
   | 'CAR_TOO_LARGE'
   | 'BAD_GATEWAY'
   | 'GATEWAY_TIMEOUT'
+  | 'IPNI_NOT_QUERIED'
+  | `IPNI_${string}`
+  | `ERROR_${number}`
   | 'ERROR_500'
   | 'UNKNOWN_ERROR'
 
