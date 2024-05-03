@@ -43,17 +43,24 @@ export type RetrievalResult =
   | 'CAR_TOO_LARGE'
   | 'BAD_GATEWAY'
   | 'GATEWAY_TIMEOUT'
+  | 'IPNI_NOT_QUERIED'
+  | `IPNI_${string}`
+  | `ERROR_${number}`
   | 'ERROR_500'
   | 'UNKNOWN_ERROR'
 
 // Data coming from spark-api and spark-publish
 export interface RawMeasurement {
   participant_address: string;
+  spark_version: string;
 
+  miner_id: string;
   cid: string;
+  provider_id: string;
   provider_address: string;
   protocol: string;
   inet_group: string;
+  station_id: string;
 
   start_at: string;
   first_byte_at: string;
