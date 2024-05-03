@@ -4,6 +4,10 @@ import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
+import timers from 'node:timers/promises'
+
+// Tweak this value to improve the chances of the data being available
+const PREPROCESS_DELAY = 60_1000
 
 export const startEvaluate = async ({
   ieContract,
@@ -26,7 +30,7 @@ export const startEvaluate = async ({
   const cidsSeen = []
   const roundsSeen = []
 
-  const onMeasurementsAdded = (cid, _roundIndex) => {
+  const onMeasurementsAdded = async (cid, _roundIndex) => {
     const roundIndex = Number(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
@@ -42,15 +46,21 @@ export const startEvaluate = async ({
     }
 
     console.log('Event: MeasurementsAdded', { roundIndex })
+    console.log(`Sleeping for ${PREPROCESS_DELAY}ms before preprocessing to improve chances of the data being available`)
+    await timers.setTimeout(PREPROCESS_DELAY)
+    console.log(`Now preprocessing measurements for CID ${cid} in round ${roundIndex}`)
+
     // Preprocess
-    preprocess({
-      round: rounds.current,
-      cid,
-      roundIndex,
-      fetchMeasurements,
-      recordTelemetry,
-      logger
-    }).catch(err => {
+    try {
+      await preprocess({
+        round: rounds.current,
+        cid,
+        roundIndex,
+        fetchMeasurements,
+        recordTelemetry,
+        logger
+      })
+    } catch (err) {
       // See https://github.com/filecoin-station/spark-evaluate/issues/36
       // Because each error message contains unique CID, Sentry is not able to group these errors
       // Let's wrap the error message in a new Error object as a cause
@@ -65,7 +75,7 @@ export const startEvaluate = async ({
           measurementsCid: cid
         }
       })
-    })
+    }
   }
 
   const onRoundStart = (_roundIndex) => {
@@ -112,7 +122,10 @@ export const startEvaluate = async ({
   })
   for await (const event of it) {
     if (event.name === 'MeasurementsAdded') {
-      onMeasurementsAdded(...event.args)
+      onMeasurementsAdded(...event.args).catch(err => {
+        console.error(err)
+        Sentry.captureException(err)
+      })
     } else if (event.name === 'RoundStart') {
       onRoundStart(...event.args)
     }
