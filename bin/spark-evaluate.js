@@ -5,7 +5,7 @@ import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import { fileURLToPath } from 'node:url'
-import { newDelegatedEthAddress } from '@glif/filecoin-address'
+import { CoinType, newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
 import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
@@ -39,10 +39,7 @@ const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
   signer.address,
-  newDelegatedEthAddress(
-    /** @type {any} */(signer.address),
-    /** @type {import('@glif/filecoin-address').CoinType} */ ('f')
-  ).toString()
+  newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
 )
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,
