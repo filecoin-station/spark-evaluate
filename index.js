@@ -2,7 +2,6 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
-import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
 
 export const startEvaluate = async ({
@@ -104,17 +103,6 @@ export const startEvaluate = async ({
   }
 
   // Listen for events
-  const it = onContractEvent({
-    contract: ieContract,
-    provider,
-    rpcUrl,
-    rpcHeaders
-  })
-  for await (const event of it) {
-    if (event.name === 'MeasurementsAdded') {
-      onMeasurementsAdded(...event.args)
-    } else if (event.name === 'RoundStart') {
-      onRoundStart(...event.args)
-    }
-  }
+  ieContract.on(ieContract.filters.MeasurementsAdded, onMeasurementsAdded)
+  ieContract.on(ieContract.filters.RoundStart, onRoundStart)
 }
