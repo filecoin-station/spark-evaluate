@@ -92,7 +92,7 @@ const cids = rows.map(r => r.cid)
 const totalCids = cids.length
 console.error('Found %s commitments', totalCids)
 
-await Promise.all(new Array(CONCURRENCY).fill().map(async () => {
+await Promise.all(new Array(CONCURRENCY).fill(undefined).map(async () => {
   while (true) {
     const cid = cids.shift()
     if (!cid) return
