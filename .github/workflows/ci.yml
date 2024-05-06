@@ -24,6 +24,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      SENTRY_ENVIRONMENT: CI
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -57,6 +58,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      SENTRY_ENVIRONMENT: CI
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -76,6 +78,7 @@ jobs:
       packages: read
     env:
       REGISTRY: ghcr.io
+      SENTRY_ENVIRONMENT: CI
     steps:
       - uses: actions/checkout@v4
 
