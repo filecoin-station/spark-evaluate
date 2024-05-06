@@ -7,7 +7,7 @@ import { RoundData } from './lib/round.js'
 import timers from 'node:timers/promises'
 
 // Tweak this value to improve the chances of the data being available
-const PREPROCESS_DELAY = 60_1000
+const PREPROCESS_DELAY = 60_000
 
 export const startEvaluate = async ({
   ieContract,
