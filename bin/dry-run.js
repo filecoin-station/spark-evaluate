@@ -33,17 +33,18 @@ if (!contractAddress) {
   process.exit(1)
 }
 
+/** @type {bigint} */
 let roundIndex
 if (roundIndexStr) {
-  roundIndex = Number(roundIndexStr)
+  roundIndex = BigInt(roundIndexStr)
 } else {
   console.log('Round index not specified, fetching the last round index from the smart contract')
   const currentRoundIndex = await fetchLastRoundIndex()
-  roundIndex = Number(currentRoundIndex - 2n)
+  roundIndex = BigInt(currentRoundIndex - 2n)
 }
 
 if (!measurementCids.length) {
-  measurementCids.push(...(await fetchMeasurementsAddedEvents(BigInt(roundIndex))))
+  measurementCids.push(...(await fetchMeasurementsAddedEvents(roundIndex)))
 }
 
 if (!measurementCids.length) {
@@ -130,6 +131,10 @@ if (ignoredErrors.length) {
   process.exit(1)
 }
 
+/**
+ * @param {bigint} roundIndex
+ * @returns {Promise<string[]>}
+ */
 async function fetchMeasurementsAddedEvents (roundIndex) {
   const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
   try {
@@ -186,7 +191,9 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   const rawEvents = await ieContract.queryFilter('MeasurementsAdded', blockNumber - 1800, 'latest')
 
   /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
-  const events = rawEvents.map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
+  const events = rawEvents
+    .filter(isEventLog)
+    .map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
   // console.log('events', events)
 
   const prev = roundIndex - 1n
@@ -210,6 +217,14 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   }
 
   return events.filter(e => e.roundIndex === roundIndex).map(e => e.cid)
+}
+
+/**
+ * @param {ethers.Log | ethers.EventLog} logOrEventLog
+ * @returns {logOrEventLog is ethers.EventLog}
+ */
+function isEventLog (logOrEventLog) {
+  return 'args' in logOrEventLog
 }
 
 async function fetchLastRoundIndex () {

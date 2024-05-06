@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
+// TODO: implement typings - see https://github.com/filecoin-station/on-contract-event/issues/2
 import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
 import timers from 'node:timers/promises'
@@ -31,7 +32,7 @@ export const startEvaluate = async ({
   const roundsSeen = []
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
-    const roundIndex = Number(_roundIndex)
+    const roundIndex = BigInt(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
     if (cidsSeen.length > 1000) cidsSeen.shift()
@@ -70,7 +71,7 @@ export const startEvaluate = async ({
 
       console.error(err)
       Sentry.captureException(err, {
-        extras: {
+        extra: {
           roundIndex,
           measurementsCid: cid
         }
@@ -79,7 +80,7 @@ export const startEvaluate = async ({
   }
 
   const onRoundStart = (_roundIndex) => {
-    const roundIndex = Number(_roundIndex)
+    const roundIndex = BigInt(_roundIndex)
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
     if (roundsSeen.length > 1000) roundsSeen.shift()
@@ -97,7 +98,7 @@ export const startEvaluate = async ({
     // Evaluate previous round
     evaluate({
       round: rounds.previous,
-      roundIndex: roundIndex - 1,
+      roundIndex: roundIndex - 1n,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -106,7 +107,7 @@ export const startEvaluate = async ({
     }).catch(err => {
       console.error(err)
       Sentry.captureException(err, {
-        extras: {
+        extra: {
           roundIndex
         }
       })
