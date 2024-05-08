@@ -102,7 +102,7 @@ for (const cid of measurementCids) {
   } catch (err) {
     console.error(err)
     Sentry.captureException(err, {
-      extras: {
+      extra: {
         roundIndex,
         measurementsCid: cid
       }
