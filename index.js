@@ -11,9 +11,6 @@ const PREPROCESS_DELAY = 60_000
 export const startEvaluate = async ({
   ieContract,
   ieContractWithSigner,
-  provider,
-  rpcUrl,
-  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
