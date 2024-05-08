@@ -13,6 +13,8 @@ import { ethers } from 'ethers'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 
+const { CONCURRENCY: concurrency = 4 } = process.env
+
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
@@ -81,16 +83,20 @@ console.log('Evaluating round %s of contract %s', roundIndex, contractAddress)
 
 console.log('==PREPROCESS==')
 const round = new RoundData(roundIndex)
-for (const cid of measurementCids) {
-  await preprocess({
-    roundIndex,
-    round,
-    cid,
-    fetchMeasurements: fetchMeasurementsWithCache,
-    recordTelemetry,
-    logger: console
-  })
-}
+await Promise.all(new Array(concurrency).fill(null).map(async () => {
+  while (true) {
+    const cid = measurementCids.shift()
+    if (!cid) return
+    await preprocess({
+      roundIndex,
+      round,
+      cid,
+      fetchMeasurements: fetchMeasurementsWithCache,
+      recordTelemetry,
+      logger: console
+    })
+  }
+}))
 
 console.log('Fetched %s measurements', round.measurements.length)
 
