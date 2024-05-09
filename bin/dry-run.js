@@ -1,6 +1,7 @@
 // dotenv must be imported before importing anything else
 import 'dotenv/config'
 
+import * as Sentry from '@sentry/node'
 import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
@@ -12,6 +13,13 @@ import { fileURLToPath } from 'node:url'
 import { ethers } from 'ethers'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
+
+Sentry.init({
+  dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
+  environment: process.env.SENTRY_ENVIRONMENT || 'dry-run',
+  // Performance Monitoring
+  tracesSampleRate: 0.1 // Capture 10% of the transactions
+})
 
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
@@ -33,17 +41,18 @@ if (!contractAddress) {
   process.exit(1)
 }
 
+/** @type {bigint} */
 let roundIndex
 if (roundIndexStr) {
-  roundIndex = Number(roundIndexStr)
+  roundIndex = BigInt(roundIndexStr)
 } else {
   console.log('Round index not specified, fetching the last round index from the smart contract')
   const currentRoundIndex = await fetchLastRoundIndex()
-  roundIndex = Number(currentRoundIndex - 2n)
+  roundIndex = BigInt(currentRoundIndex - 2n)
 }
 
 if (!measurementCids.length) {
-  measurementCids.push(...(await fetchMeasurementsAddedEvents(BigInt(roundIndex))))
+  measurementCids.push(...(await fetchMeasurementsAddedEvents(roundIndex)))
 }
 
 if (!measurementCids.length) {
@@ -81,14 +90,24 @@ console.log('Evaluating round %s of contract %s', roundIndex, contractAddress)
 console.log('==PREPROCESS==')
 const round = new RoundData(roundIndex)
 for (const cid of measurementCids) {
-  await preprocess({
-    roundIndex,
-    round,
-    cid,
-    fetchMeasurements: fetchMeasurementsWithCache,
-    recordTelemetry,
-    logger: console
-  })
+  try {
+    await preprocess({
+      roundIndex,
+      round,
+      cid,
+      fetchMeasurements: fetchMeasurementsWithCache,
+      recordTelemetry,
+      logger: console
+    })
+  } catch (err) {
+    console.error(err)
+    Sentry.captureException(err, {
+      extra: {
+        roundIndex,
+        measurementsCid: cid
+      }
+    })
+  }
 }
 
 console.log('Fetched %s measurements', round.measurements.length)
@@ -130,6 +149,10 @@ if (ignoredErrors.length) {
   process.exit(1)
 }
 
+/**
+ * @param {bigint} roundIndex
+ * @returns {Promise<string[]>}
+ */
 async function fetchMeasurementsAddedEvents (roundIndex) {
   const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
   try {
@@ -186,7 +209,9 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   const rawEvents = await ieContract.queryFilter('MeasurementsAdded', blockNumber - 1800, 'latest')
 
   /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
-  const events = rawEvents.map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
+  const events = rawEvents
+    .filter(isEventLog)
+    .map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
   // console.log('events', events)
 
   const prev = roundIndex - 1n
@@ -210,6 +235,14 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
   }
 
   return events.filter(e => e.roundIndex === roundIndex).map(e => e.cid)
+}
+
+/**
+ * @param {ethers.Log | ethers.EventLog} logOrEventLog
+ * @returns {logOrEventLog is ethers.EventLog}
+ */
+function isEventLog (logOrEventLog) {
+  return 'args' in logOrEventLog
 }
 
 async function fetchLastRoundIndex () {
