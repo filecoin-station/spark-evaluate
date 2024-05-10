@@ -18,6 +18,8 @@ const createPgClient = async () => {
   return pgClient
 }
 
+const VALID_STATION_ID_2 = VALID_STATION_ID.slice(0, -1) + '1'
+
 describe('platform-stats', () => {
   let pgClient
   before(async () => {
@@ -50,36 +52,44 @@ describe('platform-stats', () => {
 
   describe('updateDailyStationStats', () => {
     it('updates daily station stats for today with multiple measurements', async () => {
-      const validStationId2 = VALID_STATION_ID.slice(0, -1) + '1'
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
-        { ...VALID_MEASUREMENT, stationId: validStationId2 }
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements)
 
       const { rows } = await pgClient.query(`
-        SELECT station_id, day::TEXT FROM daily_stations
+        SELECT station_id, day::TEXT, accepted_measurement_count
+        FROM daily_stations
         ORDER BY station_id`
       )
       assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
-        { station_id: VALID_STATION_ID, day: today },
-        { station_id: validStationId2, day: today }
+        { station_id: VALID_STATION_ID, day: today, accepted_measurement_count: 1 },
+        { station_id: VALID_STATION_ID_2, day: today, accepted_measurement_count: 1 }
       ])
     })
 
-    it('ignores duplicate measurements for the same station on the same day', async () => {
+    it('counts honest measurements for the same station on the same day', async () => {
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements)
 
-      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
-      assert.strictEqual(rows.length, 1)
-      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+      const { rows } = await pgClient.query(`
+        SELECT station_id, day::TEXT, accepted_measurement_count
+        FROM daily_stations
+        ORDER BY station_id`
+      )
+      assert.strictEqual(rows.length, 2)
+      assert.deepStrictEqual(rows, [
+        { station_id: VALID_STATION_ID, day: today, accepted_measurement_count: 2 },
+        { station_id: VALID_STATION_ID_2, day: today, accepted_measurement_count: 1 }
+      ])
     })
 
     it('ignores measurements without .stationId', async () => {
