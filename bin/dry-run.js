@@ -14,6 +14,8 @@ import { ethers } from 'ethers'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 
+const { CONCURRENCY: concurrency = 4 } = process.env
+
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
   environment: process.env.SENTRY_ENVIRONMENT || 'dry-run',
@@ -89,27 +91,31 @@ console.log('Evaluating round %s of contract %s', roundIndex, contractAddress)
 
 console.log('==PREPROCESS==')
 const round = new RoundData(roundIndex)
-for (const cid of measurementCids) {
-  try {
-    await preprocess({
-      roundIndex,
-      round,
-      cid,
-      fetchMeasurements: fetchMeasurementsWithCache,
-      recordTelemetry,
-      logger: console,
-      retries: 0
-    })
-  } catch (err) {
-    console.error(err)
-    Sentry.captureException(err, {
-      extra: {
+await Promise.all(new Array(concurrency).fill(null).map(async () => {
+  while (true) {
+    const cid = measurementCids.shift()
+    if (!cid) return
+    try {
+      await preprocess({
         roundIndex,
-        measurementsCid: cid
-      }
-    })
+        round,
+        cid,
+        fetchMeasurements: fetchMeasurementsWithCache,
+        recordTelemetry,
+        logger: console,
+        retries: 0
+      })
+    } catch (err) {
+      console.error(err)
+      Sentry.captureException(err, {
+        extra: {
+          roundIndex,
+          measurementsCid: cid
+        }
+      })
+    }
   }
-}
+}))
 
 console.log('Fetched %s measurements', round.measurements.length)
 
