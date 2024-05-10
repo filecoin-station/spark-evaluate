@@ -88,7 +88,8 @@ for (const cid of measurementCids) {
     cid,
     fetchMeasurements: fetchMeasurementsWithCache,
     recordTelemetry,
-    logger: console
+    logger: console,
+    retries: 0
   })
 }
 
