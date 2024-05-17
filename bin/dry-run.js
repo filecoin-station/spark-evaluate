@@ -97,7 +97,8 @@ for (const cid of measurementCids) {
       cid,
       fetchMeasurements: fetchMeasurementsWithCache,
       recordTelemetry,
-      logger: console
+      logger: console,
+      fetchRetries: 0
     })
   } catch (err) {
     console.error(err)
