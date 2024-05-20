@@ -155,31 +155,43 @@ describe('retrieval statistics', () => {
     const measurements = [
       // inet group 1 - score=2
       {
-        ...VALID_MEASUREMENT
+        ...VALID_MEASUREMENT,
+        fraudAssessment: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
-        cid: 'bafyanother'
+        cid: 'bafyanother',
+        retrievalResult: 'TIMEOUT',
+        fraudAssessment: 'OK'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        fraudAssessment: 'DUP_INET_GROUP'
       },
       // inet group 2 - score=3
       {
         ...VALID_MEASUREMENT,
-        inet_group: 'ig2'
+        inet_group: 'ig2',
+        fraudAssessment: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig2',
-        cid: 'bafyanother'
+        cid: 'bafyanother',
+        fraudAssessment: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig2',
-        cid: 'bafythree'
+        cid: 'bafythree',
+        retrievalResult: 'TIMEOUT',
+        fraudAssessment: 'OK'
       },
       // inet group 3 - score=1
       {
         ...VALID_MEASUREMENT,
-        inet_group: 'ig3'
+        inet_group: 'ig3',
+        fraudAssessment: 'OK'
       }
     ]
 
