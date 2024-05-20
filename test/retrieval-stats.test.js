@@ -150,6 +150,47 @@ describe('retrieval statistics', () => {
     debug('stats', point.fields)
     assertPointFieldValue(point, 'unique_tasks', '2i')
   })
+
+  it('records histogram of "score per inet group"', async () => {
+    const measurements = [
+      // inet group 1 - score=2
+      {
+        ...VALID_MEASUREMENT
+      },
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'bafyanother'
+      },
+      // inet group 2 - score=3
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig2'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig2',
+        cid: 'bafyanother'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig2',
+        cid: 'bafythree'
+      },
+      // inet group 3 - score=1
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig3'
+      }
+    ]
+
+    const point = new Point('stats')
+    buildRetrievalStats(measurements, point)
+    debug('stats', point.fields)
+
+    assertPointFieldValue(point, 'nano_score_per_inet_group_min', '166666667i' /* =1/6 */)
+    assertPointFieldValue(point, 'nano_score_per_inet_group_p50', '333333333i' /* =2/6 */)
+    assertPointFieldValue(point, 'nano_score_per_inet_group_max', '500000000i' /* =3/6 */)
+  })
 })
 
 describe('getValueAtPercentile', () => {
