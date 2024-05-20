@@ -72,7 +72,7 @@ export const startEvaluate = async ({
     }
   }
 
-  const onRoundStart = (_roundIndex) => {
+  const onRoundStart = async (_roundIndex) => {
     const roundIndex = BigInt(_roundIndex)
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
@@ -84,6 +84,14 @@ export const startEvaluate = async ({
       console.error('No current round data available, skipping evaluation')
       return
     }
+
+    // TODO: Fix this properly and implement a signalling mechanism allowing the "preprocess" step
+    // to notify the "evaluate" when the preprocessing is done, so that we don't have to use a timer
+    // here. See also https://github.com/filecoin-station/spark-evaluate/issues/64
+    const delay = PREPROCESS_DELAY + 60_000
+    console.log(`Sleeping for ${delay}ms before evaluating the round to let the preprocess step finish for the last batch of measurements`)
+    await timers.setTimeout(delay)
+    console.log(`Now evaluating the round ${roundIndex}`)
 
     rounds.previous = rounds.current
     rounds.current = new RoundData(roundIndex)
@@ -121,7 +129,10 @@ export const startEvaluate = async ({
         Sentry.captureException(err)
       })
     } else if (event.name === 'RoundStart') {
-      onRoundStart(...event.args)
+      onRoundStart(...event.args).catch(err => {
+        console.error(err)
+        Sentry.captureException(err)
+      })
     }
   }
 }
