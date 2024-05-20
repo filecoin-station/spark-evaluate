@@ -439,6 +439,41 @@ describe('fraud detection', () => {
     })
   })
 
+  it('rewards at most `maxTasksPerNode` measurements in each inet group', async () => {
+    // Consider the following situation:
+    // A single operator runs many Station instances in the same inet_group, assigning each
+    // instance a unique participant address, and picking the tasks in such way that each instance
+    // reports measurements for different tasks. With 1000 tasks per round and 15 tasks per
+    // instance, it’s possible to operate 66 instances that each receives the maximum possible score
+    // for each round.
+
+    const sparkRoundDetails = {
+      roundId: 1234,
+      maxTasksPerNode: 2,
+      retrievalTasks: [
+        { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
+        { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
+        { ...VALID_TASK, cid: 'cid1', minerId: 'f1second' },
+        { ...VALID_TASK, cid: 'cid2', minerId: 'f1second' }
+      ]
+    }
+    const measurements = [
+      // the first participant completes tasks #1 and #4
+      { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[0], participantAddress: 'pa1' },
+      { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[3], participantAddress: 'pa1' },
+      // the second participant completes tasks #2 and #3
+      { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[1], participantAddress: 'pa2' },
+      { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[2], participantAddress: 'pa2' }
+    ]
+
+    await runFraudDetection(1, measurements, sparkRoundDetails)
+
+    assert.strictEqual(
+      measurements.filter(m => m.fraudAssessment === 'OK').length,
+      2 // maxTasksPerNode
+    )
+  })
+
   it('calculates aggregate stats of participant group-winning rate', async () => {
     // Let's create three different tasks and three participants where two share the same inet group.
     // All three participants measure all three tasks.
