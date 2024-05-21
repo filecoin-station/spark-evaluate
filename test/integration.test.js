@@ -139,9 +139,6 @@ describe('preprocess-evaluate integration', () => {
     assert.match(fraudDetectionDuration, /^\d+i/)
     assert.match(setScoresDuration, /^\d+i/)
     assert.deepStrictEqual(evaluateStats, {
-      group_winning_max: '1',
-      group_winning_mean: '0.9688518372637581',
-      group_winning_min: '0',
       honest_measurements: '14799i',
       measurements_DUP_INET_GROUP: '490i',
       measurements_INVALID_TASK: '294i',
