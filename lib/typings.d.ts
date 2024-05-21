@@ -74,14 +74,4 @@ export interface RawMeasurement {
   indexer_result: string | undefined | null;
 }
 
-export interface GroupWinningStats {
-  min: number;
-  max: number;
-  mean: number;
-}
-
-export interface FraudDetectionStats {
-  groupWinning: GroupWinningStats
-}
-
 export type CreatePgClient = () => Promise<import('pg').Client>;
