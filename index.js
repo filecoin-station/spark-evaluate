@@ -2,8 +2,6 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
-// TODO: implement typings - see https://github.com/filecoin-station/on-contract-event/issues/2
-import { onContractEvent } from 'on-contract-event'
 import { RoundData } from './lib/round.js'
 import timers from 'node:timers/promises'
 
@@ -13,9 +11,6 @@ const PREPROCESS_DELAY = 60_000
 export const startEvaluate = async ({
   ieContract,
   ieContractWithSigner,
-  provider,
-  rpcUrl,
-  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
@@ -108,20 +103,11 @@ export const startEvaluate = async ({
   }
 
   // Listen for events
-  const it = onContractEvent({
-    contract: ieContract,
-    provider,
-    rpcUrl,
-    rpcHeaders
+  ieContract.on('MeasurementsAdded', (...args) => {
+    onMeasurementsAdded(...args).catch(err => {
+      console.error(err)
+      Sentry.captureException(err)
+    })
   })
-  for await (const event of it) {
-    if (event.name === 'MeasurementsAdded') {
-      onMeasurementsAdded(...event.args).catch(err => {
-        console.error(err)
-        Sentry.captureException(err)
-      })
-    } else if (event.name === 'RoundStart') {
-      onRoundStart(...event.args)
-    }
-  }
+  ieContract.on('RoundStart', onRoundStart)
 }

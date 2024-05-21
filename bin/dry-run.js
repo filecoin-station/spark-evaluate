@@ -177,7 +177,7 @@ async function createIeContract () {
   const provider = new ethers.JsonRpcProvider(
     fetchRequest,
     null,
-    { batchMaxCount: 1 }
+    { polling: true }
   )
   // provider.on('debug', console.log)
   const ieContract = new ethers.Contract(

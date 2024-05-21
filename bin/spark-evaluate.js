@@ -33,7 +33,7 @@ fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
 const provider = new ethers.JsonRpcProvider(
   fetchRequest,
   null,
-  { batchMaxCount: 1 }
+  { polling: true }
 )
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
@@ -62,9 +62,6 @@ const createPgClient = async () => {
 await startEvaluate({
   ieContract,
   ieContractWithSigner,
-  provider,
-  rpcUrl: RPC_URL,
-  rpcHeaders,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
