@@ -1,6 +1,8 @@
 import assert from 'node:assert'
 
 /**
+ * @param {import('../../lib/telemetry').Point[]} recordings
+ * @param {string} name
  * @returns {import('../../lib/telemetry').Point}
  */
 export const assertRecordedTelemetryPoint = (recordings, name) => {
