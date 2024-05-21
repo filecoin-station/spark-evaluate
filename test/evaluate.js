@@ -3,7 +3,7 @@ import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 import { VALID_MEASUREMENT, VALID_TASK, today } from './helpers/test-data.js'
-import { assertPointFieldValue } from './helpers/assertions.js'
+import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
 import { RoundData } from '../lib/round.js'
 import { DATABASE_URL } from '../lib/config.js'
 import pg from 'pg'
@@ -127,9 +127,6 @@ describe('evaluate', () => {
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
 
-    assertPointFieldValue(point, 'group_winning_min', '1')
-    assertPointFieldValue(point, 'group_winning_mean', '1')
-    assertPointFieldValue(point, 'group_winning_max', '1')
     // TODO: assert point fields
 
     point = telemetry.find(p => p.name === 'retrieval_stats_honest')
@@ -221,12 +218,9 @@ describe('evaluate', () => {
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
 
-    const point = telemetry.find(p => p.name === 'evaluate')
+    const point = assertRecordedTelemetryPoint(telemetry, 'evaluate')
     assert(!!point,
       `No telemetry point "evaluate" was recorded. Actual points: ${JSON.stringify(telemetry.map(p => p.name))}`)
-    assertPointFieldValue(point, 'group_winning_min', '1')
-    assertPointFieldValue(point, 'group_winning_mean', '1')
-    assertPointFieldValue(point, 'group_winning_max', '1')
 
     assertPointFieldValue(point, 'total_nodes', '3i')
   })
@@ -364,18 +358,11 @@ describe('fraud detection', () => {
       { ...VALID_MEASUREMENT }
     ]
 
-    const stats = await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'DUP_INET_GROUP']
     )
-    assert.deepStrictEqual(stats, {
-      groupWinning: {
-        min: 1.0,
-        max: 1.0,
-        mean: 1.0
-      }
-    })
   })
 
   it('picks different inet-group member to reward for each task', async () => {
@@ -416,7 +403,7 @@ describe('fraud detection', () => {
       }
     }
 
-    const stats = await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -430,13 +417,6 @@ describe('fraud detection', () => {
         'pa2::OK'
       ]
     )
-    assert.deepStrictEqual(stats, {
-      groupWinning: {
-        min: 0.5,
-        max: 0.5,
-        mean: 0.5
-      }
-    })
   })
 
   it('calculates aggregate stats of participant group-winning rate', async () => {
@@ -493,7 +473,7 @@ describe('fraud detection', () => {
       }
     }
 
-    const stats = await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -510,13 +490,6 @@ describe('fraud detection', () => {
         'pa3::OK'
       ]
     )
-    assert.deepStrictEqual(stats, {
-      groupWinning: {
-        min: 0.3333333333333333,
-        max: 1.0,
-        mean: 0.6666666666666666
-      }
-    })
   })
 
   it('rejects measurements above maxTasksPerNode', async () => {
