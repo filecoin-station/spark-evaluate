@@ -437,6 +437,7 @@ describe('fraud detection', () => {
         { ...VALID_TASK, cid: 'cid2', minerId: 'f1second' }
       ]
     }
+
     const measurements = [
       // the first participant completes tasks #1 and #4
       { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[0], participantAddress: 'pa1' },
@@ -445,6 +446,10 @@ describe('fraud detection', () => {
       { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[1], participantAddress: 'pa2' },
       { ...VALID_MEASUREMENT, ...sparkRoundDetails.retrievalTasks[2], participantAddress: 'pa2' }
     ]
+
+    // Ensure `finished_at` values are unique for each measurement, it's an assumption we rely on
+    const start = Date.now()
+    measurements.forEach((m, ix) => { m.finished_at = start + ix * 1_000 })
 
     await runFraudDetection(1, measurements, sparkRoundDetails)
 
