@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Adjust NODE_VERSION as desired
-ARG NODE_VERSION=20.3.1
+ARG NODE_VERSION=20.13.1
 FROM node:${NODE_VERSION}-slim as base
 
 LABEL fly_launch_runtime="NodeJS"
@@ -19,7 +19,7 @@ FROM base as build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install -y python-is-python3 pkg-config build-essential 
+    apt-get install -y python-is-python3 pkg-config build-essential
 
 # Install node modules
 COPY --link package.json package-lock.json .
