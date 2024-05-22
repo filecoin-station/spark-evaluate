@@ -82,15 +82,15 @@ export const startEvaluate = async ({
       return
     }
 
+    rounds.previous = rounds.current
+    rounds.current = new RoundData(roundIndex)
+
     // TODO: Fix this properly and implement a signalling mechanism allowing the "preprocess" step
     // to notify the "evaluate" when the preprocessing is done, so that we don't have to use a timer
     // here. See also https://github.com/filecoin-station/spark-evaluate/issues/64
     console.log(`Sleeping for ${EVALUATE_DELAY}ms before evaluating the round to let the preprocess step finish for the last batch of measurements`)
     await timers.setTimeout(EVALUATE_DELAY)
     console.log(`Now evaluating the round ${roundIndex}`)
-
-    rounds.previous = rounds.current
-    rounds.current = new RoundData(roundIndex)
 
     // Evaluate previous round
     evaluate({
