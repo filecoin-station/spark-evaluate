@@ -37,10 +37,18 @@ export const startEvaluate = async ({
     if (!rounds.current) {
       rounds.current = new RoundData(roundIndex)
     } else if (rounds.current.index !== roundIndex) {
-      // This should never happen
-      throw new Error(
-        `Round index mismatch: ${rounds.current.index} !== ${roundIndex}`
-      )
+      // This occassionally happens because of a race condition between onMeasurementsAdded
+      // and onRoundStart event handlers.
+      // See https://github.com/filecoin-station/spark-evaluate/issues/233
+      const msg = 'Round index mismatch when processing MeasurementsAdded event'
+      const details = {
+        currentRoundIndex: rounds.current.index,
+        eventRoundIndex: roundIndex,
+        measurementsCid: cid
+      }
+      console.error(msg, details)
+      Sentry.captureException(new Error(msg), { extra: details })
+      return
     }
 
     console.log('Event: MeasurementsAdded', { roundIndex })
@@ -84,6 +92,7 @@ export const startEvaluate = async ({
 
     rounds.previous = rounds.current
     rounds.current = new RoundData(roundIndex)
+    console.log('Advanced the current round to %s', roundIndex)
 
     // TODO: Fix this properly and implement a signalling mechanism allowing the "preprocess" step
     // to notify the "evaluate" when the preprocessing is done, so that we don't have to use a timer
