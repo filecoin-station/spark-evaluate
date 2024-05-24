@@ -1,16 +1,15 @@
 import * as Sentry from '@sentry/node'
-import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
+import { DATABASE_URL } from '../lib/config.js'
 import { startEvaluate } from '../index.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
-import { fileURLToPath } from 'node:url'
 import { CoinType, newDelegatedEthAddress } from '@glif/filecoin-address'
 import { recordTelemetry } from '../lib/telemetry.js'
-import fs from 'node:fs/promises'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
+import { createMeridianContract } from '../lib/ie-contract.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -28,28 +27,13 @@ assert(WALLET_SEED, 'WALLET_SEED required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
-const fetchRequest = new ethers.FetchRequest(RPC_URL)
-fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
-const provider = new ethers.JsonRpcProvider(
-  fetchRequest,
-  null,
-  { polling: true }
-)
+const { ieContract, provider } = await createMeridianContract()
+
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 console.log(
   'Wallet address:',
   signer.address,
   newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
-)
-const ieContract = new ethers.Contract(
-  IE_CONTRACT_ADDRESS,
-  JSON.parse(
-    await fs.readFile(
-      fileURLToPath(new URL('../lib/abi.json', import.meta.url)),
-      'utf8'
-    )
-  ),
-  provider
 )
 const ieContractWithSigner = ieContract.connect(signer)
 

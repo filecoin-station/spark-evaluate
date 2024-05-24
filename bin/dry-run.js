@@ -2,7 +2,7 @@
 import 'dotenv/config'
 
 import * as Sentry from '@sentry/node'
-import { DATABASE_URL, IE_CONTRACT_ADDRESS, RPC_URL, rpcHeaders } from '../lib/config.js'
+import { DATABASE_URL, IE_CONTRACT_ADDRESS } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -10,9 +10,9 @@ import { Point } from '../lib/telemetry.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ethers } from 'ethers'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
+import { createMeridianContract } from '../lib/ie-contract.js'
 
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
@@ -46,13 +46,13 @@ let roundIndex
 if (roundIndexStr) {
   roundIndex = BigInt(roundIndexStr)
 } else {
-  console.log('Round index not specified, fetching the last round index from the smart contract')
-  const currentRoundIndex = await fetchLastRoundIndex()
+  console.log('Round index not specified, fetching the last round index from the smart contract', contractAddress)
+  const currentRoundIndex = await fetchLastRoundIndex(contractAddress)
   roundIndex = BigInt(currentRoundIndex - 2n)
 }
 
 if (!measurementCids.length) {
-  measurementCids.push(...(await fetchMeasurementsAddedEvents(roundIndex)))
+  measurementCids.push(...(await fetchMeasurementsAddedEvents(contractAddress, roundIndex)))
 }
 
 if (!measurementCids.length) {
@@ -151,51 +151,29 @@ if (ignoredErrors.length) {
 }
 
 /**
+ * @param {string} contractAddress
  * @param {bigint} roundIndex
  * @returns {Promise<string[]>}
  */
-async function fetchMeasurementsAddedEvents (roundIndex) {
-  const pathOfCachedResponse = path.join(cacheDir, 'round-' + roundIndex + '.json')
+async function fetchMeasurementsAddedEvents (contractAddress, roundIndex) {
+  const pathOfCachedResponse = path.join(cacheDir, `round-${contractAddress}-${roundIndex}.json`)
   try {
     return JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
   } catch (err) {
     if (err.code !== 'ENOENT') console.warn('Cannot read cached list of measurement CIDs:', err)
   }
 
-  const list = await fetchMeasurementsAddedFromChain(roundIndex)
+  const list = await fetchMeasurementsAddedFromChain(contractAddress, roundIndex)
   await writeFile(pathOfCachedResponse, JSON.stringify(list))
   return list
 }
 
-async function createIeContract () {
-  if (RPC_URL.includes('glif') && !process.env.GLIF_TOKEN) {
-    throw new Error('Missing required env var GLIF_TOKEN. See https://api.node.glif.io/')
-  }
-
-  const fetchRequest = new ethers.FetchRequest(RPC_URL)
-  fetchRequest.setHeader('Authorization', rpcHeaders.Authorization || '')
-  const provider = new ethers.JsonRpcProvider(
-    fetchRequest,
-    null,
-    { polling: true }
-  )
-  // provider.on('debug', console.log)
-  const ieContract = new ethers.Contract(
-    contractAddress,
-    JSON.parse(
-      await readFile(
-        fileURLToPath(new URL('../lib/abi.json', import.meta.url)),
-        'utf8'
-      )
-    ),
-    provider
-  )
-
-  return { provider, ieContract }
-}
-
-async function fetchMeasurementsAddedFromChain (roundIndex) {
-  const { provider, ieContract } = await createIeContract()
+/**
+ * @param {string} contractAddress
+ * @param {bigint} roundIndex
+ */
+async function fetchMeasurementsAddedFromChain (contractAddress, roundIndex) {
+  const { ieContract, provider } = await createMeridianContract(contractAddress)
 
   console.log('Fetching MeasurementsAdded events from the ledger')
 
@@ -239,14 +217,17 @@ async function fetchMeasurementsAddedFromChain (roundIndex) {
 }
 
 /**
- * @param {ethers.Log | ethers.EventLog} logOrEventLog
- * @returns {logOrEventLog is ethers.EventLog}
+ * @param {import('ethers').Log | import('ethers').EventLog} logOrEventLog
+ * @returns {logOrEventLog is import('ethers').EventLog}
  */
 function isEventLog (logOrEventLog) {
   return 'args' in logOrEventLog
 }
 
-async function fetchLastRoundIndex () {
-  const { ieContract } = await createIeContract()
+/**
+ * @param {string} contractAddress
+ */
+async function fetchLastRoundIndex (contractAddress) {
+  const { ieContract } = await createMeridianContract(contractAddress)
   return await ieContract.currentRoundIndex()
 }
