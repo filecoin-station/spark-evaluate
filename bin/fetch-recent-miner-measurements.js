@@ -14,6 +14,10 @@ import { createMeridianContract } from '../lib/ie-contract.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
 
+const {
+  STORE_ALL = false
+} = process.env
+
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
   environment: process.env.SENTRY_ENVIRONMENT || 'dry-run',
@@ -61,7 +65,10 @@ const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
 const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
 const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
 
-const allMeasurementsWriter = fs.createWriteStream(ALL_MEASUREMENTS_FILE)
+const allMeasurementsWriter = STORE_ALL
+  ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
+  : undefined
+
 const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
 const minerSummaryWriter = fs.createWriteStream(MINER_SUMMARY_FILE)
 minerSummaryWriter.write(formatHeader() + '\n')
@@ -80,7 +87,9 @@ try {
   }
 }
 
-console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
+if (allMeasurementsWriter) {
+  console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
+}
 console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
 console.error('Wrote human-readable summary for %s to %s', minerId, MINER_SUMMARY_FILE)
 
@@ -149,7 +158,9 @@ async function fetchAndProcess (cid) {
       fetchRetries: 0
     })
 
-    allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
+    if (allMeasurementsWriter) {
+      allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
+    }
 
     const minerMeasurements = round.measurements.filter(m => m.minerId === minerId)
     minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
@@ -187,8 +198,9 @@ function recordTelemetry (measurementName, fn) {
 function formatMeasurement (m) {
   return [
     new Date(m.finished_at).toISOString(),
-    m.cid.padEnd(70),
-    m.retrievalResult
+    (m.cid ?? '').padEnd(70),
+    (m.protocol ?? '').padEnd(10),
+    (m.retrievalResult ?? '')
   ].join(' ')
 }
 
@@ -196,6 +208,7 @@ function formatHeader () {
   return [
     'Timestamp'.padEnd(new Date().toISOString().length),
     'CID'.padEnd(70),
+    'Protocol'.padEnd(10),
     'RetrievalResult'
   ].join(' ')
 }
