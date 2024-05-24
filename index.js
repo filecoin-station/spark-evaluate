@@ -38,7 +38,8 @@ export const startEvaluate = async ({
       rounds.current = new RoundData(roundIndex)
     } else if (rounds.current.index !== roundIndex) {
       // This occassionally happens because of a race condition between onMeasurementsAdded
-      // and onRoundStart event handlers. We should eventually fix it.
+      // and onRoundStart event handlers.
+      // See https://github.com/filecoin-station/spark-evaluate/issues/233
       const msg = 'Round index mismatch when processing MeasurementsAdded event'
       const details = {
         currentRoundIndex: rounds.current.index,
