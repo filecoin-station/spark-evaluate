@@ -4,7 +4,8 @@ import 'dotenv/config'
 import { Point } from '@influxdata/influxdb-client'
 import * as Sentry from '@sentry/node'
 import createDebug from 'debug'
-import fs, { mkdir, readFile, writeFile } from 'node:fs/promises'
+import fs from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import pMap from 'p-map'
@@ -52,67 +53,40 @@ if (!minerId.startsWith('f0')) {
   console.warn('Warning: miner id %s does not start with "f0", is it a valid miner address?', minerId)
 }
 
-await run(contractAddress, minerId, blocksToQuery)
+console.error('Querying the chain for recent MeasurementsAdded events')
+const measurementCids = await getRecentMeasurementsAddedEvents(contractAddress, blocksToQuery)
+console.error(' → found %s events', measurementCids.length)
 
-async function run (contractAddress, minerId, blocksToQuery) {
-  console.error('Querying the chain for recent MeasurementsAdded events')
-  const measurementCids = await getRecentMeasurementsAddedEvents(contractAddress, blocksToQuery)
-  console.error(' → found %s events', measurementCids.length)
+const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
+const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
+const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
 
-  console.error('Fetching measurements from IPFS')
-  const roundIndex = 0n
-  const round = new RoundData(roundIndex)
-  await pMap(
-    measurementCids,
-    cid => fetchAndLoadMeasurements(round, cid),
-    { concurrency: os.cpus().length })
-  for (const cid of measurementCids) {
-    await fetchAndLoadMeasurements(round, cid)
+const allMeasurementsWriter = fs.createWriteStream(ALL_MEASUREMENTS_FILE)
+const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
+const minerSummaryWriter = fs.createWriteStream(MINER_SUMMARY_FILE)
+minerSummaryWriter.write(formatHeader() + '\n')
+
+const abortController = new AbortController()
+const signal = abortController.signal
+process.on('SIGINT', () => abortController.abort(new Error('interrupted')))
+
+try {
+  await pMap(measurementCids, fetchAndProcess, { concurrency: os.cpus().length })
+} catch (err) {
+  if (signal.aborted) {
+    console.error('Interrupted, exiting. Output files contain partial data.')
+  } else {
+    throw err
   }
-  console.error(' → fetched %s measurements', round.measurements.length)
-
-  const measurements = round.measurements.filter(m => m.minerId === minerId)
-  console.error('Found %s measurements for miner %s', measurements.length, minerId)
-  if (!measurements.length) return
-
-  console.error('Printing first 10 measurements')
-  /**
-   * @param {import('../lib/preprocess.js').Measurement} m
-   * @returns {string}
-   */
-  const formatMeasurement = (m) => [
-    new Date(m.finished_at).toISOString(),
-    m.cid.padEnd(70),
-    m.retrievalResult
-  ].join(' ')
-  const header = [
-    'Timestamp'.padEnd(new Date().toISOString().length),
-    'CID'.padEnd(70),
-    'RetrievalResult'
-  ].join(' ')
-
-  console.log(header)
-  for (const m of measurements.slice(0, 10)) {
-    console.log(formatMeasurement(m))
-  }
-
-  let outfile = 'measurements-all.ndjson'
-  await writeFile(outfile, round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
-  console.error('Wrote all raw measurements to %s', outfile)
-
-  outfile = `measurements-${minerId}.ndjson`
-  await writeFile(outfile, measurements.map(m => JSON.stringify(m) + '\n').join(''))
-  console.error('Wrote %s raw measurements to %s', minerId, outfile)
-
-  outfile = `measurements-${minerId}.txt`
-  const text = header + '\n' + measurements.map(m => formatMeasurement(m) + '\n').join('')
-  await writeFile(outfile, text)
-  console.error('Wrote human-readable summary for %s to %s', minerId, outfile)
 }
+
+console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
+console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
+console.error('Wrote human-readable summary for %s to %s', minerId, MINER_SUMMARY_FILE)
 
 /**
  * @param {string} contractAddress
- * @param {number} blocksToQuery
+ * @param {number | string} blocksToQuery
  * @returns
  */
 async function getRecentMeasurementsAddedEvents (contractAddress, blocksToQuery = Number.POSITIVE_INFINITY) {
@@ -136,41 +110,56 @@ async function getRecentMeasurementsAddedEvents (contractAddress, blocksToQuery 
 
 /**
  * @param {string} cid
+ * @param {object} options
+ * @param {AbortSignal} [options.signal]
  */
-async function fetchMeasurementsWithCache (cid) {
+async function fetchMeasurementsWithCache (cid, { signal }) {
   const pathOfCachedResponse = path.join(cacheDir, cid + '.json')
   try {
-    const measurements = JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
+    const measurements = JSON.parse(
+      await readFile(pathOfCachedResponse, { encoding: 'utf-8', signal })
+    )
     debug('Loaded %s from cache', cid)
     return measurements
   } catch (err) {
+    if (signal.aborted) return
     if (err.code !== 'ENOENT') console.warn('Cannot read cached measurements:', err)
   }
 
   debug('Fetching %s from web3.storage', cid)
-  const measurements = await fetchMeasurements(cid)
+  const measurements = await fetchMeasurements(cid, { signal })
   await writeFile(pathOfCachedResponse, JSON.stringify(measurements))
   return measurements
 }
 
 /**
- * @param {RoundData} round
  * @param {string} cid
  */
-async function fetchAndLoadMeasurements (round, cid) {
+async function fetchAndProcess (cid) {
+  const roundIndex = 0n
+  const round = new RoundData(roundIndex)
   try {
     await preprocess({
       roundIndex: round.index,
       round,
       cid,
-      fetchMeasurements: fetchMeasurementsWithCache,
+      fetchMeasurements: cid => fetchMeasurementsWithCache(cid, { signal }),
       recordTelemetry,
       logger: { log: debug, error: debug },
       fetchRetries: 0
     })
+
+    allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
+
+    const minerMeasurements = round.measurements.filter(m => m.minerId === minerId)
+    minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
+    minerSummaryWriter.write(minerMeasurements.map(m => formatMeasurement(m) + '\n').join(''))
+
     console.error(' ✓ %s', cid)
   } catch (err) {
+    if (signal.aborted) return
     console.error(' × Skipping %s:', cid, err.message)
+    debug(err)
   }
 }
 
@@ -190,4 +179,23 @@ function recordTelemetry (measurementName, fn) {
   const point = new Point(measurementName)
   fn(point)
   debug('TELEMETRY %s %o', measurementName, point.fields)
+}
+
+/**
+ * @param {import('../lib/preprocess.js').Measurement} m
+ */
+function formatMeasurement (m) {
+  return [
+    new Date(m.finished_at).toISOString(),
+    m.cid.padEnd(70),
+    m.retrievalResult
+  ].join(' ')
+}
+
+function formatHeader () {
+  return [
+    'Timestamp'.padEnd(new Date().toISOString().length),
+    'CID'.padEnd(70),
+    'RetrievalResult'
+  ].join(' ')
 }
