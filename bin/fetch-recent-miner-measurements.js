@@ -9,10 +9,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import pMap from 'p-map'
-import { IE_CONTRACT_ADDRESS } from '../lib/config.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 const {
   STORE_ALL
@@ -32,7 +32,7 @@ await mkdir(cacheDir, { recursive: true })
 
 const [nodePath, selfPath, ...args] = process.argv
 if (args.length === 0 || !args[0].startsWith('0x')) {
-  args.unshift(IE_CONTRACT_ADDRESS)
+  args.unshift(SparkImpactEvaluator.ADDRESS)
 }
 const [contractAddress, minerId, blocksToQuery] = args
 

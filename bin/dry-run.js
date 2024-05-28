@@ -2,7 +2,7 @@
 import 'dotenv/config'
 
 import * as Sentry from '@sentry/node'
-import { DATABASE_URL, IE_CONTRACT_ADDRESS } from '../lib/config.js'
+import { DATABASE_URL } from '../lib/config.js'
 import { evaluate } from '../lib/evaluate.js'
 import { preprocess, fetchMeasurements } from '../lib/preprocess.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
@@ -26,7 +27,7 @@ await mkdir(cacheDir, { recursive: true })
 
 const [nodePath, selfPath, ...args] = process.argv
 if (args.length === 0 || !args[0].startsWith('0x')) {
-  args.unshift(IE_CONTRACT_ADDRESS)
+  args.unshift(SparkImpactEvaluator.ADDRESS)
 }
 const [contractAddress, roundIndexStr, ...measurementCids] = args
 
