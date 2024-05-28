@@ -15,7 +15,7 @@ import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
 
 const {
-  STORE_ALL = false
+  STORE_ALL
 } = process.env
 
 Sentry.init({
@@ -65,7 +65,7 @@ const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
 const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
 const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
 
-const allMeasurementsWriter = STORE_ALL
+const allMeasurementsWriter = !!STORE_ALL && STORE_ALL.toLowerCase() !== 'false' && STORE_ALL !== '0'
   ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
   : undefined
 
@@ -78,7 +78,7 @@ const signal = abortController.signal
 process.on('SIGINT', () => abortController.abort(new Error('interrupted')))
 
 try {
-  await pMap(measurementCids, fetchAndProcess, { concurrency: os.cpus().length })
+  await pMap(measurementCids, fetchAndProcess, { concurrency: os.availableParallelism() })
 } catch (err) {
   if (signal.aborted) {
     console.error('Interrupted, exiting. Output files contain partial data.')
