@@ -10,7 +10,7 @@ Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
  - Port: 5432
  - User: _your system user name_
  - Password: _blank_
- - Database: spark_stats
+ - Database: spark_evaluate
 
 Alternatively, set the environment variable `$DATABASE_URL` with
 `postgres://${USER}:${PASS}@${HOST}:${PORT}/${DATABASE}`.
@@ -24,9 +24,16 @@ You can also run the following command to set up the PostgreSQL server via Docke
 docker run -d --name spark-db \
   -e POSTGRES_HOST_AUTH_METHOD=trust \
   -e POSTGRES_USER=$USER \
-  -e POSTGRES_DB=spark_stats \
+  -e POSTGRES_DB=spark_evaluate \
   -p 5432:5432 \
   postgres
+```
+
+If you are sharing the same Postgres instance for multiple projects, run the following
+command to create a new `spark_evaluate` database for this project:
+
+```bash
+psql postgres://localhost:5432/ -c "CREATE DATABASE spark_evaluate;"
 ```
 
 ## Run the tests
