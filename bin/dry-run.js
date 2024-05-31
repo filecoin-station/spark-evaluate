@@ -164,23 +164,25 @@ if (DUMP) {
   }
 
   const formatPropValue = (name, value) => {
-    return name.endsWith('_at') ? new Date(value) : value
+    return name.endsWith('_at') && value ? new Date(value).toISOString() : value
   }
   const formatAsCsv = (/** @type {Measurement} */ m) => props.map(p => formatPropValue(p, m[p])).join(',')
 
   let measurements = round.measurements
-  let suffix = 'all'
+  let fileSuffix = 'all'
   if (DUMP.startsWith('f0')) {
-    console.log('Storing measurements for miner id %s', DUMP)
-    measurements = measurements.filter(m => m.minerId === DUMP)
-    suffix = DUMP
+    const minerId = DUMP.toLowerCase()
+    console.log('Storing measurements for miner id %s', minerId)
+    measurements = measurements.filter(m => m.minerId.toLowerCase() === minerId)
+    fileSuffix = DUMP // preserve the letter casing provided by the user
   } else if (DUMP.startsWith('0x')) {
-    console.log('Storing measurements from participant address', DUMP)
-    measurements = measurements.filter(m => m.participantAddress === DUMP)
-    suffix = DUMP
+    const participantAddress = DUMP.toLowerCase()
+    console.log('Storing measurements from participant address', participantAddress)
+    measurements = measurements.filter(m => m.participantAddress === participantAddress)
+    fileSuffix = DUMP // preserve the letter casing provided by the user
   }
 
-  const outfile = `measurements-${roundIndex}-${suffix}.csv`
+  const outfile = `measurements-${roundIndex}-${fileSuffix}.csv`
   await writeFile(
     outfile,
     props.join(',') + '\n' + measurements.map(formatAsCsv).join('\n') + '\n'
