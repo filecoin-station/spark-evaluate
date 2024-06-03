@@ -15,6 +15,7 @@ jobs:
           - mocha
           - '@glif/'
           - debug
+          - '@ipld/car'
     steps:
       - name: Dependabot metadata
         id: metadata
