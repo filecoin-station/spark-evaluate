@@ -140,7 +140,7 @@ export const startEvaluate = async ({
 
   while (true) {
     await timers.setTimeout(10_000)
-    if (!lastNewEventSeenAt) {
+    if (lastNewEventSeenAt) {
       recordTelemetry('last_new_event_seen', point => {
         point.intField(
           'age_ms',
