@@ -4,7 +4,6 @@ import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
 import timers from 'node:timers/promises'
-import { recordTelemetry } from './lib/telemetry.js'
 
 // Tweak this value to improve the chances of the data being available
 const PREPROCESS_DELAY = 60_000
