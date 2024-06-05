@@ -4,6 +4,7 @@ import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
 import timers from 'node:timers/promises'
+import { recordTelemetry } from './lib/telemetry.js'
 
 // Tweak this value to improve the chances of the data being available
 const PREPROCESS_DELAY = 60_000
@@ -27,12 +28,14 @@ export const startEvaluate = async ({
   }
   const cidsSeen = []
   const roundsSeen = []
+  let lastNewEventSeenAt = null
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
     const roundIndex = BigInt(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
     if (cidsSeen.length > 1000) cidsSeen.shift()
+    lastNewEventSeenAt = new Date()
 
     if (!rounds.current) {
       rounds.current = new RoundData(roundIndex)
@@ -82,6 +85,7 @@ export const startEvaluate = async ({
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
     if (roundsSeen.length > 1000) roundsSeen.shift()
+    lastNewEventSeenAt = new Date()
 
     console.log('Event: RoundStart', { roundIndex })
 
@@ -134,4 +138,16 @@ export const startEvaluate = async ({
       Sentry.captureException(err)
     })
   })
+
+  while (true) {
+    await timers.setTimeout(10_000)
+    recordTelemetry('last_new_event_seen', point => {
+      point.intField(
+        'age_ms',
+        lastNewEventSeenAt
+          ? new Date().getTime() - lastNewEventSeenAt.getTime()
+          : null
+      )
+    })
+  }
 }
