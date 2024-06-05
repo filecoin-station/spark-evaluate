@@ -143,8 +143,10 @@ export const startEvaluate = async ({
     if (lastNewEventSeenAt) {
       recordTelemetry('last_new_event_seen', point => {
         point.intField(
-          'age_ms',
-          new Date().getTime() - lastNewEventSeenAt.getTime()
+          'age_s',
+          Math.round(
+            (new Date().getTime() - lastNewEventSeenAt.getTime()) / 1000
+          )
         )
       })
     }
