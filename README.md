@@ -62,7 +62,7 @@ perform further data analysis.
 
 #### Save all measurements
 
-```
+```bash
 $ DUMP=1 node bin/dry-run.js 7970
 (...lots of logs...)
 Evaluated measurements saved to measurements-7970-all.csv
@@ -72,7 +72,7 @@ Evaluated measurements saved to measurements-7970-all.csv
 
 Set `DUMP` to the miner ID you are interested in (`f0123` in the example below):
 
-```
+```bash
 $ DUMP=f0123 node bin/dry-run.js 7970
 (...lots of logs...)
 Storing measurements for miner id f0123
@@ -83,7 +83,7 @@ Evaluated measurements saved to measurements-7970-f0123.csv
 
 Set `DUMP` to the participant address you are interested in (`0xdead` in the example below):
 
-```
+```bash
 $ DUMP=0xdead node bin/dry-run.js 7970
 (...lots of logs...)
 Storing measurements from participant address 0xdead
