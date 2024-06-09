@@ -27,12 +27,14 @@ export const startEvaluate = async ({
   }
   const cidsSeen = []
   const roundsSeen = []
+  let lastNewEventSeenAt = null
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
     const roundIndex = BigInt(_roundIndex)
     if (cidsSeen.includes(cid)) return
     cidsSeen.push(cid)
     if (cidsSeen.length > 1000) cidsSeen.shift()
+    lastNewEventSeenAt = new Date()
 
     if (!rounds.current) {
       rounds.current = new RoundData(roundIndex)
@@ -82,6 +84,7 @@ export const startEvaluate = async ({
     if (roundsSeen.includes(roundIndex)) return
     roundsSeen.push(roundIndex)
     if (roundsSeen.length > 1000) roundsSeen.shift()
+    lastNewEventSeenAt = new Date()
 
     console.log('Event: RoundStart', { roundIndex })
 
@@ -134,4 +137,18 @@ export const startEvaluate = async ({
       Sentry.captureException(err)
     })
   })
+
+  while (true) {
+    await timers.setTimeout(10_000)
+    if (lastNewEventSeenAt) {
+      recordTelemetry('last_new_event_seen', point => {
+        point.intField(
+          'age_s',
+          Math.round(
+            (new Date().getTime() - lastNewEventSeenAt.getTime()) / 1000
+          )
+        )
+      })
+    }
+  }
 }

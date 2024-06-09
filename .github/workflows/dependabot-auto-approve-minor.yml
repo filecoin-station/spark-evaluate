@@ -14,6 +14,10 @@ jobs:
           - '@sentry/'
           - mocha
           - '@glif/'
+          - debug
+          - '@ipld/car'
+          - '@filecoin-station/spark-impact-evaluator'
+          - pg
     steps:
       - name: Dependabot metadata
         id: metadata
