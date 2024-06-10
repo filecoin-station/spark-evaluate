@@ -4,6 +4,92 @@ Evaluate service
 - [Meridian spec](https://www.notion.so/pl-strflt/Meridian-Design-Doc-07-Flexible-preprocessing-1b8f2f19ca7d4fd4b74a1e57e7d7ef8a?pvs=4)
 - [Meridian evaluate service](https://github.com/Meridian-IE/evaluate-service)
 
+## Dry-run evaluation
+
+You can evaluate a round locally by running the script `bin/dry-run.js`.
+
+Remember to obtain a Glif API token first. You can store the token in the `GLIF_TOKEN` environment
+variable or in the `.env` file in the root directory of your local clone of this repository.
+
+```ini
+GLIF_TOKEN="<value>"
+```
+
+**IMPORTANT**
+
+The script needs to query the chain to list all historic `MeasurementsAdded` events. Glif, the RPC API provider we use, keeps only ~16 hours of event history. As a result, if you want to evaluate an older round, you must provide the list of all CIDs containing measurements submitted for that round.
+
+**CACHING**
+
+The dry-run script caches the list of MeasurementsAdded and the content of CIDs in the `.cache`
+directory. This speeds up subsequent invocations of the script at the expense of increased disk
+usage. Feel free to delete any files in the cache directory to reclaim disk space.
+
+### Evaluate the round before the last one
+
+```bash
+$ node bin/dry-run.js
+```
+
+### Evaluate a round of the current smart contract version
+
+To evaluate round index 123:
+
+```bash
+$ node bin/dry-run.js 123
+```
+
+### Evaluate a round of a given smart contract version
+
+To evaluate round index 123 of the smart contract with address 0xabc:
+
+```bash
+$ node bin/dry-run.js 0xabc 123
+```
+
+### Specify CIDs of measurements
+
+```bash
+$ node bin/dry-run.js [contract] round [list of CIDs]
+```
+
+### Save evaluated measurements
+
+You can also save the evaluated measurements for further processing by running the script with the
+environment variable DUMP set to a non-empty value. The script will write the evaluated measurements
+to a CSV file. This CSV file can be easily converted to a spreadsheet, which makes it easy to
+perform further data analysis.
+
+#### Save all measurements
+
+```
+$ DUMP=1 node bin/dry-run.js 7970
+(...lots of logs...)
+Evaluated measurements saved to measurements-7970-all.csv
+```
+
+#### Save measurements of one miner
+
+Set `DUMP` to the miner ID you are interested in (`f0123` in the example below):
+
+```
+$ DUMP=f0123 node bin/dry-run.js 7970
+(...lots of logs...)
+Storing measurements for miner id f0123
+Evaluated measurements saved to measurements-7970-f0123.csv
+```
+
+#### Save measurements from one participant
+
+Set `DUMP` to the participant address you are interested in (`0xdead` in the example below):
+
+```
+$ DUMP=0xdead node bin/dry-run.js 7970
+(...lots of logs...)
+Storing measurements from participant address 0xdead
+Evaluated measurements saved to measurements-7970-0xdead.csv
+```
+
 ## Development
 
 Set up [PostgreSQL](https://www.postgresql.org/) with default settings:

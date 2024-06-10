@@ -15,6 +15,12 @@ import { RoundData } from '../lib/round.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
+/** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
+
+const {
+  DUMP
+} = process.env
+
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
   environment: process.env.SENTRY_ENVIRONMENT || 'dry-run',
@@ -149,6 +155,39 @@ if (ignoredErrors.length) {
     console.log(err)
   }
   process.exit(1)
+}
+
+if (DUMP) {
+  const props = ['cid', 'minerId', 'participantAddress', 'inet_group', 'retrievalResult', 'fraudAssessment']
+  for (const k of Object.keys(round.measurements[0])) {
+    if (!props.includes(k)) props.push(k)
+  }
+
+  const formatPropValue = (name, value) => {
+    return name.endsWith('_at') && value ? new Date(value).toISOString() : value
+  }
+  const formatAsCsv = (/** @type {Measurement} */ m) => props.map(p => formatPropValue(p, m[p])).join(',')
+
+  let measurements = round.measurements
+  let fileSuffix = 'all'
+  if (DUMP.startsWith('f0')) {
+    const minerId = DUMP.toLowerCase()
+    console.log('Storing measurements for miner id %s', minerId)
+    measurements = measurements.filter(m => m.minerId.toLowerCase() === minerId)
+    fileSuffix = DUMP // preserve the letter casing provided by the user
+  } else if (DUMP.startsWith('0x')) {
+    const participantAddress = DUMP.toLowerCase()
+    console.log('Storing measurements from participant address', participantAddress)
+    measurements = measurements.filter(m => m.participantAddress === participantAddress)
+    fileSuffix = DUMP // preserve the letter casing provided by the user
+  }
+
+  const outfile = `measurements-${roundIndex}-${fileSuffix}.csv`
+  await writeFile(
+    outfile,
+    props.join(',') + '\n' + measurements.map(formatAsCsv).join('\n') + '\n'
+  )
+  console.log('Evaluated measurements saved to %s', outfile)
 }
 
 /**
