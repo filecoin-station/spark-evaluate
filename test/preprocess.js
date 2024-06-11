@@ -19,7 +19,7 @@ beforeEach(() => telemetry.splice(0))
 
 describe('preprocess', () => {
   it('fetches measurements', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     const cid = 'bafybeif2'
     const roundIndex = 0
     const measurements = [{
@@ -49,8 +49,7 @@ describe('preprocess', () => {
         finished_at: '2023-11-01T09:00:00.000Z',
         first_byte_at: '2023-11-01T09:00:01.000Z',
         start_at: '2023-11-01T09:00:02.000Z',
-        end_at: '2023-11-01T09:00:03.000Z',
-        retrievalResult: 'UNKNOWN_ERROR'
+        end_at: '2023-11-01T09:00:03.000Z'
       })
     ])
     assert.deepStrictEqual(getCalls, [cid])
@@ -94,11 +93,9 @@ describe('parseMeasurements', () => {
 })
 
 describe('getRetrievalResult', () => {
-  /** @type {import('../lib/typings').Measurement} */
+  /** @type {Partial<import('../lib/typings.js').RawMeasurement>} */
   const SUCCESSFUL_RETRIEVAL = {
-    id: 11009569,
     spark_version: '1.5.2',
-    zinnia_version: '0.14.0',
     participant_address: 'f410fgkhpcrbmdvic52o3nivftrjxr7nzw47updmuzra',
     station_id: VALID_STATION_ID,
     finished_at: '2023-11-01T09:42:03.246Z',
@@ -108,10 +105,11 @@ describe('getRetrievalResult', () => {
     first_byte_at: '1970-01-01T00:00:00.000Z',
     end_at: '1970-01-01T00:00:00.000Z',
     byte_length: 1234,
-    attestation: null,
     inet_group: 'ue49TX_JdYjI',
     cid: 'bafkreihstuf2qcu3hs64ersidh46cjtilxcoipmzgu3pifwzmkqdjpraqq',
+    miner_id: 'f1abc',
     provider_address: '/ip4/108.89.91.150/tcp/46717/p2p/12D3KooWSsaFCtzDJUEhLQYDdwoFtdCMqqfk562UMvccFz12kYxU',
+    provider_id: 'PROVIDERID',
     protocol: 'graphsync',
     indexer_result: 'OK'
   }

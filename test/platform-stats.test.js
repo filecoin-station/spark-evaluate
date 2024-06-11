@@ -108,7 +108,7 @@ describe('platform-stats', () => {
 
   describe('daily_participants', () => {
     it('submits daily_participants data for today', async () => {
-      /** @type {import('../lib/preprocess').Measurement[]} */
+      /** @type {import('../lib/preprocess.js').Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },

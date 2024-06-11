@@ -10,6 +10,8 @@ import pg from 'pg'
 import { beforeEach } from 'mocha'
 import { migrateWithPgClient } from '../lib/migrate.js'
 
+/** @typedef {import('../lib/typings.js').RoundDetails} RoundDetails */
+
 const debug = createDebug('test')
 const logger = { log: debug, error: debug }
 
@@ -44,11 +46,12 @@ describe('evaluate', () => {
   })
 
   it('evaluates measurements', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     for (let i = 0; i < 10; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT })
     }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -61,7 +64,7 @@ describe('evaluate', () => {
     }
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -69,7 +72,7 @@ describe('evaluate', () => {
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
@@ -93,7 +96,7 @@ describe('evaluate', () => {
   })
 
   it('handles empty rounds', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -104,10 +107,11 @@ describe('evaluate', () => {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -115,7 +119,7 @@ describe('evaluate', () => {
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
@@ -142,7 +146,7 @@ describe('evaluate', () => {
     ])
   })
   it('handles unknown rounds', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -153,10 +157,11 @@ describe('evaluate', () => {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -164,7 +169,7 @@ describe('evaluate', () => {
       logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0)
+    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
@@ -173,7 +178,7 @@ describe('evaluate', () => {
     ])
   })
   it('calculates reward shares', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     for (let i = 0; i < 5; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123' })
       round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'group2' })
@@ -196,10 +201,11 @@ describe('evaluate', () => {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -226,7 +232,7 @@ describe('evaluate', () => {
   })
 
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
@@ -242,10 +248,11 @@ describe('evaluate', () => {
       }
     }
     const logger = { log: debug, error: debug }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -261,7 +268,7 @@ describe('evaluate', () => {
   })
 
   it('reports retrieval stats - honest & all', async () => {
-    const round = new RoundData(0)
+    const round = new RoundData(0n)
     for (let i = 0; i < 5; i++) {
       round.measurements.push({ ...VALID_MEASUREMENT })
       round.measurements.push({
@@ -284,10 +291,11 @@ describe('evaluate', () => {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
-    const fetchRoundDetails = () => ({ retrievalTasks: [VALID_TASK] })
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
-      roundIndex: 0,
+      roundIndex: 0n,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -313,8 +321,10 @@ describe('evaluate', () => {
 
 describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234, // doesn't matter
+      roundId: '1234', // doesn't matter
+      maxTasksPerNode: 15, // doesn't matter
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -344,7 +354,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'INVALID_TASK', 'INVALID_TASK']
@@ -352,13 +362,14 @@ describe('fraud detection', () => {
   })
 
   it('rejects redundant measurements from the same inet group', async () => {
-    const sparkRoundDetails = { roundId: 1234, retrievalTasks: [VALID_TASK] }
+    /** @type {RoundDetails} */
+    const sparkRoundDetails = { roundId: '1234', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] }
     const measurements = [
       { ...VALID_MEASUREMENT },
       { ...VALID_MEASUREMENT }
     ]
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'DUP_INET_GROUP']
@@ -369,8 +380,10 @@ describe('fraud detection', () => {
     // We have two participants in the same inet group
     // They both complete the same valid tasks
     // Ideally, our algorithm should assign same reward to each one
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234,
+      roundId: '1234',
+      maxTasksPerNode: 15,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
         { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
@@ -403,7 +416,7 @@ describe('fraud detection', () => {
       }
     }
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -427,8 +440,9 @@ describe('fraud detection', () => {
     // instance, it’s possible to operate 66 instances that each receives the maximum possible score
     // for each round.
 
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234,
+      roundId: '1234',
       maxTasksPerNode: 2,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
@@ -451,7 +465,7 @@ describe('fraud detection', () => {
     const start = Date.now()
     measurements.forEach((m, ix) => { m.finished_at = start + ix * 1_000 })
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
 
     assert.strictEqual(
       measurements.filter(m => m.fraudAssessment === 'OK').length,
@@ -462,8 +476,10 @@ describe('fraud detection', () => {
   it('calculates aggregate stats of participant group-winning rate', async () => {
     // Let's create three different tasks and three participants where two share the same inet group.
     // All three participants measure all three tasks.
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234,
+      roundId: '1234',
+      maxTasksPerNode: 15,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1' },
         { ...VALID_TASK, cid: 'cid2' },
@@ -496,7 +512,7 @@ describe('fraud detection', () => {
       }
     }
 
-    /** @type {import('../lib/typings').Measurement[]} */
+    /** @type {import('../lib/preprocess.js').Measurement[]} */
     const measurements = []
 
     // eslint-disable-next-line camelcase
@@ -513,7 +529,7 @@ describe('fraud detection', () => {
       }
     }
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -533,8 +549,9 @@ describe('fraud detection', () => {
   })
 
   it('rejects measurements above maxTasksPerNode', async () => {
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234,
+      roundId: '1234',
       retrievalTasks: [
         {
           ...VALID_TASK,
@@ -566,7 +583,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'TOO_MANY_TASKS', 'OK']
@@ -574,8 +591,10 @@ describe('fraud detection', () => {
   })
 
   it('rejects measurements missing indexer result', async () => {
+    /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: 1234, // doesn't matter
+      roundId: '1234', // doesn't matter
+      maxTasksPerNode: 15, // doesn't matter
       retrievalTasks: [
         {
           cid: VALID_MEASUREMENT.cid,
@@ -597,7 +616,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'IPNI_NOT_QUERIED']

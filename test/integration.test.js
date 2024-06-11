@@ -64,7 +64,7 @@ describe('preprocess-evaluate integration', () => {
 
     // These three constants must correspond to a real round
     const MERIDIAN_VERSION = '0x8460766Edc62B525fc1FA4D628FC79229dC73031'
-    const MERIDIAN_ROUND = 3602
+    const MERIDIAN_ROUND = 3602n
     const MEASUREMENTS_CID = 'bafybeichkpwietn7w2ehwdkedc4wbpypodcz7rau5r2u772qbstjsblxtq'
 
     const round = new RoundData(MERIDIAN_ROUND)
