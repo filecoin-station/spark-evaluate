@@ -48,7 +48,8 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
         { ...VALID_MEASUREMENT, retrievalResult: 'TIMEOUT' }
       ]
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      const allMeasurements = honestMeasurements
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -58,7 +59,7 @@ describe('public-stats', () => {
       ])
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -75,7 +76,8 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'TIMEOUT' },
         { ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'OK' }
       ]
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      const allMeasurements = honestMeasurements
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -87,7 +89,7 @@ describe('public-stats', () => {
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -107,7 +109,8 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
         { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' }
       ]
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      const allMeasurements = honestMeasurements
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -121,7 +124,7 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, indexerResult: 'UNKNOWN_ERROR' })
       // This is a measurement for a new task.
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements })
+      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
