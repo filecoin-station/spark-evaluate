@@ -5,7 +5,7 @@ import { mapParticipantsToIds } from '../../lib/platform-stats.js'
  * import { givenDailyParticipants } from 'spark-evaluate/test/helpers/queries'
  * @param {import('pg').Client} pgClient
  * @param {string} day
- * @param {string} participantAddresses
+ * @param {string[]} participantAddresses
  */
 export const givenDailyParticipants = async (pgClient, day, participantAddresses) => {
   const ids = await mapParticipantsToIds(pgClient, new Set(participantAddresses))
