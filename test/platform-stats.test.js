@@ -12,6 +12,8 @@ import {
   updatePlatformStats
 } from '../lib/platform-stats.js'
 
+/** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
+
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
   await pgClient.connect()
@@ -52,10 +54,12 @@ describe('platform-stats', () => {
 
   describe('updateDailyStationStats', () => {
     it('updates daily station stats for today with multiple measurements', async () => {
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
       ]
+      /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' },
@@ -87,12 +91,14 @@ describe('platform-stats', () => {
     })
 
     it('counts measurements for the same station on the same day', async () => {
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
       ]
 
+      /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' },
@@ -125,11 +131,13 @@ describe('platform-stats', () => {
     })
 
     it('ignores measurements without .stationId', async () => {
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, stationId: null },
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
       ]
 
+      /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
         { ...VALID_MEASUREMENT, stationId: null, fraudAssessment: 'INVALID_TASK' },
@@ -146,7 +154,7 @@ describe('platform-stats', () => {
 
   describe('daily_participants', () => {
     it('submits daily_participants data for today', async () => {
-      /** @type {import('../lib/preprocess.js').Measurement[]} */
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
