@@ -1,4 +1,5 @@
 {
+  "name": "spark-evaluate",
   "type": "module",
   "scripts": {
     "migrate": "node bin/migrate.js",
@@ -21,7 +22,7 @@
     "@glif/filecoin-address": "^3.0.5",
     "@influxdata/influxdb-client": "^1.33.2",
     "@ipld/car": "^5.3.1",
-    "@sentry/node": "^8.8.0",
+    "@sentry/node": "^8.9.1",
     "@web3-storage/car-block-validator": "^1.2.0",
     "debug": "^4.3.5",
     "ethers": "^6.10.0",

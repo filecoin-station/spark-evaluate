@@ -18,6 +18,7 @@ jobs:
           - '@ipld/car'
           - '@filecoin-station/spark-impact-evaluator'
           - pg
+          - braces
     steps:
       - name: Dependabot metadata
         id: metadata
