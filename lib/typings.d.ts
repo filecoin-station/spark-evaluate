@@ -9,8 +9,8 @@ export {
  * Details of a retrieval task as returned by SPARK HTTP API.
  */
 export interface RetrievalTask {
-  cid: String;
-  minerId: String;
+  cid: string;
+  minerId: string;
 }
 
 /**

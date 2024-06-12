@@ -26,7 +26,7 @@
     "index.js",
     "bin",
     "lib",
-    "tests"
+    "test"
   ],
   "exclude": [
     "dist/**/*"

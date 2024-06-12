@@ -7,7 +7,9 @@ import {
   recordCommitteeSizes
 } from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
-import { assertPointFieldValue } from './helpers/assertions.js'
+import { assertPointFieldValue, getPointName } from './helpers/assertions.js'
+
+/** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
 
 const debug = createDebug('test')
 
@@ -152,6 +154,7 @@ describe('retrieval statistics', () => {
   })
 
   it('records histogram of "score per inet group"', async () => {
+    /** @type {Measurement[]} */
     const measurements = [
       // inet group 1 - score=2
       {
@@ -246,7 +249,7 @@ describe('recordCommitteeSizes', () => {
 
     const point = new Point('committees')
     recordCommitteeSizes(measurements, point)
-    debug(point.name, point.fields)
+    debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'subnets_min', '1i')
     assertPointFieldValue(point, 'subnets_mean', '2i') // (3+1)/2 rounded down
@@ -286,7 +289,7 @@ describe('recordCommitteeSizes', () => {
 
     const point = new Point('committees')
     recordCommitteeSizes(measurements, point)
-    debug(point.name, point.fields)
+    debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'participants_min', '1i')
     assertPointFieldValue(point, 'participants_mean', '2i') // (3+1)/2 rounded down
@@ -328,7 +331,7 @@ describe('recordCommitteeSizes', () => {
 
     const point = new Point('committees')
     recordCommitteeSizes(measurements, point)
-    debug(point.name, point.fields)
+    debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'nodes_min', '1i')
     assertPointFieldValue(point, 'nodes_mean', '2i') // (3+1)/2 rounded down
@@ -360,7 +363,7 @@ describe('recordCommitteeSizes', () => {
 
     const point = new Point('committees')
     recordCommitteeSizes(measurements, point)
-    debug(point.name, point.fields)
+    debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'measurements_min', '1i')
     assertPointFieldValue(point, 'measurements_mean', '2i') // (3+1)/2 rounded down

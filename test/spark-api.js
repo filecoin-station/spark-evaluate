@@ -8,7 +8,7 @@ describe('spark-api client', () => {
     this.timeout(10_000)
     const { retrievalTasks, maxTasksPerNode, ...details } = await fetchRoundDetails(
       '0xaaef78eaf86dcf34f275288752e892424dda9341',
-      407,
+      407n,
       recordTelemetry
     )
 

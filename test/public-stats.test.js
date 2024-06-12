@@ -7,6 +7,8 @@ import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { updatePublicStats } from '../lib/public-stats.js'
 import { beforeEach } from 'mocha'
 
+/** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
+
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
   await pgClient.connect()
@@ -43,7 +45,7 @@ describe('public-stats', () => {
 
   describe('retrieval_stats', () => {
     it('creates or updates the row for today - one miner only', async () => {
-      /** @type {import('../lib/preprocess').Measurement[]} */
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
         { ...VALID_MEASUREMENT, retrievalResult: 'TIMEOUT' }
@@ -70,7 +72,7 @@ describe('public-stats', () => {
     })
 
     it('creates or updates the row for today - multiple miners', async () => {
-      /** @type {import('../lib/preprocess').Measurement[]} */
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'OK' },
         { ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'TIMEOUT' },
@@ -103,7 +105,7 @@ describe('public-stats', () => {
 
   describe('indexer_query_stats', () => {
     it('creates or updates the row for today', async () => {
-      /** @type {import('../lib/preprocess').Measurement[]} */
+      /** @type {Measurement[]} */
       const honestMeasurements = [
         { ...VALID_MEASUREMENT, indexerResult: 'OK' },
         { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },

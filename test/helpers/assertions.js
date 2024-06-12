@@ -1,14 +1,14 @@
 import assert from 'node:assert'
 
 /**
- * @param {import('../../lib/telemetry').Point[]} recordings
+ * @param {import('../../lib/telemetry.js').Point[]} recordings
  * @param {string} name
- * @returns {import('../../lib/telemetry').Point}
+ * @returns {import('../../lib/telemetry.js').Point}
  */
 export const assertRecordedTelemetryPoint = (recordings, name) => {
-  const point = recordings.find(p => p.name === name)
+  const point = recordings.find(p => getPointName(p) === name)
   assert(!!point,
-    `No telemetry point "spark_version" was recorded. Actual points: ${JSON.stringify(recordings.map(p => p.name))}`)
+    `No telemetry point "spark_version" was recorded. Actual points: ${JSON.stringify(recordings.map(getPointName))}`)
   return point
 }
 
@@ -19,4 +19,12 @@ export const assertPointFieldValue = (point, fieldName, expectedValue) => {
     expectedValue,
    `Expected ${point.name}.fields.${fieldName} to equal ${expectedValue} but found ${actualValue}`
   )
+}
+
+/**
+ * @param {import('../../lib/telemetry.js').Point} point
+ */
+export const getPointName = (point) => {
+  // Point.name is marked as a private property at the TypeScript level
+  return /** @type {any} */(point).name
 }
