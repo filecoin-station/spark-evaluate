@@ -77,14 +77,28 @@ const abortController = new AbortController()
 const signal = abortController.signal
 process.on('SIGINT', () => abortController.abort(new Error('interrupted')))
 
+const resultCounts = {
+  total: 0
+}
+
 try {
-  await pMap(measurementCids, fetchAndProcess, { concurrency: os.availableParallelism() })
+  await pMap(measurementCids, cid => fetchAndProcess(cid, resultCounts), { concurrency: os.availableParallelism() })
 } catch (err) {
   if (signal.aborted) {
     console.error('Interrupted, exiting. Output files contain partial data.')
   } else {
     throw err
   }
+}
+
+console.log('Found %s measurements:', resultCounts.total)
+for (const [r, c] of Object.entries(resultCounts)) {
+  if (r === 'total') continue
+  console.log('  %s %s (%s%)',
+    r.padEnd(40),
+    String(c).padEnd(10),
+    Math.floor(c / resultCounts.total * 10000) / 100
+  )
 }
 
 if (allMeasurementsWriter) {
@@ -143,8 +157,9 @@ async function fetchMeasurementsWithCache (cid, { signal }) {
 
 /**
  * @param {string} cid
+ * @param {Record<string, number>} resultCounts
  */
-async function fetchAndProcess (cid) {
+async function fetchAndProcess (cid, resultCounts) {
   const roundIndex = 0n
   const round = new RoundData(roundIndex)
   try {
@@ -157,6 +172,11 @@ async function fetchAndProcess (cid) {
       logger: { log: debug, error: debug },
       fetchRetries: 0
     })
+
+    resultCounts.total += round.measurements.length
+    for (const m of round.measurements) {
+      resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
+    }
 
     if (allMeasurementsWriter) {
       allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
