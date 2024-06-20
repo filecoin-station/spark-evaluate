@@ -200,6 +200,7 @@ function formatMeasurement (m) {
     new Date(m.finished_at).toISOString(),
     (m.cid ?? '').padEnd(70),
     (m.protocol ?? '').padEnd(10),
+    (m.spark_version ?? '').padEnd(8),
     (m.retrievalResult ?? '')
   ].join(' ')
 }
@@ -209,6 +210,7 @@ function formatHeader () {
     'Timestamp'.padEnd(new Date().toISOString().length),
     'CID'.padEnd(70),
     'Protocol'.padEnd(10),
+    'SparkVer',
     'RetrievalResult'
   ].join(' ')
 }
