@@ -19,6 +19,7 @@ jobs:
           - '@filecoin-station/spark-impact-evaluator'
           - pg
           - braces
+          - typescript
     steps:
       - name: Dependabot metadata
         id: metadata
