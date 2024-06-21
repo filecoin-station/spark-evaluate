@@ -99,10 +99,14 @@ const abortController = new AbortController()
 const signal = abortController.signal
 process.on('SIGINT', () => abortController.abort(new Error('interrupted')))
 
+const resultCounts = {
+  total: 0
+}
+
 try {
   for (const { roundIndex, measurementCids } of rounds) {
     signal.throwIfAborted()
-    await processRound(roundIndex, measurementCids)
+    await processRound(roundIndex, measurementCids, resultCounts)
   }
 } catch (err) {
   if (!signal.aborted) {
@@ -112,6 +116,16 @@ try {
 
 if (signal.aborted) {
   console.error('Interrupted, exiting. Output files contain partial data.')
+}
+
+console.log('Found %s accepted measurements:', resultCounts.total)
+for (const [r, c] of Object.entries(resultCounts)) {
+  if (r === 'total') continue
+  console.log('  %s %s (%s%)',
+    r.padEnd(40),
+    String(c).padEnd(10),
+    Math.floor(c / resultCounts.total * 10000) / 100
+  )
 }
 
 if (allMeasurementsWriter) {
@@ -173,8 +187,9 @@ async function fetchMeasurementsWithCache (cid, { signal }) {
 /**
  * @param {bigint} roundIndex
  * @param {string[]} measurementCids
+ * @param {Record<string, number>} resultCounts
  */
-async function processRound (roundIndex, measurementCids) {
+async function processRound (roundIndex, measurementCids, resultCounts) {
   console.error('Processing round %s', roundIndex)
   const round = new RoundData(roundIndex)
 
@@ -183,6 +198,7 @@ async function processRound (roundIndex, measurementCids) {
     cid => fetchAndPreprocess(round, cid),
     { concurrency: os.availableParallelism() }
   )
+  signal.throwIfAborted()
 
   const ieContractWithSigner = {
     async getAddress () {
@@ -193,6 +209,7 @@ async function processRound (roundIndex, measurementCids) {
     }
   }
 
+  console.error(' → evaluating the round')
   await evaluate({
     roundIndex: round.index,
     round,
@@ -202,6 +219,13 @@ async function processRound (roundIndex, measurementCids) {
     ieContractWithSigner
   })
 
+  for (const m of round.measurements) {
+    if (m.minerId !== minerId || m.fraudAssessment !== 'OK') continue
+    resultCounts.total++
+    resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
+  }
+
+  console.log('keepRejected?', keepRejected)
   if (!keepRejected) {
     round.measurements = round.measurements
       // Keep accepted measurements only
