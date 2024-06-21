@@ -118,7 +118,7 @@ if (signal.aborted) {
   console.error('Interrupted, exiting. Output files contain partial data.')
 }
 
-console.log('Found %s measurements:', resultCounts.total)
+console.log('Found %s accepted measurements:', resultCounts.total)
 for (const [r, c] of Object.entries(resultCounts)) {
   if (r === 'total') continue
   console.log('  %s %s (%s%)',
@@ -198,6 +198,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     cid => fetchAndPreprocess(round, cid),
     { concurrency: os.availableParallelism() }
   )
+  signal.throwIfAborted()
 
   const ieContractWithSigner = {
     async getAddress () {
@@ -208,6 +209,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     }
   }
 
+  console.error(' → evaluating the round')
   await evaluate({
     roundIndex: round.index,
     round,
@@ -217,17 +219,19 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     ieContractWithSigner
   })
 
+  for (const m of round.measurements) {
+    if (m.minerId !== minerId || m.fraudAssessment !== 'OK') continue
+    resultCounts.total++
+    resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
+  }
+
+  console.log('keepRejected?', keepRejected)
   if (!keepRejected) {
     round.measurements = round.measurements
       // Keep accepted measurements only
       .filter(m => m.fraudAssessment === 'OK')
       // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
       .map(m => ({ ...m, fraudAssessment: undefined }))
-  }
-
-  resultCounts.total += round.measurements.length
-  for (const m of round.measurements) {
-    resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
 
   if (allMeasurementsWriter) {
