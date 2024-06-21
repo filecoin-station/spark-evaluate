@@ -15,7 +15,7 @@
     "dotenv": "^16.4.5",
     "mocha": "^10.4.0",
     "standard": "^17.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
     "@filecoin-station/spark-impact-evaluator": "^1.1.1",
