@@ -13,9 +13,12 @@ import { createMeridianContract } from '../lib/ie-contract.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
+import { evaluate } from '../lib/evaluate.js'
+import { fetchRoundDetails } from '../lib/spark-api.js'
 
 const {
-  STORE_ALL
+  STORE_ALL_MINERS,
+  KEEP_REJECTED
 } = process.env
 
 Sentry.init({
@@ -58,33 +61,57 @@ if (!minerId.startsWith('f0')) {
 }
 
 console.error('Querying the chain for recent MeasurementsAdded events')
-const measurementCids = await getRecentMeasurementsAddedEvents(contractAddress, blocksToQuery)
-console.error(' → found %s events', measurementCids.length)
+const measurementsAddedEvents = await getRecentMeasurementsAddedEvents(contractAddress, blocksToQuery)
+console.error(' → found %s events', measurementsAddedEvents.length)
+
+// Group events by rounds
+
+/** @type {{roundIndex: bigint, measurementCids: string[]}[]} */
+const rounds = []
+for (const { roundIndex, cid } of measurementsAddedEvents) {
+  if (!rounds.length || rounds[rounds.length - 1].roundIndex !== roundIndex) {
+    rounds.push({ roundIndex, measurementCids: [] })
+  }
+  rounds[rounds.length - 1].measurementCids.push(cid)
+}
+
+// Discard the first and the last round, because most likely we don't have all events for them
+rounds.shift()
+rounds.pop()
+
+console.error(' → found %s complete rounds', rounds.length)
 
 const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
 const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
 const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
 
-const allMeasurementsWriter = !!STORE_ALL && STORE_ALL.toLowerCase() !== 'false' && STORE_ALL !== '0'
+const keepRejected = isFlagEnabled(KEEP_REJECTED)
+
+const allMeasurementsWriter = isFlagEnabled(STORE_ALL_MINERS)
   ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
   : undefined
 
 const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
 const minerSummaryWriter = fs.createWriteStream(MINER_SUMMARY_FILE)
-minerSummaryWriter.write(formatHeader() + '\n')
+minerSummaryWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
 
 const abortController = new AbortController()
 const signal = abortController.signal
 process.on('SIGINT', () => abortController.abort(new Error('interrupted')))
 
 try {
-  await pMap(measurementCids, fetchAndProcess, { concurrency: os.availableParallelism() })
+  for (const { roundIndex, measurementCids } of rounds) {
+    signal.throwIfAborted()
+    await processRound(roundIndex, measurementCids)
+  }
 } catch (err) {
-  if (signal.aborted) {
-    console.error('Interrupted, exiting. Output files contain partial data.')
-  } else {
+  if (!signal.aborted) {
     throw err
   }
+}
+
+if (signal.aborted) {
+  console.error('Interrupted, exiting. Output files contain partial data.')
 }
 
 if (allMeasurementsWriter) {
@@ -108,13 +135,15 @@ async function getRecentMeasurementsAddedEvents (contractAddress, blocksToQuery 
   debug('queryFilter(MeasurementsAdded, %s)', fromBlock)
   const rawEvents = await ieContract.queryFilter('MeasurementsAdded', fromBlock)
 
+  rawEvents.sort((a, b) => a.blockNumber - b.blockNumber)
+
   /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
   const events = rawEvents
     .filter(isEventLog)
     .map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
   // console.log('events', events)
 
-  return events.map(e => e.cid)
+  return events
 }
 
 /**
@@ -142,11 +171,63 @@ async function fetchMeasurementsWithCache (cid, { signal }) {
 }
 
 /**
+ * @param {bigint} roundIndex
+ * @param {string[]} measurementCids
+ */
+async function processRound (roundIndex, measurementCids) {
+  console.error('Processing round %s', roundIndex)
+  const round = new RoundData(roundIndex)
+
+  await pMap(
+    measurementCids,
+    cid => fetchAndPreprocess(round, cid),
+    { concurrency: os.availableParallelism() }
+  )
+
+  const ieContractWithSigner = {
+    async getAddress () {
+      return contractAddress
+    },
+    async setScores (_roundIndex, _participantAddresses, _scores) {
+      return { hash: '0x234' }
+    }
+  }
+
+  await evaluate({
+    roundIndex: round.index,
+    round,
+    fetchRoundDetails,
+    recordTelemetry,
+    logger: { log: debug, error: debug },
+    ieContractWithSigner
+  })
+
+  if (!keepRejected) {
+    round.measurements = round.measurements
+      // Keep accepted measurements only
+      .filter(m => m.fraudAssessment === 'OK')
+      // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
+      .map(m => ({ ...m, fraudAssessment: undefined }))
+  }
+
+  if (allMeasurementsWriter) {
+    allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
+  }
+
+  const minerMeasurements = round.measurements.filter(m => m.minerId === minerId)
+  minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
+  minerSummaryWriter.write(
+    minerMeasurements
+      .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
+      .join('')
+  )
+}
+
+/**
+ * @param {RoundData} round
  * @param {string} cid
  */
-async function fetchAndProcess (cid) {
-  const roundIndex = 0n
-  const round = new RoundData(roundIndex)
+async function fetchAndPreprocess (round, cid) {
   try {
     await preprocess({
       roundIndex: round.index,
@@ -157,14 +238,6 @@ async function fetchAndProcess (cid) {
       logger: { log: debug, error: debug },
       fetchRetries: 0
     })
-
-    if (allMeasurementsWriter) {
-      allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
-    }
-
-    const minerMeasurements = round.measurements.filter(m => m.minerId === minerId)
-    minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
-    minerSummaryWriter.write(minerMeasurements.map(m => formatMeasurement(m) + '\n').join(''))
 
     console.error(' ✓ %s', cid)
   } catch (err) {
@@ -194,21 +267,48 @@ function recordTelemetry (measurementName, fn) {
 
 /**
  * @param {import('../lib/preprocess.js').Measurement} m
+ * @param {object} options
+ * @param {boolean} [options.includeFraudAssesment]
  */
-function formatMeasurement (m) {
-  return [
+function formatMeasurement (m, { includeFraudAssesment } = {}) {
+  const fields = [
     new Date(m.finished_at).toISOString(),
     (m.cid ?? '').padEnd(70),
-    (m.protocol ?? '').padEnd(10),
-    (m.retrievalResult ?? '')
-  ].join(' ')
+    (m.protocol ?? '').padEnd(10)
+  ]
+
+  if (includeFraudAssesment) {
+    fields.push((m.fraudAssessment === 'OK' ? '🫡  ' : '🙅  '))
+  }
+
+  fields.push((m.retrievalResult ?? ''))
+
+  return fields.join(' ')
 }
 
-function formatHeader () {
-  return [
+/**
+ * @param {object} options
+ * @param {boolean} [options.includeFraudAssesment]
+ */
+function formatHeader ({ includeFraudAssesment } = {}) {
+  const fields = [
     'Timestamp'.padEnd(new Date().toISOString().length),
     'CID'.padEnd(70),
-    'Protocol'.padEnd(10),
-    'RetrievalResult'
-  ].join(' ')
+    'Protocol'.padEnd(10)
+  ]
+
+  if (includeFraudAssesment) {
+    fields.push('🕵️  ')
+  }
+
+  fields.push('RetrievalResult')
+
+  return fields.join(' ')
+}
+
+/**
+ * @param {string | undefined} envVarValue
+ */
+function isFlagEnabled (envVarValue) {
+  return !!envVarValue && envVarValue.toLowerCase() !== 'false' && envVarValue !== '0'
 }
