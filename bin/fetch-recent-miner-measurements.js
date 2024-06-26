@@ -118,7 +118,7 @@ if (signal.aborted) {
   console.error('Interrupted, exiting. Output files contain partial data.')
 }
 
-console.log('Found %s accepted measurements:', resultCounts.total)
+console.log('Found %s accepted measurements.', resultCounts.total)
 for (const [r, c] of Object.entries(resultCounts)) {
   if (r === 'total') continue
   console.log('  %s %s (%s%)',
@@ -244,6 +244,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
       .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
       .join('')
   )
+  console.error(' → added %s new measurements from this round', minerMeasurements.length)
 }
 
 /**
