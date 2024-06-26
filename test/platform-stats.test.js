@@ -4,7 +4,12 @@ import { beforeEach, describe, it } from 'mocha'
 
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
-import { VALID_MEASUREMENT, VALID_STATION_ID } from './helpers/test-data.js'
+import {
+  VALID_MEASUREMENT,
+  VALID_STATION_ID,
+  VALID_PARTICIPANT_ADDRESS,
+  VALID_INET_GROUP
+} from './helpers/test-data.js'
 import {
   mapParticipantsToIds,
   updateDailyParticipants,
@@ -54,36 +59,70 @@ describe('platform-stats', () => {
 
   describe('updateDailyStationStats', () => {
     it('updates daily station stats for today with multiple measurements', async () => {
+      const stationIdMeasurement1 = { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
+      const stationIdMeasurement2 = { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
+
       /** @type {Measurement[]} */
       const honestMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
+        stationIdMeasurement1,
+        stationIdMeasurement2,
+        { ...stationIdMeasurement1, participantAddress: '0x20' },
+        { ...stationIdMeasurement2, inet_group: 'other-group' }
       ]
       /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'INVALID_TASK' }
+        { ...stationIdMeasurement1, fraudAssessment: 'INVALID_TASK' },
+        { ...stationIdMeasurement2, fraudAssessment: 'INVALID_TASK' },
+        { ...stationIdMeasurement1, participantAddress: '0x20', fraudAssessment: 'INVALID_TASK' },
+        { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'INVALID_TASK' }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements)
 
       const { rows } = await pgClient.query(`
-        SELECT station_id, day::TEXT, accepted_measurement_count, total_measurement_count
-        FROM daily_stations
+        SELECT 
+          station_id,
+          day::TEXT,
+          participant_address,
+          inet_group,
+          accepted_measurement_count,
+          total_measurement_count
+        FROM 
+          daily_stations
         ORDER BY station_id`
       )
-      assert.strictEqual(rows.length, 2)
+      assert.strictEqual(rows.length, 4)
       assert.deepStrictEqual(rows, [
         {
-          station_id: VALID_STATION_ID,
           day: today,
+          station_id: VALID_STATION_ID,
+          participant_address: VALID_PARTICIPANT_ADDRESS,
+          inet_group: VALID_INET_GROUP,
           accepted_measurement_count: 1,
           total_measurement_count: 2
         },
         {
-          station_id: VALID_STATION_ID_2,
           day: today,
+          station_id: VALID_STATION_ID,
+          participant_address: '0x20',
+          inet_group: VALID_INET_GROUP,
+          accepted_measurement_count: 1,
+          total_measurement_count: 2
+        },
+        {
+          day: today,
+          station_id: VALID_STATION_ID_2,
+          participant_address: VALID_PARTICIPANT_ADDRESS,
+          inet_group: VALID_INET_GROUP,
+          accepted_measurement_count: 1,
+          total_measurement_count: 2
+        },
+        {
+          day: today,
+          station_id: VALID_STATION_ID_2,
+          participant_address: VALID_PARTICIPANT_ADDRESS,
+          inet_group: 'other-group',
           accepted_measurement_count: 1,
           total_measurement_count: 2
         }

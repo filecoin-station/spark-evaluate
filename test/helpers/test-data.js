@@ -1,5 +1,6 @@
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 export const VALID_STATION_ID = '8800000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+export const VALID_INET_GROUP = 'some-group-id'
 
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -17,7 +18,7 @@ export const VALID_MEASUREMENT = {
   protocol: 'bitswap',
   participantAddress: VALID_PARTICIPANT_ADDRESS,
   stationId: VALID_STATION_ID,
-  inet_group: 'some-group-id',
+  inet_group: VALID_INET_GROUP,
   status_code: 200,
   // TODO: these fields are not part of the Measurement object yet
   // timeout: false,
