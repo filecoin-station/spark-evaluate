@@ -225,7 +225,6 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
 
-  console.log('keepRejected?', keepRejected)
   if (!keepRejected) {
     round.measurements = round.measurements
       // Keep accepted measurements only
