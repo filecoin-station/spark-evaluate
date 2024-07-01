@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW top_measurement_stations_mv AS
+CREATE MATERIALIZED VIEW top_measurement_particpants_yesterday_mv AS
 SELECT
   participant_address,
   COUNT(DISTINCT inet_group) AS inet_group_count,
