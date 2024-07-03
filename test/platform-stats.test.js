@@ -15,7 +15,7 @@ import {
   updateDailyParticipants,
   updateDailyStationStats,
   updatePlatformStats,
-  updateTopMeasurementStations
+  updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
@@ -79,7 +79,7 @@ describe('platform-stats', () => {
         { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, today, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query(`
         SELECT 
@@ -146,7 +146,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, today, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query(`
         SELECT station_id, day::TEXT, accepted_measurement_count, total_measurement_count
@@ -184,7 +184,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, today, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.strictEqual(rows.length, 1)
@@ -202,10 +202,10 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: 'f2abc' }
       ]
 
-      await updateDailyStationStats(pgClient, yesterday, honestMeasurements, honestMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, honestMeasurements, yesterday)
       await pgClient.query('COMMIT')
 
-      await updateTopMeasurementStations(createPgClient)
+      await updateTopMeasurementParticipants(createPgClient)
       const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_mv')
 
       assert.strictEqual(rows.length, 2)
