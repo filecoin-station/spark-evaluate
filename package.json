@@ -13,9 +13,9 @@
     "@types/mocha": "^10.0.7",
     "@types/pg": "^8.11.6",
     "dotenv": "^16.4.5",
-    "mocha": "^10.5.2",
+    "mocha": "^10.6.0",
     "standard": "^17.1.0",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   },
   "dependencies": {
     "@filecoin-station/spark-impact-evaluator": "^1.1.1",
