@@ -14,7 +14,8 @@ import {
   mapParticipantsToIds,
   updateDailyParticipants,
   updateDailyStationStats,
-  updatePlatformStats
+  updatePlatformStats,
+  updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
@@ -78,7 +79,7 @@ describe('platform-stats', () => {
         { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query(`
         SELECT 
@@ -145,7 +146,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query(`
         SELECT station_id, day::TEXT, accepted_measurement_count, total_measurement_count
@@ -183,11 +184,45 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
+    })
+
+    it('updates top measurements participants yesterday materialized view', async () => {
+      const validStationId3 = VALID_STATION_ID.slice(0, -1) + '2'
+      const yesterday = await getYesterdayDate()
+
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: 'f1abc' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: 'f1abc' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: 'f1abc' },
+        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: 'f2abc' }
+      ]
+
+      await updateDailyStationStats(pgClient, honestMeasurements, honestMeasurements, yesterday)
+      await pgClient.query('COMMIT')
+
+      await updateTopMeasurementParticipants(createPgClient)
+      const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_mv')
+
+      assert.strictEqual(rows.length, 2)
+      assert.deepStrictEqual(rows, [
+        {
+          participant_address: 'f1abc',
+          inet_group_count: '1',
+          station_count: '2',
+          accepted_measurement_count: '3'
+        },
+        {
+          participant_address: 'f2abc',
+          inet_group_count: '1',
+          station_count: '1',
+          accepted_measurement_count: '1'
+        }
+      ])
     })
   })
 
@@ -259,5 +294,10 @@ describe('platform-stats', () => {
   const getCurrentDate = async () => {
     const { rows: [{ today }] } = await pgClient.query('SELECT now()::DATE::TEXT as today')
     return today
+  }
+
+  const getYesterdayDate = async () => {
+    const { rows: [{ yesterday }] } = await pgClient.query('SELECT now()::DATE - 1 as yesterday')
+    return yesterday
   }
 })
