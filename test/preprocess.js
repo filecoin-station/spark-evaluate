@@ -217,4 +217,70 @@ describe('getRetrievalResult', () => {
     })
     assert.strictEqual(result, 'IPNI_ERROR_FETCH')
   })
+
+  for (const code of [701, 702, 703, 704]) {
+    it(`UNSUPPORTED_MULTIADDR_FORMAT - ${code}`, () => {
+      const result = getRetrievalResult({
+        ...SUCCESSFUL_RETRIEVAL,
+        status_code: code
+      })
+      assert.strictEqual(result, 'UNSUPPORTED_MULTIADDR_FORMAT')
+    })
+  }
+
+  it('UNKNOWN_FETCH_ERROR - 600', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 600
+    })
+    assert.strictEqual(result, 'UNKNOWN_FETCH_ERROR')
+  })
+
+  it('HOSTNAME_DNS_ERROR - 801', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 801
+    })
+    assert.strictEqual(result, 'HOSTNAME_DNS_ERROR')
+  })
+
+  it('HOSTNAME_DNS_ERROR - 802', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 802
+    })
+    assert.strictEqual(result, 'CONNECTION_REFUSED')
+  })
+
+  it('UNSUPPORTED_CID_HASH_ALGO - 901', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 901
+    })
+    assert.strictEqual(result, 'UNSUPPORTED_CID_HASH_ALGO')
+  })
+
+  it('CONTENT_VERIFICATION_FAILED - 902', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 902
+    })
+    assert.strictEqual(result, 'CONTENT_VERIFICATION_FAILED')
+  })
+
+  it('UNEXPECTED_CAR_BLOCK - 903', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 903
+    })
+    assert.strictEqual(result, 'UNEXPECTED_CAR_BLOCK')
+  })
+
+  it('CANNOT_PARSE_CAR_FILE - 904', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      status_code: 904
+    })
+    assert.strictEqual(result, 'CANNOT_PARSE_CAR_FILE')
+  })
 })
