@@ -20,6 +20,7 @@ export interface RoundDetails {
   roundId: string; // BigInt serialized as String (JSON does not support BigInt)
   retrievalTasks: RetrievalTask[];
   maxTasksPerNode: number;
+  startEpoch: string; // BigInt serialized as String (JSON does not support BigInt)
 }
 
 export type RecordTelemetryFn = (
@@ -31,6 +32,7 @@ export type RecordTelemetryFn = (
 export type FraudAssesment =
   | 'OK'
   | 'INVALID_TASK'
+  | 'TASK_NOT_ALLOWED'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
   | 'IPNI_NOT_QUERIED'
