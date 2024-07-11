@@ -51,7 +51,7 @@ describe('evaluate', () => {
       round.measurements.push({ ...VALID_MEASUREMENT })
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -108,7 +108,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -158,7 +158,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -202,7 +202,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -249,7 +249,7 @@ describe('evaluate', () => {
     }
     const logger = { log: debug, error: debug }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -292,7 +292,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -325,6 +325,7 @@ describe('fraud detection', () => {
     const sparkRoundDetails = {
       roundId: '1234', // doesn't matter
       maxTasksPerNode: 15, // doesn't matter
+      startEpoch: '4080000', // doesn't matter
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -363,7 +364,7 @@ describe('fraud detection', () => {
 
   it('rejects redundant measurements from the same inet group', async () => {
     /** @type {RoundDetails} */
-    const sparkRoundDetails = { roundId: '1234', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] }
+    const sparkRoundDetails = { roundId: '1234', maxTasksPerNode: 15, startEpoch: '4080000', retrievalTasks: [VALID_TASK] }
     const measurements = [
       { ...VALID_MEASUREMENT },
       { ...VALID_MEASUREMENT }
@@ -384,6 +385,7 @@ describe('fraud detection', () => {
     const sparkRoundDetails = {
       roundId: '1234',
       maxTasksPerNode: 15,
+      startEpoch: '4080000',
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
         { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
@@ -444,6 +446,7 @@ describe('fraud detection', () => {
     const sparkRoundDetails = {
       roundId: '1234',
       maxTasksPerNode: 2,
+      startEpoch: '4080000',
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
         { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
@@ -480,6 +483,7 @@ describe('fraud detection', () => {
     const sparkRoundDetails = {
       roundId: '1234',
       maxTasksPerNode: 15,
+      startEpoch: '4080000',
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1' },
         { ...VALID_TASK, cid: 'cid2' },
@@ -552,6 +556,7 @@ describe('fraud detection', () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
       roundId: '1234',
+      startEpoch: '4080000',
       retrievalTasks: [
         {
           ...VALID_TASK,
@@ -595,6 +600,7 @@ describe('fraud detection', () => {
     const sparkRoundDetails = {
       roundId: '1234', // doesn't matter
       maxTasksPerNode: 15, // doesn't matter
+      startEpoch: '4080000', // doesn't matter
       retrievalTasks: [
         {
           cid: VALID_MEASUREMENT.cid,
