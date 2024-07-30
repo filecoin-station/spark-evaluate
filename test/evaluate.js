@@ -10,7 +10,8 @@ import pg from 'pg'
 import { beforeEach } from 'mocha'
 import { migrateWithPgClient } from '../lib/migrate.js'
 
-/** @typedef {import('../lib/typings.js').RoundDetails} RoundDetails */
+/** @import {RoundDetails} from '../lib/typings.js' */
+/** @import {Measurement} from '../lib/preprocess.js' */
 
 const debug = createDebug('test')
 const logger = { log: debug, error: debug }
@@ -30,7 +31,9 @@ const createPgClient = async () => {
   return pgClient
 }
 
-describe('evaluate', () => {
+describe('evaluate', async function () {
+  this.timeout(5000)
+
   let pgClient
   before(async () => {
     pgClient = await createPgClient()
@@ -319,7 +322,9 @@ describe('evaluate', () => {
   })
 })
 
-describe('fraud detection', () => {
+describe('fraud detection', function () {
+  this.timeout(5000)
+
   it('checks if measurements are for a valid task', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
@@ -353,7 +358,7 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'TASK_NOT_IN_ROUND', 'TASK_NOT_IN_ROUND']
@@ -368,7 +373,7 @@ describe('fraud detection', () => {
       { ...VALID_MEASUREMENT }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'DUP_INET_GROUP']
@@ -414,7 +419,7 @@ describe('fraud detection', () => {
       }
     }
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -463,7 +468,7 @@ describe('fraud detection', () => {
     const start = Date.now()
     measurements.forEach((m, ix) => { m.finished_at = start + ix * 1_000 })
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
 
     assert.strictEqual(
       measurements.filter(m => m.fraudAssessment === 'OK').length,
@@ -526,7 +531,7 @@ describe('fraud detection', () => {
       }
     }
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -571,8 +576,16 @@ describe('fraud detection', () => {
       },
       {
         ...VALID_MEASUREMENT,
-        cid: 'cid2',
+        // This Station ID is carefully chosen so that this station has a different set
+        // of allowed tasks than the default VALID_STATION_ID
+        stationId: 'another-station-123',
+        cid: 'cid3',
         inet_group: 'group1'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        cid: 'cid1',
+        inet_group: 'group2'
       },
       {
         ...VALID_MEASUREMENT,
@@ -580,10 +593,18 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
-      ['OK', 'TOO_MANY_TASKS', 'OK']
+      [
+        'OK',
+        'TOO_MANY_TASKS',
+        // The second measurement was submitted from a different subnet (inet group).
+        // This usually happens when a single participant runs two station instances in different
+        // networks. That's a valid behavior, the measurement is accepted and rewarded.
+        'OK',
+        'TASK_WRONG_NODE'
+      ]
     )
   })
 
@@ -612,11 +633,54 @@ describe('fraud detection', () => {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails)
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'IPNI_NOT_QUERIED']
     )
+  })
+
+  it('rejects tasks not allowed for the node by the tasking algorithm', async () => {
+    /** @type {RoundDetails} */
+    const sparkRoundDetails = {
+      ...SPARK_ROUND_DETAILS,
+      maxTasksPerNode: 4,
+      startEpoch: '4080000',
+      retrievalTasks: [
+        { cid: 'bafyone', minerId: 'f010' },
+        { cid: 'bafyone', minerId: 'f020' },
+        { cid: 'bafyone', minerId: 'f030' },
+        { cid: 'bafyone', minerId: 'f040' },
+
+        { cid: 'bafytwo', minerId: 'f010' },
+        { cid: 'bafytwo', minerId: 'f020' },
+        { cid: 'bafytwo', minerId: 'f030' },
+        { cid: 'bafytwo', minerId: 'f040' }
+      ]
+    }
+
+    const stationId = 'some-fixed-station-id'
+
+    /** @type {Measurement[]} */
+    const measurements = sparkRoundDetails.retrievalTasks.map(task => ({
+      ...VALID_MEASUREMENT,
+      ...task,
+      stationId
+    }))
+
+    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+
+    assert.deepStrictEqual(measurements.map(m => `${m.cid}::${m.minerId}::${m.fraudAssessment}`), [
+      'bafyone::f010::TASK_WRONG_NODE',
+      'bafyone::f020::OK',
+      'bafyone::f030::OK',
+      'bafyone::f040::OK',
+
+      'bafytwo::f010::TASK_WRONG_NODE',
+      'bafytwo::f020::OK',
+      'bafytwo::f030::TASK_WRONG_NODE',
+      'bafytwo::f040::TASK_WRONG_NODE'
+    ])
   })
 })
 

@@ -32,6 +32,7 @@ export type RecordTelemetryFn = (
 export type FraudAssesment =
   | 'OK'
   | 'TASK_NOT_IN_ROUND'
+  | 'TASK_WRONG_NODE'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
   | 'IPNI_NOT_QUERIED'
