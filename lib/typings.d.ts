@@ -20,6 +20,7 @@ export interface RoundDetails {
   roundId: string; // BigInt serialized as String (JSON does not support BigInt)
   retrievalTasks: RetrievalTask[];
   maxTasksPerNode: number;
+  startEpoch: string; // BigInt serialized as String (JSON does not support BigInt)
 }
 
 export type RecordTelemetryFn = (

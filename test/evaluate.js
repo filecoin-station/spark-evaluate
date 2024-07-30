@@ -2,7 +2,7 @@ import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS, cr
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
-import { VALID_MEASUREMENT, VALID_TASK, today } from './helpers/test-data.js'
+import { SPARK_ROUND_DETAILS, VALID_MEASUREMENT, VALID_TASK, today } from './helpers/test-data.js'
 import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
 import { RoundData } from '../lib/round.js'
 import { DATABASE_URL } from '../lib/config.js'
@@ -51,7 +51,7 @@ describe('evaluate', () => {
       round.measurements.push({ ...VALID_MEASUREMENT })
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
     const ieContractWithSigner = {
       async setScores (roundIndex, participantAddresses, scores) {
@@ -108,7 +108,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -158,7 +158,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -202,7 +202,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -249,7 +249,7 @@ describe('evaluate', () => {
     }
     const logger = { log: debug, error: debug }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -292,7 +292,7 @@ describe('evaluate', () => {
       }
     }
     /** @returns {Promise<RoundDetails>} */
-    const fetchRoundDetails = async () => ({ roundId: '0', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] })
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
       round,
       roundIndex: 0n,
@@ -323,8 +323,7 @@ describe('fraud detection', () => {
   it('checks if measurements are for a valid task', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234', // doesn't matter
-      maxTasksPerNode: 15, // doesn't matter
+      ...SPARK_ROUND_DETAILS,
       retrievalTasks: [
         {
           cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -357,13 +356,13 @@ describe('fraud detection', () => {
     await runFraudDetection(1n, measurements, sparkRoundDetails)
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
-      ['OK', 'INVALID_TASK', 'INVALID_TASK']
+      ['OK', 'TASK_NOT_IN_ROUND', 'TASK_NOT_IN_ROUND']
     )
   })
 
   it('rejects redundant measurements from the same inet group', async () => {
     /** @type {RoundDetails} */
-    const sparkRoundDetails = { roundId: '1234', maxTasksPerNode: 15, retrievalTasks: [VALID_TASK] }
+    const sparkRoundDetails = { ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] }
     const measurements = [
       { ...VALID_MEASUREMENT },
       { ...VALID_MEASUREMENT }
@@ -382,8 +381,7 @@ describe('fraud detection', () => {
     // Ideally, our algorithm should assign same reward to each one
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234',
-      maxTasksPerNode: 15,
+      ...SPARK_ROUND_DETAILS,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
         { ...VALID_TASK, cid: 'cid2', minerId: 'f1first' },
@@ -442,7 +440,7 @@ describe('fraud detection', () => {
 
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234',
+      ...SPARK_ROUND_DETAILS,
       maxTasksPerNode: 2,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1', minerId: 'f1first' },
@@ -478,8 +476,7 @@ describe('fraud detection', () => {
     // All three participants measure all three tasks.
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234',
-      maxTasksPerNode: 15,
+      ...SPARK_ROUND_DETAILS,
       retrievalTasks: [
         { ...VALID_TASK, cid: 'cid1' },
         { ...VALID_TASK, cid: 'cid2' },
@@ -551,7 +548,7 @@ describe('fraud detection', () => {
   it('rejects measurements above maxTasksPerNode', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234',
+      ...SPARK_ROUND_DETAILS,
       retrievalTasks: [
         {
           ...VALID_TASK,
@@ -593,8 +590,7 @@ describe('fraud detection', () => {
   it('rejects measurements missing indexer result', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
-      roundId: '1234', // doesn't matter
-      maxTasksPerNode: 15, // doesn't matter
+      ...SPARK_ROUND_DETAILS,
       retrievalTasks: [
         {
           cid: VALID_MEASUREMENT.cid,
