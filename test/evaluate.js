@@ -640,7 +640,7 @@ describe('fraud detection', function () {
     )
   })
 
-  it('rejects tasks not allowed for the node by the tasking algorithm', async () => {
+  it('rejects tasks not allowed by the tasking algorithm', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
       ...SPARK_ROUND_DETAILS,
