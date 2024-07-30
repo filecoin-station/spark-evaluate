@@ -10,6 +10,9 @@ import { RoundData } from '../lib/round.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import { Point } from '../lib/telemetry.js'
 import { assertRecordedTelemetryPoint } from './helpers/assertions.js'
+import { fileURLToPath } from 'node:url'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 
 const debug = createDebug('test')
 
@@ -60,19 +63,21 @@ describe('preprocess-evaluate integration', () => {
   })
 
   it('produces expected results', async function () {
-    this.timeout(10000)
+    this.timeout(30000)
 
     // These three constants must correspond to a real round
-    const MERIDIAN_VERSION = '0x8460766Edc62B525fc1FA4D628FC79229dC73031'
-    const MERIDIAN_ROUND = 3602n
-    const MEASUREMENTS_CID = 'bafybeichkpwietn7w2ehwdkedc4wbpypodcz7rau5r2u772qbstjsblxtq'
+    const MERIDIAN_VERSION = '0x8460766edc62b525fc1fa4d628fc79229dc73031'
+    const MERIDIAN_ROUND = 12012n
+    // You can find measurement CIDs committed for the given round by inspecting the logs printed
+    // by the following command: node bin/dry-run.js ${MERIDIAN_ROUND}
+    const MEASUREMENTS_CID = 'bafybeifjhg4z34ytwl4kkotxzoflbzk3ggz6k7laefl2rjur3vymlcumzm'
 
     const round = new RoundData(MERIDIAN_ROUND)
     await preprocess({
       round,
       roundIndex: round.index,
       cid: MEASUREMENTS_CID,
-      fetchMeasurements,
+      fetchMeasurements: fetchMeasurementsWithCache,
       logger,
       recordTelemetry
     })
@@ -416,4 +421,20 @@ const debugDumpData = (name, data) => {
   const sorted = {}
   for (const k of keys) sorted[k] = data[k]
   debug(name, JSON.stringify(sorted, null, 2))
+}
+
+const fetchMeasurementsWithCache = async (cid) => {
+  const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
+  await mkdir(cacheDir, { recursive: true })
+
+  const pathOfCachedResponse = path.join(cacheDir, cid + '.json')
+  try {
+    return JSON.parse(await readFile(pathOfCachedResponse, 'utf-8'))
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.warn('Cannot read cached measurements:', err)
+  }
+
+  const measurements = await fetchMeasurements(cid)
+  await writeFile(pathOfCachedResponse, JSON.stringify(measurements))
+  return measurements
 }
