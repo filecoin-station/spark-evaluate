@@ -70,7 +70,7 @@ export const startEvaluate = async ({
         logger
       })
     } catch (err) {
-      console.error(err)
+      console.error('CANNOT PREPROCESS MEASUREMENTS [ROUND=%s]:', roundIndex, err)
       Sentry.captureException(err, {
         extra: {
           roundIndex,
@@ -106,19 +106,20 @@ export const startEvaluate = async ({
     console.log(`Now evaluating the round ${roundIndex}`)
 
     // Evaluate previous round
+    const evaluatedRoundIndex = roundIndex - 1n
     evaluate({
       round: rounds.previous,
-      roundIndex: roundIndex - 1n,
+      roundIndex: evaluatedRoundIndex,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
       logger
     }).catch(err => {
-      console.error(err)
+      console.error('CANNOT EVALUATE ROUND %s:', evaluatedRoundIndex, err)
       Sentry.captureException(err, {
         extra: {
-          roundIndex
+          roundIndex: evaluatedRoundIndex
         }
       })
     })
@@ -127,14 +128,14 @@ export const startEvaluate = async ({
   // Listen for events
   ieContract.on('MeasurementsAdded', (...args) => {
     onMeasurementsAdded(...args).catch(err => {
-      console.error(err)
+      console.error('CANNOT ADD MEASUREMENT:', err)
       Sentry.captureException(err)
     })
   })
 
   ieContract.on('RoundStart', (...args) => {
     onRoundStart(...args).catch(err => {
-      console.error(err)
+      console.error('CANNOT HANDLE START OF ROUND %s:', args[0], err)
       Sentry.captureException(err)
     })
   })
