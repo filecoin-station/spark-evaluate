@@ -128,7 +128,7 @@ export const startEvaluate = async ({
   // Listen for events
   ieContract.on('MeasurementsAdded', (...args) => {
     onMeasurementsAdded(...args).catch(err => {
-      console.error('CANNOT ADD MEASUREMENT:', err)
+      console.error('CANNOT ADD MEASUREMENTS:', err)
       Sentry.captureException(err)
     })
   })
