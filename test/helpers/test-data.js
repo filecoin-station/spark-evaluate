@@ -39,6 +39,15 @@ export const VALID_MEASUREMENT = {
 // then such test will immediately fail.
 Object.freeze(VALID_MEASUREMENT)
 
+/** @type {import('../../lib/typings.js').RoundDetails} */
+export const SPARK_ROUND_DETAILS = {
+  roundId: '0',
+  maxTasksPerNode: 15,
+  startEpoch: '4080000',
+  retrievalTasks: [VALID_TASK]
+}
+Object.freeze(SPARK_ROUND_DETAILS)
+
 export const today = () => {
   const d = new Date()
   d.setHours(0)

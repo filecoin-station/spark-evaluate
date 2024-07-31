@@ -73,23 +73,23 @@ describe('platform-stats', () => {
       /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
-        { ...stationIdMeasurement1, fraudAssessment: 'INVALID_TASK' },
-        { ...stationIdMeasurement2, fraudAssessment: 'INVALID_TASK' },
-        { ...stationIdMeasurement1, participantAddress: '0x20', fraudAssessment: 'INVALID_TASK' },
-        { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'INVALID_TASK' }
+        { ...stationIdMeasurement1, fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...stationIdMeasurement2, fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...stationIdMeasurement1, participantAddress: '0x20', fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
 
       const { rows } = await pgClient.query(`
-        SELECT 
+        SELECT
           station_id,
           day::TEXT,
           participant_address,
           inet_group,
           accepted_measurement_count,
           total_measurement_count
-        FROM 
+        FROM
           daily_stations
         ORDER BY station_id`
       )
@@ -141,9 +141,9 @@ describe('platform-stats', () => {
       /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'INVALID_TASK' }
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
@@ -180,8 +180,8 @@ describe('platform-stats', () => {
       /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
-        { ...VALID_MEASUREMENT, stationId: null, fraudAssessment: 'INVALID_TASK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'INVALID_TASK' }
+        { ...VALID_MEASUREMENT, stationId: null, fraudAssessment: 'TASK_NOT_IN_ROUND' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
       await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)

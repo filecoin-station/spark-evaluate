@@ -20,6 +20,7 @@ export interface RoundDetails {
   roundId: string; // BigInt serialized as String (JSON does not support BigInt)
   retrievalTasks: RetrievalTask[];
   maxTasksPerNode: number;
+  startEpoch: string; // BigInt serialized as String (JSON does not support BigInt)
 }
 
 export type RecordTelemetryFn = (
@@ -30,7 +31,8 @@ export type RecordTelemetryFn = (
 // When adding a new enum value, remember to update the summary initializer inside `evaluate()`
 export type FraudAssesment =
   | 'OK'
-  | 'INVALID_TASK'
+  | 'TASK_NOT_IN_ROUND'
+  | 'TASK_WRONG_NODE'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
   | 'IPNI_NOT_QUERIED'
