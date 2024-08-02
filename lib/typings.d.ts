@@ -81,6 +81,7 @@ export interface RawMeasurement {
   timeout: boolean;
   byte_length: number;
   car_too_large: boolean;
+  car_checksum: string;
   indexer_result: string | undefined | null;
 }
 

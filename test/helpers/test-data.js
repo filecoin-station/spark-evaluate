@@ -27,7 +27,10 @@ export const VALID_MEASUREMENT = {
   first_byte_at: new Date('2023-11-01T09:00:01.000Z').getTime(),
   end_at: new Date('2023-11-01T09:00:02.000Z').getTime(),
   finished_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
+  timeout: false,
   byte_length: 1024,
+  carChecksum: 'some-car-checksum',
+  carTooLarge: false,
   retrievalResult: 'OK',
   indexerResult: 'OK',
   fraudAssessment: null
