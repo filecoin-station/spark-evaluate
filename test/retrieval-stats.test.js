@@ -15,6 +15,7 @@ const debug = createDebug('test')
 
 describe('retrieval statistics', () => {
   it('reports all stats', async () => {
+    /** @type {Measurement[]} */
     const measurements = [
       {
         ...VALID_MEASUREMENT
