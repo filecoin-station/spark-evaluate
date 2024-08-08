@@ -8,6 +8,7 @@ import {
 } from '../lib/retrieval-stats.js'
 import { VALID_MEASUREMENT } from './helpers/test-data.js'
 import { assertPointFieldValue, getPointName } from './helpers/assertions.js'
+import { groupMeasurementsToCommittees } from '../lib/committee.js'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
 
@@ -247,9 +248,11 @@ describe('recordCommitteeSizes', () => {
         cid: 'bafyanother'
       }
     ]
+    measurements.forEach(m => { m.fraudAssessment = 'OK' })
 
     const point = new Point('committees')
-    recordCommitteeSizes(measurements, point)
+    const committees = groupMeasurementsToCommittees(measurements).values()
+    recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'subnets_min', '1i')
@@ -285,11 +288,12 @@ describe('recordCommitteeSizes', () => {
         ...VALID_MEASUREMENT,
         cid: 'bafyanother'
       }
-
     ]
+    measurements.forEach(m => { m.fraudAssessment = 'OK' })
 
     const point = new Point('committees')
-    recordCommitteeSizes(measurements, point)
+    const committees = groupMeasurementsToCommittees(measurements).values()
+    recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'participants_min', '1i')
@@ -327,11 +331,12 @@ describe('recordCommitteeSizes', () => {
         ...VALID_MEASUREMENT,
         cid: 'bafyanother'
       }
-
     ]
+    measurements.forEach(m => { m.fraudAssessment = 'OK' })
 
     const point = new Point('committees')
-    recordCommitteeSizes(measurements, point)
+    const committees = groupMeasurementsToCommittees(measurements).values()
+    recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'nodes_min', '1i')
@@ -359,11 +364,12 @@ describe('recordCommitteeSizes', () => {
         ...VALID_MEASUREMENT,
         cid: 'bafyanother'
       }
-
     ]
+    measurements.forEach(m => { m.fraudAssessment = 'OK' })
 
     const point = new Point('committees')
-    recordCommitteeSizes(measurements, point)
+    const committees = groupMeasurementsToCommittees(measurements).values()
+    recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
 
     assertPointFieldValue(point, 'measurements_min', '1i')
