@@ -20,7 +20,7 @@ describe('Committee', () => {
       // minority result
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'CONTENT_VERIFICATION_FAILED' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.indexerResult, 'OK')
       assert.strictEqual(c.retrievalResult, 'OK')
@@ -34,7 +34,7 @@ describe('Committee', () => {
     it('rejects committees that are too small', () => {
       const c = new Committee(VALID_TASK)
       c.addMeasurement({ ...VALID_MEASUREMENT })
-      c.evaluate(10)
+      c.evaluate({ requiredCommitteeSize: 10 })
       assert.strictEqual(c.retrievalResult, 'COMMITTEE_TOO_SMALL')
       assert.strictEqual(c.measurements[0].fraudAssessment, 'COMMITTEE_TOO_SMALL')
     })
@@ -45,7 +45,7 @@ describe('Committee', () => {
       c.addMeasurement({ ...VALID_MEASUREMENT, providerId: 'pubkey2' })
       c.addMeasurement({ ...VALID_MEASUREMENT, providerId: 'pubkey3' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -62,7 +62,7 @@ describe('Committee', () => {
       // minority result
       c.addMeasurement({ ...VALID_MEASUREMENT, providerId: 'pubkey3' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.retrievalResult, 'OK')
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -78,7 +78,7 @@ describe('Committee', () => {
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'IPNI_ERROR_404' })
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'ERROR_502' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -95,7 +95,7 @@ describe('Committee', () => {
       // minority result
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'OK' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.retrievalResult, 'CONTENT_VERIFICATION_FAILED')
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -111,7 +111,7 @@ describe('Committee', () => {
       c.addMeasurement({ ...VALID_MEASUREMENT, indexerResult: 'ERROR_404' })
       c.addMeasurement({ ...VALID_MEASUREMENT, indexerResult: 'HTTP_NOT_ADVERTISED' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.indexerResult, 'MAJORITY_NOT_FOUND')
       assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
@@ -129,7 +129,7 @@ describe('Committee', () => {
       // minority result
       c.addMeasurement({ ...VALID_MEASUREMENT, indexerResult: 'OK' })
 
-      c.evaluate(2)
+      c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.strictEqual(c.indexerResult, 'HTTP_NOT_ADVERTISED')
       assert.strictEqual(c.retrievalResult, 'OK')

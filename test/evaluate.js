@@ -68,6 +68,7 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
+      requiredCommitteeSize: 1,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -115,6 +116,7 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
+      requiredCommitteeSize: 1,
       ieContractWithSigner,
       fetchRoundDetails,
       recordTelemetry,
@@ -166,6 +168,7 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       ieContractWithSigner,
+      requiredCommitteeSize: 1,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
@@ -209,6 +212,7 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
+      requiredCommitteeSize: 1,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -256,6 +260,7 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
+      requiredCommitteeSize: 1,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -299,6 +304,7 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
+      requiredCommitteeSize: 1,
       ieContractWithSigner,
       recordTelemetry,
       fetchRoundDetails,
@@ -358,7 +364,13 @@ describe('fraud detection', function () {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'TASK_NOT_IN_ROUND', 'TASK_NOT_IN_ROUND']
@@ -373,7 +385,13 @@ describe('fraud detection', function () {
       { ...VALID_MEASUREMENT }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'DUP_INET_GROUP']
@@ -419,7 +437,13 @@ describe('fraud detection', function () {
       }
     }
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -468,7 +492,13 @@ describe('fraud detection', function () {
     const start = Date.now()
     measurements.forEach((m, ix) => { m.finished_at = start + ix * 1_000 })
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
 
     assert.strictEqual(
       measurements.filter(m => m.fraudAssessment === 'OK').length,
@@ -531,7 +561,14 @@ describe('fraud detection', function () {
       }
     }
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
+
     assert.deepStrictEqual(
       measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
       [
@@ -593,7 +630,14 @@ describe('fraud detection', function () {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
+
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       [
@@ -633,7 +677,14 @@ describe('fraud detection', function () {
       }
     ]
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
+
     assert.deepStrictEqual(
       measurements.map(m => m.fraudAssessment),
       ['OK', 'IPNI_NOT_QUERIED']
@@ -668,7 +719,13 @@ describe('fraud detection', function () {
       stationId
     }))
 
-    await runFraudDetection(1n, measurements, sparkRoundDetails, logger)
+    await runFraudDetection({
+      roundIndex: 1n,
+      measurements,
+      sparkRoundDetails,
+      requiredCommitteeSize: 1,
+      logger
+    })
 
     assert.deepStrictEqual(measurements.map(m => `${m.cid}::${m.minerId}::${m.fraudAssessment}`), [
       'bafyone::f010::TASK_WRONG_NODE',
