@@ -7,31 +7,29 @@ describe('spark-api client', () => {
   it('fetches round details', async function () {
     this.timeout(10_000)
     const { retrievalTasks, maxTasksPerNode, ...details } = await fetchRoundDetails(
-      '0xaaef78eaf86dcf34f275288752e892424dda9341',
-      407n,
+      '0x8460766edc62b525fc1fa4d628fc79229dc73031',
+      12600n,
       recordTelemetry
     )
 
     assert.deepStrictEqual(details, {
-      roundId: '3405', // BigInt serialized as String,
-      startEpoch: '0'
+      roundId: '18024', // BigInt serialized as String,
+      startEpoch: '4158303'
     })
 
     assert.strictEqual(typeof maxTasksPerNode, 'number')
 
-    assert.strictEqual(retrievalTasks.length, 400)
+    assert.strictEqual(retrievalTasks.length, 1000)
     assert.deepStrictEqual(retrievalTasks.slice(0, 2), [
       {
-        cid: 'Qmcieq8Lf1r4qfifJkKpdpVzajdsbSGZmBiL3vy6syWo5T',
-        minerId: null,
-        protocol: 'graphsync',
-        providerAddress: '/ip4/210.209.69.37/tcp/34568/p2p/12D3KooWSHG9vVStHMi9vhfgD1XaR221Ur6RjWcVsiY7WfVaX4QL'
+        cid: 'bafkreia3oovvt7sws7wnz43zbr33lsu2yrdmx4mqswdumravjrnxfoxdka',
+        minerId: 'f02228866',
+        clients: ['f01990536']
       },
       {
-        cid: 'QmejPgwMo5jzJDsArpGCn9Tz1gSQNXYU722pFe2kcLHzpq',
-        minerId: null,
-        protocol: 'graphsync',
-        providerAddress: '/ip4/138.113.222.200/tcp/19013/p2p/12D3KooWCnJeMnur6ScjXXUo8ptMKac88fDbD8GELmdDrdg3FBk5'
+        cid: 'bafkreibipuscsrko7tlrw62rttqvbma3qqqkksjoi6bhvwp27qaylwupp4',
+        minerId: 'f02982293',
+        clients: ['f03064945']
       }
     ])
   })
