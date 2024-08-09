@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
 import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
-import { updateTopMeasurementParticipants } from './lib/platform-stats.js'
+import { periodicDatabaseRefresh } from './lib/platform-stats.js'
 import timers from 'node:timers/promises'
 
 // Tweak this value to improve the chances of the data being available
@@ -141,7 +141,7 @@ export const startEvaluate = async ({
   })
 
   // Update top measurement stations every 12 hours
-  setInterval(() => updateTopMeasurementParticipants(createPgClient), 1000 * 60 * 60 * 12)
+  setInterval(() => periodicDatabaseRefresh(createPgClient), 1000 * 60 * 60 * 12)
 
   while (true) {
     await timers.setTimeout(10_000)
