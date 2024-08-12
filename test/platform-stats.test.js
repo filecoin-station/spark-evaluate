@@ -18,6 +18,7 @@ import {
   updatePlatformStats,
   aggregateAndCleanupRecentData,
   updateMonthlyActiveStationCount,
+  periodicDatabaseRefresh,
   updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
@@ -231,6 +232,38 @@ describe('platform-stats', () => {
           accepted_measurement_count: '1'
         }
       ])
+    })
+  })
+
+  describe('periodicDatabaseRefresh', () => {
+    it('runs provided functions and handles errors', async () => {
+      const executedFunctions = []
+      const errorMessages = []
+
+      const successFunction = async () => {
+        executedFunctions.push('successFunction')
+      }
+
+      const errorFunction = async () => {
+        executedFunctions.push('errorFunction')
+        throw new Error('Test error')
+      }
+
+      const originalConsoleError = console.error
+      console.error = (message, error) => {
+        errorMessages.push({ message, error })
+      }
+
+      await periodicDatabaseRefresh(createPgClient, {
+        functionsToRun: [successFunction, errorFunction]
+      })
+
+      console.error = originalConsoleError
+
+      assert.deepStrictEqual(executedFunctions, ['successFunction', 'errorFunction'])
+      assert.strictEqual(errorMessages.length, 1)
+      assert.strictEqual(errorMessages[0].message, 'Error running function errorFunction:')
+      assert.strictEqual(errorMessages[0].error.message, 'Test error')
     })
   })
 
