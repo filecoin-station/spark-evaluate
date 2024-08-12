@@ -314,6 +314,24 @@ describe('platform-stats', () => {
   })
 
   describe('aggregateAndCleanupRecentData', () => {
+    const assertDailySummary = async () => {
+      const { rows } = await pgClient.query("SELECT * FROM daily_measurements_summary WHERE day = CURRENT_DATE - INTERVAL '3 days'")
+      assert.strictEqual(rows.length, 1)
+      assert.deepStrictEqual(rows[0], {
+        day: (await pgClient.query("SELECT (CURRENT_DATE - INTERVAL '3 days') as day")).rows[0].day,
+        accepted_measurement_count: 15,
+        total_measurement_count: 30,
+        distinct_active_station_count: 2,
+        distinct_participant_address_count: 2,
+        distinct_inet_group_count: 2
+      })
+
+      const recentDetailsCount = await pgClient.query("SELECT COUNT(*) FROM recent_station_details WHERE day <= CURRENT_DATE - INTERVAL '2 days'")
+      const recentSubnetsCount = await pgClient.query("SELECT COUNT(*) FROM recent_participant_subnets WHERE day <= CURRENT_DATE - INTERVAL '2 days'")
+      assert.strictEqual(recentDetailsCount.rows[0].count, '0')
+      assert.strictEqual(recentSubnetsCount.rows[0].count, '0')
+    }
+
     it('aggregates and cleans up data older than two days', async () => {
       // need to map participant addresses to ids first
       const participantMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
@@ -331,37 +349,14 @@ describe('platform-stats', () => {
       `, [participantMap.get('0x10'), participantMap.get('0x20')])
 
       await aggregateAndCleanupRecentData(pgClient)
-
-      // Assert: Check the daily_measurements_summary table for aggregated data
-      const { rows } = await pgClient.query("SELECT * FROM daily_measurements_summary WHERE day = CURRENT_DATE - INTERVAL '3 days'")
-      assert.strictEqual(rows.length, 1)
-      assert.deepStrictEqual(rows[0], {
-        day: (await pgClient.query("SELECT (CURRENT_DATE - INTERVAL '3 days') as day")).rows[0].day,
-        accepted_measurement_count: 15,
-        total_measurement_count: 30,
-        distinct_active_station_count: 2,
-        distinct_participant_address_count: 2,
-        distinct_inet_group_count: 2
-      })
-
-      const recentDetailsCount = await pgClient.query("SELECT COUNT(*) FROM recent_station_details WHERE day <= CURRENT_DATE - INTERVAL '2 days'")
-      const recentSubnetsCount = await pgClient.query("SELECT COUNT(*) FROM recent_participant_subnets WHERE day <= CURRENT_DATE - INTERVAL '2 days'")
-      assert.strictEqual(recentDetailsCount.rows[0].count, '0')
-      assert.strictEqual(recentSubnetsCount.rows[0].count, '0')
+      await assertDailySummary()
+      await aggregateAndCleanupRecentData(pgClient) // Run again and check that nothing changes
+      await assertDailySummary()
     })
   })
 
   describe('updateMonthlyActiveStationCount', () => {
-    it('updates monthly active station count for the previous month', async () => {
-      await pgClient.query(`
-        INSERT INTO recent_active_stations (day, station_id)
-        VALUES
-        (DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') + INTERVAL '1 day', 1),
-        (DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') + INTERVAL '2 days', 2);
-      `)
-
-      await updateMonthlyActiveStationCount(pgClient)
-
+    const assertCorrectMonthlyActiveStationCount = async () => {
       const { rows } = await pgClient.query(`
         SELECT * FROM monthly_active_station_count
         WHERE month = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
@@ -375,6 +370,20 @@ describe('platform-stats', () => {
           AND day < DATE_TRUNC('month', CURRENT_DATE)
       `)
       assert.strictEqual(recentStationsCount.rows[0].count, '0')
+    }
+
+    it('updates monthly active station count for the previous month', async () => {
+      await pgClient.query(`
+        INSERT INTO recent_active_stations (day, station_id)
+        VALUES
+        (DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') + INTERVAL '1 day', 1),
+        (DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') + INTERVAL '2 days', 2);
+      `)
+
+      await updateMonthlyActiveStationCount(pgClient)
+      await assertCorrectMonthlyActiveStationCount()
+      await updateMonthlyActiveStationCount(pgClient) // Run again and check that nothing changes
+      await assertCorrectMonthlyActiveStationCount()
     })
   })
 
