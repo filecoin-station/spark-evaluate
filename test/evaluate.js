@@ -394,6 +394,44 @@ describe('evaluate', async function () {
 
     assert.strictEqual(setScoresCalls.length, 1)
   })
+
+  it('doesn\'t retry when out of funds', async () => {
+    const round = new RoundData(0n)
+    for (let i = 0; i < 5; i++) {
+      round.measurements.push({ ...VALID_MEASUREMENT })
+    }
+    const setScoresCalls = []
+    const ieContractWithSigner = {
+      async setScores (_, participantAddresses, scores) {
+        setScoresCalls.push({ participantAddresses, scores })
+        const err = new Error()
+        Object.assign(err, {
+          code: 'UNKNOWN_ERROR',
+          error: {
+            message:
+              'failed to check balance: not enough funds'
+          }
+        })
+        throw err
+      },
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
+      }
+    }
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
+    await evaluate({
+      round,
+      roundIndex: 0n,
+      ieContractWithSigner,
+      recordTelemetry,
+      fetchRoundDetails,
+      createPgClient,
+      logger
+    })
+
+    assert.strictEqual(setScoresCalls.length, 1)
+  })
 })
 
 describe('fraud detection', function () {
