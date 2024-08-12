@@ -87,7 +87,7 @@ describe('platform-stats', () => {
         { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
 
       const { rows } = await pgClient.query(`
         SELECT
@@ -154,7 +154,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
 
       const { rows } = await pgClient.query(`
         SELECT station_id, day::TEXT, accepted_measurement_count, total_measurement_count
@@ -192,7 +192,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, today)
+      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
 
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.strictEqual(rows.length, 1)
@@ -210,7 +210,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: 'f2abc' }
       ]
 
-      await updateDailyStationStats(pgClient, honestMeasurements, honestMeasurements, yesterday)
+      await updateDailyStationStats(pgClient, honestMeasurements, honestMeasurements, { day: yesterday })
       await pgClient.query('COMMIT')
 
       await updateTopMeasurementParticipants(pgClient)
@@ -333,8 +333,6 @@ describe('platform-stats', () => {
       await aggregateAndCleanupRecentData(pgClient)
 
       // Assert: Check the daily_measurements_summary table for aggregated data
-      const { rows: debugRows } = await pgClient.query('SELECT day::TEXT FROM daily_measurements_summary')
-      console.log(debugRows)
       const { rows } = await pgClient.query("SELECT * FROM daily_measurements_summary WHERE day = CURRENT_DATE - INTERVAL '3 days'")
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows[0], {
