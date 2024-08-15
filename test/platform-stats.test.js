@@ -18,7 +18,7 @@ import {
   updatePlatformStats,
   aggregateAndCleanupRecentData,
   updateMonthlyActiveStationCount,
-  periodicDatabaseRefresh,
+  databaseRefresh,
   updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
@@ -235,7 +235,7 @@ describe('platform-stats', () => {
     })
   })
 
-  describe('periodicDatabaseRefresh', () => {
+  describe('databaseRefresh', () => {
     it('runs provided functions and handles errors', async () => {
       const executedFunctions = []
       const errorMessages = []
@@ -254,7 +254,7 @@ describe('platform-stats', () => {
         errorMessages.push({ message, error })
       }
 
-      await periodicDatabaseRefresh(createPgClient, {
+      await databaseRefresh(createPgClient, {
         functionsToRun: [successFunction, errorFunction]
       })
 
