@@ -14,7 +14,7 @@ import {
   mapParticipantsToIds,
   updateDailyParticipants,
   updateDailyStationStats,
-  updateStationAndParticipantDetails,
+  updateStationsAndParticipants,
   updatePlatformStats,
   aggregateAndCleanupRecentData,
   updateMonthlyActiveStationCount,
@@ -267,7 +267,7 @@ describe('platform-stats', () => {
     })
   })
 
-  describe('updateStationAndParticipantDetails', () => {
+  describe('updateStationsAndParticipants', () => {
     it('updates recent_station_details, recent_active_stations, and recent_participant_subnets', async () => {
       const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
 
@@ -284,7 +284,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateStationAndParticipantDetails(pgClient, honestMeasurements, allMeasurements, participantsMap, today)
+      await updateStationsAndParticipants(pgClient, honestMeasurements, allMeasurements, participantsMap, today)
 
       const { rows: stationDetails } = await pgClient.query(`
         SELECT
