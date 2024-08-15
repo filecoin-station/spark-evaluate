@@ -269,7 +269,7 @@ describe('platform-stats', () => {
 
   describe('updateStationAndParticipantDetails', () => {
     it('updates recent_station_details, recent_active_stations, and recent_participant_subnets', async () => {
-      const participantMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
 
       /** @type {Measurement[]} */
       const honestMeasurements = [
@@ -284,7 +284,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateStationAndParticipantDetails(pgClient, honestMeasurements, allMeasurements, participantMap, today)
+      await updateStationAndParticipantDetails(pgClient, honestMeasurements, allMeasurements, participantsMap, today)
 
       const { rows: stationDetails } = await pgClient.query(`
         SELECT
@@ -367,19 +367,19 @@ describe('platform-stats', () => {
 
     it('aggregates and cleans up data older than two days', async () => {
       // need to map participant addresses to ids first
-      const participantMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
       await pgClient.query(`
         INSERT INTO recent_station_details (day, accepted_measurement_count, total_measurement_count, station_id, participant_id)
         VALUES
         (CURRENT_DATE - INTERVAL '3 days', 10, 20, 1, $1),
         (CURRENT_DATE - INTERVAL '3 days', 5, 10, 2, $2);
-      `, [participantMap.get('0x10'), participantMap.get('0x20')])
+      `, [participantsMap.get('0x10'), participantsMap.get('0x20')])
       await pgClient.query(`
         INSERT INTO recent_participant_subnets (day, participant_id, subnet)
         VALUES
         (CURRENT_DATE - INTERVAL '3 days', $1, 'subnet1'),
         (CURRENT_DATE - INTERVAL '3 days', $2, 'subnet2');
-      `, [participantMap.get('0x10'), participantMap.get('0x20')])
+      `, [participantsMap.get('0x10'), participantsMap.get('0x20')])
 
       await aggregateAndCleanupRecentData(pgClient)
       await assertDailySummary()
@@ -440,8 +440,8 @@ describe('platform-stats', () => {
     })
 
     it('creates a new daily_participants row', async () => {
-      const participantMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
-      await updateDailyParticipants(pgClient, Array.from(participantMap.values()))
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      await updateDailyParticipants(pgClient, Array.from(participantsMap.values()))
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, participant_id FROM daily_participants'
@@ -453,11 +453,11 @@ describe('platform-stats', () => {
     })
 
     it('handles participants already seen today', async () => {
-      const participantMap1 = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
-      await updateDailyParticipants(pgClient, Array.from(participantMap1.values()))
+      const participantsMap1 = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      await updateDailyParticipants(pgClient, Array.from(participantsMap1.values()))
 
-      const participantMap2 = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x30', '0x20']))
-      await updateDailyParticipants(pgClient, Array.from(participantMap2.values()))
+      const participantsMap2 = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x30', '0x20']))
+      await updateDailyParticipants(pgClient, Array.from(participantsMap2.values()))
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, participant_id FROM daily_participants'
@@ -470,8 +470,8 @@ describe('platform-stats', () => {
     })
 
     it('maps new participant addresses to new ids', async () => {
-      const participantMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
-      assert.deepStrictEqual(participantMap, new Map([['0x10', 1], ['0x20', 2]]))
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+      assert.deepStrictEqual(participantsMap, new Map([['0x10', 1], ['0x20', 2]]))
     })
 
     it('maps existing participants to their existing ids', async () => {
