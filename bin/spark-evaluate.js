@@ -10,6 +10,8 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
+import { cancelStuckTxs } from '../lib/cancel-stuck-txs.js'
+import timers from 'node:timers/promises'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -30,11 +32,9 @@ await migrateWithPgConfig({ connectionString: DATABASE_URL })
 const { ieContract, provider } = await createMeridianContract()
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
-console.log(
-  'Wallet address:',
-  signer.address,
-  newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
-)
+const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
+
+console.log('Wallet address:', signer.address, walletDelegatedAddress)
 const ieContractWithSigner = ieContract.connect(signer)
 
 const createPgClient = async () => {
@@ -43,12 +43,31 @@ const createPgClient = async () => {
   return pgClient
 }
 
-await startEvaluate({
-  ieContract,
-  ieContractWithSigner,
-  fetchMeasurements,
-  fetchRoundDetails,
-  recordTelemetry,
-  createPgClient,
-  logger: console
-})
+await Promise.all([
+  startEvaluate({
+    ieContract,
+    ieContractWithSigner,
+    fetchMeasurements,
+    fetchRoundDetails,
+    recordTelemetry,
+    createPgClient,
+    logger: console
+  }),
+  (async () => {
+    while (true) {
+      let didCancelTxs = false
+      try {
+        didCancelTxs = await cancelStuckTxs({
+          walletDelegatedAddress,
+          signer
+        })
+      } catch (err) {
+        console.error(err)
+        Sentry.captureException(err)
+      }
+      if (!didCancelTxs) {
+        await timers.setTimeout(60_000)
+      }
+    }
+  })()
+])
