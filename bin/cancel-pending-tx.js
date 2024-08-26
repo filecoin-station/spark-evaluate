@@ -4,6 +4,7 @@ import 'dotenv/config'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import { CoinType, newDelegatedEthAddress } from '@glif/filecoin-address'
+import pRetry from 'p-retry'
 
 import { createMeridianContract } from '../lib/ie-contract.js'
 
@@ -100,7 +101,14 @@ console.log('TX status:', receipt?.status)
  * @returns 1000 oldest messages
  */
 async function getMessagesInMempool (f4addr) {
-  const res = await fetch(`https://filfox.info/api/v1/message/mempool/filtered-list?address=${f4addr}&pageSize=1000`)
+  const res = await pRetry(
+    () => fetch(`https://filfox.info/api/v1/message/mempool/filtered-list?address=${f4addr}&pageSize=1000`),
+    {
+      async onFailedAttempt (error) {
+        console.warn(`Filfox request failed with ${res.status}: ${(await res.text()).trimEnd()}. Retrying...`)
+      }
+    }
+  )
   if (!res.ok) {
     throw new Error(`Filfox request failed with ${res.status}: ${(await res.text()).trimEnd()}`)
   }
