@@ -84,7 +84,7 @@ const nonce = txDetails.nonce
 
 console.log('SENDING THE REPLACEMENT TRANSACTION')
 const replacementTx = await signer.sendTransaction({
-  to: walletDelegatedAddress,
+  to: signer.address,
   value: 0,
   nonce,
   gasLimit: Math.ceil(gasUsed * 1.1),
