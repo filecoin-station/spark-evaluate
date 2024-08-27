@@ -3,7 +3,7 @@ import pg from 'pg'
 
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
-import { VALID_MEASUREMENT } from './helpers/test-data.js'
+import { buildEvaluatedCommitteesFromMeasurements, VALID_MEASUREMENT } from './helpers/test-data.js'
 import { updatePublicStats } from '../lib/public-stats.js'
 import { beforeEach } from 'mocha'
 
@@ -48,11 +48,13 @@ describe('public-stats', () => {
     it('creates or updates the row for today - one miner only', async () => {
       /** @type {Measurement[]} */
       const honestMeasurements = [
-        { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
-        { ...VALID_MEASUREMENT, retrievalResult: 'TIMEOUT' }
+        { ...VALID_MEASUREMENT, cid: 'cidone', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, cid: 'cidtwo', retrievalResult: 'TIMEOUT' }
       ]
       const allMeasurements = honestMeasurements
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -62,7 +64,7 @@ describe('public-stats', () => {
       ])
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -80,7 +82,9 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'OK' }
       ]
       const allMeasurements = honestMeasurements
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -92,7 +96,7 @@ describe('public-stats', () => {
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -113,7 +117,9 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' }
       ]
       const allMeasurements = honestMeasurements
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -127,7 +133,9 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, indexerResult: 'UNKNOWN_ERROR' })
       // This is a measurement for a new task.
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -149,7 +157,9 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, cid: 'bafy4', status_code: 502, retrievalResult: 'ERROR_502' }
       ]
       const allMeasurements = honestMeasurements
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
@@ -164,8 +174,9 @@ describe('public-stats', () => {
       // These are measurements for a new task.
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', status_code: 502, retrievalResult: 'ERROR_502' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, honestMeasurements, allMeasurements })
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
