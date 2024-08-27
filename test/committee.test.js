@@ -22,8 +22,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.indexerResult, 'OK')
-      assert.strictEqual(c.retrievalResult, 'OK')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'OK',
+        retrievalResult: 'OK'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'OK',
         'OK',
@@ -35,7 +37,10 @@ describe('Committee', () => {
       const c = new Committee(VALID_TASK)
       c.addMeasurement({ ...VALID_MEASUREMENT })
       c.evaluate({ requiredCommitteeSize: 10 })
-      assert.strictEqual(c.retrievalResult, 'COMMITTEE_TOO_SMALL')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'COMMITTEE_TOO_SMALL',
+        retrievalResult: 'COMMITTEE_TOO_SMALL'
+      })
       assert.strictEqual(c.measurements[0].fraudAssessment, 'COMMITTEE_TOO_SMALL')
     })
 
@@ -47,7 +52,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'MAJORITY_NOT_FOUND',
+        retrievalResult: 'MAJORITY_NOT_FOUND'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'MAJORITY_NOT_FOUND',
         'MAJORITY_NOT_FOUND',
@@ -64,7 +72,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.retrievalResult, 'OK')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'OK',
+        retrievalResult: 'OK'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'OK',
         'OK',
@@ -80,7 +91,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'OK',
+        retrievalResult: 'MAJORITY_NOT_FOUND'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'MAJORITY_NOT_FOUND',
         'MAJORITY_NOT_FOUND',
@@ -97,7 +111,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.retrievalResult, 'CONTENT_VERIFICATION_FAILED')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'OK',
+        retrievalResult: 'CONTENT_VERIFICATION_FAILED'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'OK',
         'OK',
@@ -113,8 +130,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.indexerResult, 'MAJORITY_NOT_FOUND')
-      assert.strictEqual(c.retrievalResult, 'MAJORITY_NOT_FOUND')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'MAJORITY_NOT_FOUND',
+        retrievalResult: 'MAJORITY_NOT_FOUND'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'MAJORITY_NOT_FOUND',
         'MAJORITY_NOT_FOUND',
@@ -131,8 +150,10 @@ describe('Committee', () => {
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
-      assert.strictEqual(c.indexerResult, 'HTTP_NOT_ADVERTISED')
-      assert.strictEqual(c.retrievalResult, 'OK')
+      assert.deepStrictEqual(c.evaluation, {
+        indexerResult: 'HTTP_NOT_ADVERTISED',
+        retrievalResult: 'OK'
+      })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
         'OK',
         'OK',
