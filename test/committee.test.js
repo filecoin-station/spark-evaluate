@@ -161,4 +161,82 @@ describe('Committee', () => {
       ])
     })
   })
+
+  it('rejects committees without absolute majority for byte_length', () => {
+    const c = new Committee(VALID_TASK)
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 0 })
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 256 })
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 1024 })
+
+    c.evaluate({ requiredCommitteeSize: 2 })
+
+    assert.deepStrictEqual(c.evaluation, {
+      indexerResult: 'OK',
+      retrievalResult: 'MAJORITY_NOT_FOUND'
+    })
+    assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
+      'MAJORITY_NOT_FOUND',
+      'MAJORITY_NOT_FOUND',
+      'MAJORITY_NOT_FOUND'
+    ])
+  })
+
+  it('finds majority for byte_length', () => {
+    const c = new Committee(VALID_TASK)
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 1024 })
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 1024 })
+    // minority result
+    c.addMeasurement({ ...VALID_MEASUREMENT, byte_length: 256 })
+
+    c.evaluate({ requiredCommitteeSize: 2 })
+
+    assert.deepStrictEqual(c.evaluation, {
+      indexerResult: 'OK',
+      retrievalResult: 'OK'
+    })
+    assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
+      'OK',
+      'OK',
+      'MINORITY_RESULT'
+    ])
+  })
+
+  it('rejects committees without absolute majority for carChecksum', () => {
+    const c = new Committee(VALID_TASK)
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hashone' })
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hash2' })
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hash3' })
+
+    c.evaluate({ requiredCommitteeSize: 2 })
+
+    assert.deepStrictEqual(c.evaluation, {
+      indexerResult: 'OK',
+      retrievalResult: 'MAJORITY_NOT_FOUND'
+    })
+    assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
+      'MAJORITY_NOT_FOUND',
+      'MAJORITY_NOT_FOUND',
+      'MAJORITY_NOT_FOUND'
+    ])
+  })
+
+  it('finds majority for carChecksum', () => {
+    const c = new Committee(VALID_TASK)
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hashone' })
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hashone' })
+    // minority result
+    c.addMeasurement({ ...VALID_MEASUREMENT, carChecksum: 'hash2' })
+
+    c.evaluate({ requiredCommitteeSize: 2 })
+
+    assert.deepStrictEqual(c.evaluation, {
+      indexerResult: 'OK',
+      retrievalResult: 'OK'
+    })
+    assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
+      'OK',
+      'OK',
+      'MINORITY_RESULT'
+    ])
+  })
 })
