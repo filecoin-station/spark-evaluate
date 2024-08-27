@@ -172,8 +172,8 @@ describe('public-stats', () => {
       // effectively ignored as the other measurement was successful.
       honestMeasurements.push({ ...VALID_MEASUREMENT, status_code: 502 })
       // These are measurements for a new task.
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK', status_code: 502, retrievalResult: 'ERROR_502' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' })
-      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', status_code: 502, retrievalResult: 'ERROR_502' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
