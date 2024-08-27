@@ -10,8 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { cancelStuckTxs } from '../lib/cancel-stuck-txs.js'
-import timers from 'node:timers/promises'
+import { startCancelStuckTxs } from '../lib/cancel-stuck-txs.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -53,21 +52,8 @@ await Promise.all([
     createPgClient,
     logger: console
   }),
-  (async () => {
-    while (true) {
-      let didCancelTxs = false
-      try {
-        didCancelTxs = await cancelStuckTxs({
-          walletDelegatedAddress,
-          signer
-        })
-      } catch (err) {
-        console.error(err)
-        Sentry.captureException(err)
-      }
-      if (!didCancelTxs) {
-        await timers.setTimeout(60_000)
-      }
-    }
-  })()
+  startCancelStuckTxs({
+    walletDelegatedAddress,
+    signer
+  })
 ])
