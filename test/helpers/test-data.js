@@ -1,6 +1,10 @@
+import { groupMeasurementsToCommittees } from '../../lib/committee.js'
+
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 export const VALID_STATION_ID = '8800000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 export const VALID_INET_GROUP = 'some-group-id'
+
+/** @import { Measurement} from  '../../lib/preprocess.js' */
 
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
@@ -8,7 +12,7 @@ export const VALID_TASK = {
 }
 Object.freeze(VALID_TASK)
 
-/** @type {import('../../lib/preprocess.js').Measurement} */
+/** @type {Measurement} */
 export const VALID_MEASUREMENT = {
   cid: VALID_TASK.cid,
   minerId: VALID_TASK.minerId,
@@ -58,4 +62,19 @@ export const today = () => {
   d.setSeconds(0)
   d.setMilliseconds(0)
   return d
+}
+
+/**
+ * @param {Iterable<Measurement>} acceptedMeasurements
+ */
+export const buildEvaluatedCommitteesFromMeasurements = (acceptedMeasurements) => {
+  for (const m of acceptedMeasurements) m.fraudAssessment = 'OK'
+  const committees = [...groupMeasurementsToCommittees(acceptedMeasurements).values()]
+  for (const c of committees) {
+    c.evaluation = {
+      indexerResult: c.measurements[0].indexerResult,
+      retrievalResult: c.measurements[0].retrievalResult
+    }
+  }
+  return committees
 }
