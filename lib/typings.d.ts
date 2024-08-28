@@ -28,6 +28,11 @@ export type RecordTelemetryFn = (
   fn: (point: Point) => void
 ) => void
 
+export type CommitteeCheckError =
+| 'COMMITTEE_TOO_SMALL'
+| 'MAJORITY_NOT_FOUND'
+| 'MINORITY_RESULT'
+
 // When adding a new enum value, remember to update the summary initializer inside `evaluate()`
 export type FraudAssesment =
   | 'OK'
@@ -36,6 +41,7 @@ export type FraudAssesment =
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
   | 'IPNI_NOT_QUERIED'
+  | CommitteeCheckError
 
 
 // When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
@@ -58,6 +64,8 @@ export type RetrievalResult =
   | `ERROR_${number}`
   | 'ERROR_500'
   | 'UNKNOWN_ERROR'
+  | CommitteeCheckError
+
 
 // Data coming from spark-api and spark-publish
 export interface RawMeasurement {
