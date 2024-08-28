@@ -16,7 +16,7 @@ import {
   updateDailyStationStats,
   updateStationsAndParticipants,
   updatePlatformStats,
-  aggregateAndCleanupRecentData,
+  aggregateAndCleanUpRecentData,
   updateMonthlyActiveStationCount,
   refreshDatabase,
   updateTopMeasurementParticipants
@@ -381,9 +381,9 @@ describe('platform-stats', () => {
         (CURRENT_DATE - INTERVAL '3 days', $2, 'subnet2');
       `, [participantsMap.get('0x10'), participantsMap.get('0x20')])
 
-      await aggregateAndCleanupRecentData(pgClient)
+      await aggregateAndCleanUpRecentData(pgClient)
       await assertDailySummary()
-      await aggregateAndCleanupRecentData(pgClient) // Run again and check that nothing changes
+      await aggregateAndCleanUpRecentData(pgClient) // Run again and check that nothing changes
       await assertDailySummary()
     })
   })
