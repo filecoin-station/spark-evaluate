@@ -293,7 +293,6 @@ describe('platform-stats', () => {
         ORDER BY station_id, participant_id
       `, [today])
 
-      assert.strictEqual(stationDetails.length, 2)
       assert.deepStrictEqual(stationDetails, [
         {
           day: today,
