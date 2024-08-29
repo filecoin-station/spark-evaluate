@@ -32,7 +32,7 @@ CREATE TABLE daily_measurements_summary (
     day DATE NOT NULL PRIMARY KEY,
     accepted_measurement_count INTEGER NOT NULL,
     total_measurement_count INTEGER NOT NULL,
-    distinct_active_station_count INTEGER NOT NULL,
-    distinct_participant_address_count INTEGER NOT NULL,
-    distinct_inet_group_count INTEGER NOT NULL
+    station_count INTEGER NOT NULL,
+    participant_address_count INTEGER NOT NULL,
+    inet_group_count INTEGER NOT NULL
 );

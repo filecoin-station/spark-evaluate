@@ -354,9 +354,9 @@ describe('platform-stats', () => {
         day: (await pgClient.query("SELECT (CURRENT_DATE - INTERVAL '3 days') as day")).rows[0].day,
         accepted_measurement_count: 15,
         total_measurement_count: 30,
-        distinct_active_station_count: 2,
-        distinct_participant_address_count: 2,
-        distinct_inet_group_count: 2
+        station_count: 2,
+        participant_address_count: 2,
+        inet_group_count: 2
       })
 
       const recentDetailsCount = await pgClient.query("SELECT COUNT(*) FROM recent_station_details WHERE day <= CURRENT_DATE - INTERVAL '2 days'")
