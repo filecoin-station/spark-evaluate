@@ -272,19 +272,14 @@ describe('platform-stats', () => {
       const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
 
       /** @type {Measurement[]} */
-      const honestMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1' },
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2' },
-        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3' }
-      ]
-
-      /** @type {Measurement[]} */
       const allMeasurements = [
-        ...honestMeasurements,
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2', fraudAssessment: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3', fraudAssessment: 'OK' },
         { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateStationsAndParticipants(pgClient, honestMeasurements, allMeasurements, participantsMap, today)
+      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, today)
 
       const { rows: stationDetails } = await pgClient.query(`
         SELECT
