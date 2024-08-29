@@ -102,7 +102,6 @@ describe('platform-stats', () => {
           daily_stations
         ORDER BY station_id, participant_address, inet_group`
       )
-      assert.strictEqual(rows.length, 4)
       assert.deepStrictEqual(rows, [
         {
           day: today,
@@ -162,7 +161,6 @@ describe('platform-stats', () => {
         FROM daily_stations
         ORDER BY station_id`
       )
-      assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
         {
           station_id: VALID_STATION_ID,
@@ -196,7 +194,6 @@ describe('platform-stats', () => {
       await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
 
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
-      assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
     })
 
@@ -217,7 +214,6 @@ describe('platform-stats', () => {
       await updateTopMeasurementParticipants(pgClient)
       const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_mv')
 
-      assert.strictEqual(rows.length, 2)
       assert.deepStrictEqual(rows, [
         {
           participant_address: 'f1abc',
@@ -317,7 +313,6 @@ describe('platform-stats', () => {
         ORDER BY station_id
       `, [today])
 
-      assert.strictEqual(activeStations.length, 2)
       assert.deepStrictEqual(activeStations, [
         { day: today, station_id: 'station1' },
         { day: today, station_id: 'station2' }
@@ -331,7 +326,6 @@ describe('platform-stats', () => {
         ORDER BY participant_id, subnet
       `, [today])
 
-      assert.strictEqual(participantSubnets.length, 3)
       assert.deepStrictEqual(participantSubnets, [
         { day: today, participant_id: 1, subnet: 'subnet1' },
         { day: today, participant_id: 1, subnet: 'subnet2' },
