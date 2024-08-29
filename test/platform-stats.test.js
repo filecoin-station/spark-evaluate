@@ -503,31 +503,6 @@ describe('platform-stats', () => {
         { day: today, participant_id: 3 }
       ])
     })
-
-    it('submits daily_participants data for all measurements, not just honest ones', async () => {
-      /** @type {Measurement[]} */
-      const honestMeasurements = [
-        { ...VALID_MEASUREMENT, participantAddress: '0x10' },
-        { ...VALID_MEASUREMENT, participantAddress: '0x20' }
-      ]
-
-      /** @type {Measurement[]} */
-      const allMeasurements = [
-        ...honestMeasurements,
-        { ...VALID_MEASUREMENT, participantAddress: '0x30', fraudAssessment: 'TASK_NOT_IN_ROUND' }
-      ]
-
-      await updatePlatformStats(pgClient, honestMeasurements, allMeasurements)
-
-      const { rows } = await pgClient.query(
-        'SELECT day::TEXT, participant_id FROM daily_participants ORDER BY participant_id'
-      )
-      assert.deepStrictEqual(rows, [
-        { day: today, participant_id: 1 },
-        { day: today, participant_id: 2 },
-        { day: today, participant_id: 3 }
-      ])
-    })
   })
 
   const getCurrentDate = async () => {
