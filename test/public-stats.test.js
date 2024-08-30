@@ -54,7 +54,13 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -64,7 +70,13 @@ describe('public-stats', () => {
       ])
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -84,8 +96,14 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
 
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
       )
@@ -96,7 +114,13 @@ describe('public-stats', () => {
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -119,7 +143,13 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -135,7 +165,13 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -147,6 +183,7 @@ describe('public-stats', () => {
   })
 
   describe('daily_deals', () => {
+    // TODO: add tests for miner_id, client_id, majority_found, indexed_http
     it('creates or updates the row for today', async () => {
       /** @type {Measurement[]} */
       const honestMeasurements = [
@@ -159,13 +196,19 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
+        'SELECT day::TEXT, tested, indexed, retrievable FROM daily_deals'
       )
       assert.deepStrictEqual(created, [
-        { day: today, total: 4, indexed: 3, retrievable: 1 }
+        { day: today, tested: 4, indexed: 3, retrievable: 1 }
       ])
 
       // Notice: this measurement is for the same task as honestMeasurements[0], therefore it's
@@ -176,14 +219,20 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
+        'SELECT day::TEXT, tested, indexed, retrievable FROM daily_deals'
       )
       assert.deepStrictEqual(updated, [{
         day: today,
-        total: 2 * 4 + 1 /* added bafy5 */,
+        tested: 2 * 4 + 1 /* added bafy5 */,
         indexed: 2 * 3 + 1 /* bafy5 is indexed */,
         retrievable: 2 * 1 + 0 /* bafy5 not retrievable */
       }])
