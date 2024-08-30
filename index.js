@@ -13,7 +13,7 @@ const EVALUATE_DELAY = PREPROCESS_DELAY + 60_000
 
 export const startEvaluate = async ({
   ieContract,
-  ieContractWithSigner,
+  signer,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
@@ -110,7 +110,8 @@ export const startEvaluate = async ({
     evaluate({
       round: rounds.previous,
       roundIndex: evaluatedRoundIndex,
-      ieContractWithSigner,
+      ieContract,
+      signer,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,

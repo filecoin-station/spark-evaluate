@@ -14,6 +14,7 @@ import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
+import { ethers } from 'ethers'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
 
@@ -121,17 +122,19 @@ for (const cid of measurementCids) {
 console.log('Fetched %s measurements', round.measurements.length)
 
 console.log('==EVALUATE==')
-const ieContractWithSigner = {
+const ieContract = {
   async getAddress () {
     return contractAddress
-  },
-  async setScores (_roundIndex, participantAddresses, scores) {
-    console.log('==EVALUATION RESULTS==')
-    console.log('participants:', participantAddresses)
-    console.log('scores:', scores)
-    console.log('==END OF RESULTS==')
-    return { hash: '0x234' }
   }
+}
+const signer = ethers.Wallet.createRandom()
+const mockedFetch = async (_, { body }) => {
+  console.log('==EVALUATION RESULTS==')
+  const { participants, scores } = JSON.parse(body)
+  console.log('participants:', participants)
+  console.log('scores:', scores)
+  console.log('==END OF RESULTS==')
+  return new Response()
 }
 
 const started = Date.now()
@@ -139,7 +142,9 @@ const { ignoredErrors } = await evaluate({
   roundIndex,
   round,
   fetchRoundDetails,
-  ieContractWithSigner,
+  ieContract,
+  signer,
+  fetch: mockedFetch,
   logger: console,
   recordTelemetry,
   createPgClient

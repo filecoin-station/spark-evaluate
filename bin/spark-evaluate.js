@@ -34,7 +34,6 @@ const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
 
 console.log('Wallet address:', signer.address, walletDelegatedAddress)
-const ieContractWithSigner = ieContract.connect(signer)
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -45,7 +44,7 @@ const createPgClient = async () => {
 await Promise.all([
   startEvaluate({
     ieContract,
-    ieContractWithSigner,
+    signer,
     fetchMeasurements,
     fetchRoundDetails,
     recordTelemetry,
