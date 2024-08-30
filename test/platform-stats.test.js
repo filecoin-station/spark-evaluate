@@ -19,7 +19,6 @@ import {
   aggregateAndCleanUpRecentData,
   updateMonthlyActiveStationCount,
   refreshDatabase,
-  updateTopMeasurementParticipantsView,
   updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
@@ -197,39 +196,6 @@ describe('platform-stats', () => {
       const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
       assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
     })
-
-    it('updates top measurements participants yesterday materialized view', async () => {
-      const validStationId3 = VALID_STATION_ID.slice(0, -1) + '2'
-      const yesterday = await getYesterdayDate()
-
-      const honestMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: 'f1abc' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: 'f1abc' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: 'f1abc' },
-        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: 'f2abc' }
-      ]
-
-      await updateDailyStationStats(pgClient, honestMeasurements, honestMeasurements, { day: yesterday })
-      await pgClient.query('COMMIT')
-
-      await updateTopMeasurementParticipants(pgClient)
-      const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_mv')
-
-      assert.deepStrictEqual(rows, [
-        {
-          participant_address: 'f1abc',
-          inet_group_count: '1',
-          station_count: '2',
-          accepted_measurement_count: '3'
-        },
-        {
-          participant_address: 'f2abc',
-          inet_group_count: '1',
-          station_count: '1',
-          accepted_measurement_count: '1'
-        }
-      ])
-    })
   })
 
   describe('refreshDatabase', () => {
@@ -349,8 +315,8 @@ describe('platform-stats', () => {
       ]
 
       await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: yesterday })
-      await updateTopMeasurementParticipantsView(pgClient)
-      const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_view')
+      await updateTopMeasurementParticipants(pgClient)
+      const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_mv')
 
       assert.deepStrictEqual(rows, [
         {

@@ -1,4 +1,5 @@
-CREATE MATERIALIZED VIEW top_measurement_participants_yesterday_view AS
+DROP MATERIALIZED VIEW top_measurement_participants_yesterday_mv;
+CREATE MATERIALIZED VIEW top_measurement_participants_yesterday_mv AS
 WITH yesterday_station_and_measurement_counts AS (
   SELECT
     day,
@@ -24,7 +25,7 @@ yesterday_subnet_counts AS (
   GROUP BY
     day, participant_id
 )
-SELECT 
+SELECT
   ysmc.day,
   p.participant_address,
   ysmc.station_count,
