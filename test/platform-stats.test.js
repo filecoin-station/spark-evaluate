@@ -19,6 +19,7 @@ import {
   aggregateAndCleanUpRecentData,
   updateMonthlyActiveStationCount,
   refreshDatabase,
+  updateTopMeasurementParticipantsView,
   updateTopMeasurementParticipants
 } from '../lib/platform-stats.js'
 
@@ -275,7 +276,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, today)
+      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: today })
 
       const { rows: stationDetails } = await pgClient.query(`
         SELECT
@@ -330,6 +331,42 @@ describe('platform-stats', () => {
         { day: today, participant_id: 1, subnet: 'subnet1' },
         { day: today, participant_id: 1, subnet: 'subnet2' },
         { day: today, participant_id: 2, subnet: 'subnet3' }
+      ])
+    })
+
+    it('updates top measurements participants yesterday materialized view', async () => {
+      const validStationId3 = VALID_STATION_ID.slice(0, -1) + '2'
+      const yesterday = await getYesterdayDate()
+
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10', '0x20']))
+
+      /** @type {Measurement[]} */
+      const allMeasurements = [
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', fraudAssessment: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', fraudAssessment: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: '0x10', fraudAssessment: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: '0x20', fraudAssessment: 'OK' }
+      ]
+
+      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: yesterday })
+      await updateTopMeasurementParticipantsView(pgClient)
+      const { rows } = await pgClient.query('SELECT * FROM top_measurement_participants_yesterday_view')
+
+      assert.deepStrictEqual(rows, [
+        {
+          day: yesterday,
+          participant_address: '0x10',
+          subnet_count: '1',
+          station_count: '2',
+          accepted_measurement_count: '3'
+        },
+        {
+          day: yesterday,
+          participant_address: '0x20',
+          subnet_count: '1',
+          station_count: '1',
+          accepted_measurement_count: '1'
+        }
       ])
     })
   })
