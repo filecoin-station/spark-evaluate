@@ -5,11 +5,14 @@ import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
 import { refreshDatabase } from './lib/platform-stats.js'
 import timers from 'node:timers/promises'
+import fs from 'node:fs/promises'
 
 // Tweak this value to improve the chances of the data being available
 const PREPROCESS_DELAY = 60_000
 
 const EVALUATE_DELAY = PREPROCESS_DELAY + 60_000
+
+const ROUND_BUFFER_PATH = '/var/lib/spark-evaluate/round-buffer.ndjson'
 
 export const startEvaluate = async ({
   ieContract,
@@ -29,6 +32,25 @@ export const startEvaluate = async ({
   const cidsSeen = []
   const roundsSeen = []
   let lastNewEventSeenAt = null
+
+  let roundBuffer
+  try {
+    roundBuffer = await fs.readFile(ROUND_BUFFER_PATH, 'utf8')
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('CANNOT READ ROUND BUFFER:', err)
+      Sentry.captureException(err)
+    }
+  }
+  if (roundBuffer) {
+    const lines = roundBuffer.split('\n').filter(Boolean)
+    if (lines.length > 1) {
+      rounds.current = new RoundData(JSON.parse(lines[0]))
+      for (const line of lines.slice(1)) {
+        rounds.current.measurements.push(JSON.parse(line))
+      }
+    }
+  }
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
     const roundIndex = BigInt(_roundIndex)
@@ -67,7 +89,8 @@ export const startEvaluate = async ({
         roundIndex,
         fetchMeasurements,
         recordTelemetry,
-        logger
+        logger,
+        ROUND_BUFFER_PATH
       })
     } catch (err) {
       console.error('CANNOT PREPROCESS MEASUREMENTS [ROUND=%s]:', roundIndex, err)
@@ -88,6 +111,15 @@ export const startEvaluate = async ({
     lastNewEventSeenAt = new Date()
 
     console.log('Event: RoundStart', { roundIndex })
+
+    try {
+      await fs.writeFile(ROUND_BUFFER_PATH, '')
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        console.error('CANNOT DELETE ROUND BUFFER:', err)
+        Sentry.captureException(err)
+      }
+    }
 
     if (!rounds.current) {
       console.error('No current round data available, skipping evaluation')
