@@ -5,14 +5,12 @@ import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
 import { refreshDatabase } from './lib/platform-stats.js'
 import timers from 'node:timers/promises'
-import fs from 'node:fs/promises'
+import { recoverRound, clearRoundBuffer } from './lib/round-buffer.js'
 
 // Tweak this value to improve the chances of the data being available
 const PREPROCESS_DELAY = 60_000
 
 const EVALUATE_DELAY = PREPROCESS_DELAY + 60_000
-
-const ROUND_BUFFER_PATH = '/var/lib/spark-evaluate/round-buffer.ndjson'
 
 export const startEvaluate = async ({
   ieContract,
@@ -33,23 +31,11 @@ export const startEvaluate = async ({
   const roundsSeen = []
   let lastNewEventSeenAt = null
 
-  let roundBuffer
   try {
-    roundBuffer = await fs.readFile(ROUND_BUFFER_PATH, 'utf8')
+    rounds.current = await recoverRound()
   } catch (err) {
-    if (err.code !== 'ENOENT') {
-      console.error('CANNOT READ ROUND BUFFER:', err)
-      Sentry.captureException(err)
-    }
-  }
-  if (roundBuffer) {
-    const lines = roundBuffer.split('\n').filter(Boolean)
-    if (lines.length > 1) {
-      rounds.current = new RoundData(JSON.parse(lines[0]))
-      for (const line of lines.slice(1)) {
-        rounds.current.measurements.push(JSON.parse(line))
-      }
-    }
+    console.error('CANNOT RECOVER ROUND:', err)
+    Sentry.captureException(err)
   }
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
@@ -89,8 +75,7 @@ export const startEvaluate = async ({
         roundIndex,
         fetchMeasurements,
         recordTelemetry,
-        logger,
-        ROUND_BUFFER_PATH
+        logger
       })
     } catch (err) {
       console.error('CANNOT PREPROCESS MEASUREMENTS [ROUND=%s]:', roundIndex, err)
@@ -113,12 +98,10 @@ export const startEvaluate = async ({
     console.log('Event: RoundStart', { roundIndex })
 
     try {
-      await fs.writeFile(ROUND_BUFFER_PATH, '')
+      await clearRoundBuffer()
     } catch (err) {
-      if (err.code !== 'ENOENT') {
-        console.error('CANNOT DELETE ROUND BUFFER:', err)
-        Sentry.captureException(err)
-      }
+      console.error('CANNOT CLEAR ROUND BUFFER:', err)
+      Sentry.captureException(err)
     }
 
     if (!rounds.current) {
