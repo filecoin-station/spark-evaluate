@@ -6,3 +6,7 @@ primary_region = "cdg"
 
 [deploy]
   strategy = "rolling"
+
+[mount]
+  source = "spark-evaluate-data"
+  destination = "/var/lib/spark-evaluate/"
