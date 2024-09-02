@@ -86,7 +86,6 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: created } = await pgClient.query(
