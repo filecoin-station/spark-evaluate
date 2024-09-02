@@ -6,6 +6,7 @@ import { migrateWithPgClient } from '../lib/migrate.js'
 import { buildEvaluatedCommitteesFromMeasurements, VALID_MEASUREMENT } from './helpers/test-data.js'
 import { updatePublicStats } from '../lib/public-stats.js'
 import { beforeEach } from 'mocha'
+import { groupMeasurementsToCommittees } from '../lib/committee.js'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
 
@@ -52,7 +53,7 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, cid: 'cidtwo', retrievalResult: 'TIMEOUT' }
       ]
       const allMeasurements = honestMeasurements
-      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
@@ -64,6 +65,7 @@ describe('public-stats', () => {
       ])
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
@@ -82,7 +84,8 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'OK' }
       ]
       const allMeasurements = honestMeasurements
-      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
 
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
@@ -96,6 +99,8 @@ describe('public-stats', () => {
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
       await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
 
       const { rows: updated } = await pgClient.query(
@@ -104,6 +109,36 @@ describe('public-stats', () => {
       assert.deepStrictEqual(updated, [
         { day: today, miner_id: 'f1first', total: 2 + 3, successful: 1 + 1 },
         { day: today, miner_id: 'f1second', total: 1 + 2, successful: 1 + 1 }
+      ])
+    })
+
+    it('includes minority results', async () => {
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, retrievalResult: 'TIMEOUT' }
+      ]
+      for (const m of honestMeasurements) m.fraudAssessment = 'OK'
+      const allMeasurements = honestMeasurements
+      const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
+      assert.strictEqual(committees.length, 1)
+      committees[0].evaluate({ requiredCommitteeSize: 3 })
+      assert.deepStrictEqual(allMeasurements.map(m => m.fraudAssessment), [
+        'OK',
+        'OK',
+        'MINORITY_RESULT'
+      ])
+      // The last measurement is rejected because it's a minority result
+      honestMeasurements.splice(2)
+
+      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, total, successful FROM retrieval_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, total: 3, successful: 2 }
       ])
     })
   })
