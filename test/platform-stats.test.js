@@ -322,14 +322,14 @@ describe('platform-stats', () => {
         {
           day: yesterday,
           participant_address: '0x10',
-          subnet_count: '1',
+          inet_group_count: '1',
           station_count: '2',
           accepted_measurement_count: '3'
         },
         {
           day: yesterday,
           participant_address: '0x20',
-          subnet_count: '1',
+          inet_group_count: '1',
           station_count: '1',
           accepted_measurement_count: '1'
         }

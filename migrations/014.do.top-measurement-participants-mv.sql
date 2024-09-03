@@ -17,7 +17,7 @@ yesterday_subnet_counts AS (
   SELECT 
     day,
     participant_id,
-    COUNT(DISTINCT subnet) AS subnet_count
+    COUNT(DISTINCT subnet) AS inet_group_count
   FROM
     recent_participant_subnets
   WHERE
@@ -30,7 +30,7 @@ SELECT
   p.participant_address,
   ysmc.station_count,
   ysmc.accepted_measurement_count,
-  ysc.subnet_count
+  ysc.inet_group_count
 FROM yesterday_station_and_measurement_counts AS ysmc 
 JOIN yesterday_subnet_counts AS ysc ON ysmc.day = ysc.day AND ysmc.participant_id = ysc.participant_id
 JOIN participants p ON ysmc.participant_id = p.id
