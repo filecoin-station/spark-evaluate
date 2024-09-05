@@ -346,6 +346,7 @@ describe('recordCommitteeSizes', () => {
   })
 
   it('reports number of all measurements', async () => {
+    /** @type {Measurement[]} */
     const measurements = [
       // task 1
       {
@@ -369,6 +370,8 @@ describe('recordCommitteeSizes', () => {
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
+    measurements[0].fraudAssessment = 'MINORITY_RESULT'
+
     recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
 
@@ -376,5 +379,8 @@ describe('recordCommitteeSizes', () => {
     assertPointFieldValue(point, 'measurements_mean', '2i') // (3+1)/2 rounded down
     assertPointFieldValue(point, 'measurements_p50', '2i') // (3+1)/2 rounded down
     assertPointFieldValue(point, 'measurements_max', '3i')
+
+    assertPointFieldValue(point, 'majority_sizes_percents_min', '66i') // 2/3 rounded down
+    assertPointFieldValue(point, 'majority_sizes_percents_max', '100i')
   })
 })
