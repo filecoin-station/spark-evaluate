@@ -283,7 +283,7 @@ describe('public-stats', () => {
 
       // Create new records
       {
-      /** @type {Measurement[]} */
+        /** @type {Measurement[]} */
         const honestMeasurements = [
           { ...VALID_MEASUREMENT }
 
@@ -310,7 +310,7 @@ describe('public-stats', () => {
 
       // Update existing records
       {
-      /** @type {Measurement[]} */
+        /** @type {Measurement[]} */
         const honestMeasurements = [
           { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' }
         ]
