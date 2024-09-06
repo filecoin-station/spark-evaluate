@@ -17,6 +17,8 @@ ALTER TABLE daily_deals ALTER COLUMN client_id SET NOT NULL;
 ALTER TABLE daily_deals DROP CONSTRAINT daily_deals_pkey;
 ALTER TABLE daily_deals ADD PRIMARY KEY (day, miner_id, client_id);
 
+CREATE INDEX daily_deals_day ON daily_deals (day);
+
 ALTER TABLE daily_deals ADD COLUMN majority_found INT;
 UPDATE daily_deals SET majority_found = total;
 ALTER TABLE daily_deals ALTER COLUMN majority_found SET NOT NULL;
