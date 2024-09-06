@@ -335,8 +335,97 @@ describe('public-stats', () => {
       }
     })
 
+    it('records index_majority_found, indexed, indexed_http', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0client']
+
+      // Create new record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, indexerResult = OK
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, indexerResult: 'ERROR_404' },
+
+          // a majority is found, indexerResult = HTTP_NOT_ADVERTISED
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'ERROR_404' },
+
+          // a majority is found, indexerResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'OK' },
+
+          // no majority was found
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'NO_VALID_ADVERTISEMENT' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_404' }
+        ]
+        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        const allMeasurements = honestMeasurements
+        const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
+        committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, index_majority_found, indexed, indexed_http FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 5, index_majority_found: 3, indexed: 2, indexed_http: 1 }
+        ])
+      }
+
+      // Update existing record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, indexerResult = OK
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+
+          // a majority is found, indexerResult = HTTP_NOT_ADVERTISED
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+
+          // a majority is found, indexerResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'OK' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+        committees
+          .find(c => c.retrievalTask.cid === 'bafy4')
+          .evaluation.indexerResult = 'COMMITTEE_TOO_SMALL'
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, index_majority_found, indexed, indexed_http FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 5 + 4, index_majority_found: 3 + 3, indexed: 2 + 2, indexed_http: 1 + 1 }
+        ])
+      }
+    })
+
     // TODO:
-    // - index_majority_found, indexed, indexed_http
     // - retrieval_majority_found, retrievable
   })
 
