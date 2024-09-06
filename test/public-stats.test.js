@@ -223,7 +223,6 @@ describe('public-stats', () => {
   })
 
   describe('daily_deals', () => {
-    // TODO: add tests for miner_id, client_id, majority_found, indexed_http
     it('creates or updates the row for today', async () => {
       /** @type {Measurement[]} */
       const honestMeasurements = [
@@ -268,15 +267,77 @@ describe('public-stats', () => {
       })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, tested, indexed, retrievable FROM daily_deals'
+        'SELECT day::TEXT, miner_id, tested, indexed, retrievable FROM daily_deals'
       )
       assert.deepStrictEqual(updated, [{
         day: today,
+        miner_id: VALID_MEASUREMENT.minerId,
         tested: 2 * 4 + 1 /* added bafy5 */,
         indexed: 2 * 3 + 1 /* bafy5 is indexed */,
         retrievable: 2 * 1 + 0 /* bafy5 not retrievable */
       }])
     })
+
+    it('records client_id by creating one row per client', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0clientA', 'f0clientB']
+
+      // Create new records
+      {
+      /** @type {Measurement[]} */
+        const honestMeasurements = [
+          { ...VALID_MEASUREMENT }
+
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, miner_id, client_id, tested, indexed, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientA', tested: 1, indexed: 1, retrievable: 1 },
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientB', tested: 1, indexed: 1, retrievable: 1 }
+        ])
+      }
+
+      // Update existing records
+      {
+      /** @type {Measurement[]} */
+        const honestMeasurements = [
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: updated } = await pgClient.query(
+          'SELECT day::TEXT, miner_id, client_id, tested, indexed, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(updated, [
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientA', tested: 2, indexed: 1, retrievable: 1 },
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientB', tested: 2, indexed: 1, retrievable: 1 }
+        ])
+      }
+    })
+
+    // TODO:
+    // - index_majority_found, indexed, indexed_http
+    // - retrieval_majority_found, retrievable
   })
 
   const getCurrentDate = async () => {
