@@ -155,7 +155,13 @@ describe('public-stats', () => {
       // The last measurement is rejected because it's a minority result
       honestMeasurements.splice(2)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
