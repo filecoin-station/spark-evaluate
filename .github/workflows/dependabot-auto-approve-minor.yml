@@ -20,6 +20,7 @@ jobs:
           - pg
           - braces
           - typescript
+          - postgrator
     steps:
       - name: Dependabot metadata
         id: metadata
