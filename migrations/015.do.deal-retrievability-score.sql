@@ -19,9 +19,13 @@ ALTER TABLE daily_deals ADD PRIMARY KEY (day, miner_id, client_id);
 
 CREATE INDEX daily_deals_day ON daily_deals (day);
 
-ALTER TABLE daily_deals ADD COLUMN majority_found INT;
-UPDATE daily_deals SET majority_found = total;
-ALTER TABLE daily_deals ALTER COLUMN majority_found SET NOT NULL;
+ALTER TABLE daily_deals ADD COLUMN retrieval_majority_found INT;
+UPDATE daily_deals SET retrieval_majority_found = total;
+ALTER TABLE daily_deals ALTER COLUMN retrieval_majority_found SET NOT NULL;
+
+ALTER TABLE daily_deals ADD COLUMN index_majority_found INT;
+UPDATE daily_deals SET index_majority_found = total;
+ALTER TABLE daily_deals ALTER COLUMN index_majority_found SET NOT NULL;
 
 -- Note: backfilling `tested = total` is not entirely accurate:
 -- * Before we introduced committees & majorities, tested = total
