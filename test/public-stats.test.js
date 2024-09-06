@@ -425,8 +425,86 @@ describe('public-stats', () => {
       }
     })
 
-    // TODO:
-    // - retrieval_majority_found, retrievable
+    it('records retrieval_majority_found, retrievable', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0client']
+
+      // Create new record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, retrievalResult = OK
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'ERROR_404' },
+
+          // a majority is found, retrievalResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' },
+
+          // no majority was found
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_502' }
+        ]
+        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        const allMeasurements = honestMeasurements
+        const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
+        committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 4, retrieval_majority_found: 3, retrievable: 1 }
+        ])
+      }
+
+      // Update existing record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, retrievalResult = OK
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+
+          // a majority is found, retrievalResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+        committees
+          .find(c => c.retrievalTask.cid === 'bafy4')
+          .evaluation.retrievalResult = 'COMMITTEE_TOO_SMALL'
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 4 + 3, retrieval_majority_found: 3 + 2, retrievable: 1 + 1 }
+        ])
+      }
+    })
   })
 
   const getCurrentDate = async () => {
