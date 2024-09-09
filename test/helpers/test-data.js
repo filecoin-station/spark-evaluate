@@ -8,7 +8,8 @@ export const VALID_INET_GROUP = 'some-group-id'
 
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
-  minerId: 'f1test'
+  minerId: 'f1test',
+  clients: ['f1client']
 }
 Object.freeze(VALID_TASK)
 

@@ -505,6 +505,31 @@ describe('public-stats', () => {
         ])
       }
     })
+
+    it('handles a task not linked to any clients', async () => {
+      const findDealClients = (_minerId, _cid) => undefined
+
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT }
+
+      ]
+      const allMeasurements = honestMeasurements
+      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients
+      })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, client_id FROM daily_deals'
+      )
+      assert.deepStrictEqual(created, [])
+    })
   })
 
   const getCurrentDate = async () => {
