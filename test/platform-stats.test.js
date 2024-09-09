@@ -46,7 +46,7 @@ describe('platform-stats', () => {
     await pgClient.query('DELETE FROM daily_participants')
     await pgClient.query('DELETE FROM recent_participant_subnets')
     await pgClient.query('DELETE FROM recent_active_stations')
-    await pgClient.query('DELETE FROM daily_measurements_summary')
+    await pgClient.query('DELETE FROM daily_platform_stats')
     await pgClient.query('DELETE FROM monthly_active_station_count')
 
     // empty `participants` table in such way that the next participants.id will be always 1
@@ -339,7 +339,7 @@ describe('platform-stats', () => {
 
   describe('aggregateAndCleanupRecentData', () => {
     const assertDailySummary = async () => {
-      const { rows } = await pgClient.query("SELECT * FROM daily_measurements_summary WHERE day = CURRENT_DATE - INTERVAL '3 days'")
+      const { rows } = await pgClient.query("SELECT * FROM daily_platform_stats WHERE day = CURRENT_DATE - INTERVAL '3 days'")
       assert.strictEqual(rows.length, 1)
       assert.deepStrictEqual(rows[0], {
         day: (await pgClient.query("SELECT (CURRENT_DATE - INTERVAL '3 days') as day")).rows[0].day,
