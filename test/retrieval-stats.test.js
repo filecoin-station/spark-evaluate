@@ -380,7 +380,7 @@ describe('recordCommitteeSizes', () => {
     assertPointFieldValue(point, 'measurements_p50', '2i') // (3+1)/2 rounded down
     assertPointFieldValue(point, 'measurements_max', '3i')
 
-    assertPointFieldValue(point, 'majority_sizes_percents_min', '66i') // 2/3 rounded down
-    assertPointFieldValue(point, 'majority_sizes_percents_max', '100i')
+    assertPointFieldValue(point, 'majority_ratios_percents_min', '66i') // 2/3 rounded down
+    assertPointFieldValue(point, 'majority_ratios_percents_max', '100i')
   })
 })
