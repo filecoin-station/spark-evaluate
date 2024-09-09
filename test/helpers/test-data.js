@@ -73,7 +73,9 @@ export const buildEvaluatedCommitteesFromMeasurements = (acceptedMeasurements) =
   const committees = [...groupMeasurementsToCommittees(acceptedMeasurements).values()]
   for (const c of committees) {
     c.evaluation = {
+      hasIndexMajority: true,
       indexerResult: c.measurements[0].indexerResult,
+      hasRetrievalMajority: true,
       retrievalResult: c.measurements[0].retrievalResult
     }
   }

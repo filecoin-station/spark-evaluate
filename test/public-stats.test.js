@@ -404,9 +404,10 @@ describe('public-stats', () => {
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        committees
-          .find(c => c.retrievalTask.cid === 'bafy4')
-          .evaluation.indexerResult = 'COMMITTEE_TOO_SMALL'
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+          hasIndexMajority: false,
+          indexerResult: 'COMMITTEE_TOO_SMALL'
+        })
 
         await updatePublicStats({
           createPgClient,
@@ -467,7 +468,7 @@ describe('public-stats', () => {
           'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
         )
         assert.deepStrictEqual(created, [
-          { day: today, tested: 4, retrieval_majority_found: 3, retrievable: 1 }
+          { day: today, tested: 4, retrieval_majority_found: 2, retrievable: 1 }
         ])
       }
 
@@ -486,9 +487,10 @@ describe('public-stats', () => {
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        committees
-          .find(c => c.retrievalTask.cid === 'bafy4')
-          .evaluation.retrievalResult = 'COMMITTEE_TOO_SMALL'
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+          hasRetrievalMajority: false,
+          retrievalResult: 'COMMITTEE_TOO_SMALL'
+        })
 
         await updatePublicStats({
           createPgClient,
@@ -501,7 +503,7 @@ describe('public-stats', () => {
           'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
         )
         assert.deepStrictEqual(created, [
-          { day: today, tested: 4 + 3, retrieval_majority_found: 3 + 2, retrievable: 1 + 1 }
+          { day: today, tested: 4 + 3, retrieval_majority_found: 2 + 2, retrievable: 1 + 1 }
         ])
       }
     })
