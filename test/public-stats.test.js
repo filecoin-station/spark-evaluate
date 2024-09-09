@@ -55,7 +55,13 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -66,7 +72,13 @@ describe('public-stats', () => {
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -86,8 +98,14 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
 
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
       )
@@ -100,7 +118,13 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
@@ -131,7 +155,13 @@ describe('public-stats', () => {
       // The last measurement is rejected because it's a minority result
       honestMeasurements.splice(2)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, total, successful FROM retrieval_stats'
@@ -153,7 +183,13 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -169,7 +205,13 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
         'SELECT day::TEXT, deals_tested, deals_advertising_http FROM indexer_query_stats'
@@ -193,13 +235,19 @@ describe('public-stats', () => {
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
+        'SELECT day::TEXT, tested, indexed, retrievable FROM daily_deals'
       )
       assert.deepStrictEqual(created, [
-        { day: today, total: 4, indexed: 3, retrievable: 1 }
+        { day: today, tested: 4, indexed: 3, retrievable: 1 }
       ])
 
       // Notice: this measurement is for the same task as honestMeasurements[0], therefore it's
@@ -210,17 +258,279 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
-      await updatePublicStats({ createPgClient, committees, honestMeasurements, allMeasurements })
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, total, indexed, retrievable FROM daily_deals'
+        'SELECT day::TEXT, miner_id, tested, indexed, retrievable FROM daily_deals'
       )
       assert.deepStrictEqual(updated, [{
         day: today,
-        total: 2 * 4 + 1 /* added bafy5 */,
+        miner_id: VALID_MEASUREMENT.minerId,
+        tested: 2 * 4 + 1 /* added bafy5 */,
         indexed: 2 * 3 + 1 /* bafy5 is indexed */,
         retrievable: 2 * 1 + 0 /* bafy5 not retrievable */
       }])
+    })
+
+    it('records client_id by creating one row per client', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0clientA', 'f0clientB']
+
+      // Create new records
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          { ...VALID_MEASUREMENT }
+
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, miner_id, client_id, tested, indexed, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientA', tested: 1, indexed: 1, retrievable: 1 },
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientB', tested: 1, indexed: 1, retrievable: 1 }
+        ])
+      }
+
+      // Update existing records
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: updated } = await pgClient.query(
+          'SELECT day::TEXT, miner_id, client_id, tested, indexed, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(updated, [
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientA', tested: 2, indexed: 1, retrievable: 1 },
+          { day: today, miner_id: VALID_MEASUREMENT.minerId, client_id: 'f0clientB', tested: 2, indexed: 1, retrievable: 1 }
+        ])
+      }
+    })
+
+    it('records index_majority_found, indexed, indexed_http', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0client']
+
+      // Create new record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, indexerResult = OK
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, indexerResult: 'ERROR_404' },
+
+          // a majority is found, indexerResult = HTTP_NOT_ADVERTISED
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'ERROR_404' },
+
+          // a majority is found, indexerResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'OK' },
+
+          // no majority was found
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'NO_VALID_ADVERTISEMENT' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_404' }
+        ]
+        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        const allMeasurements = honestMeasurements
+        const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
+        committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, index_majority_found, indexed, indexed_http FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 5, index_majority_found: 3, indexed: 2, indexed_http: 1 }
+        ])
+      }
+
+      // Update existing record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, indexerResult = OK
+          { ...VALID_MEASUREMENT, indexerResult: 'OK' },
+
+          // a majority is found, indexerResult = HTTP_NOT_ADVERTISED
+          { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED' },
+
+          // a majority is found, indexerResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'OK' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+          hasIndexMajority: false,
+          indexerResult: 'COMMITTEE_TOO_SMALL'
+        })
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, index_majority_found, indexed, indexed_http FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 5 + 4, index_majority_found: 3 + 3, indexed: 2 + 2, indexed_http: 1 + 1 }
+        ])
+      }
+    })
+
+    it('records retrieval_majority_found, retrievable', async () => {
+      const findDealClients = (_minerId, _cid) => ['f0client']
+
+      // Create new record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, retrievalResult = OK
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'ERROR_404' },
+
+          // a majority is found, retrievalResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' },
+
+          // no majority was found
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_502' }
+        ]
+        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        const allMeasurements = honestMeasurements
+        const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
+        committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 4, retrieval_majority_found: 2, retrievable: 1 }
+        ])
+      }
+
+      // Update existing record(s)
+      {
+        /** @type {Measurement[]} */
+        const honestMeasurements = [
+          // a majority is found, retrievalResult = OK
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+
+          // a majority is found, retrievalResult = ERROR_404
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+
+          // committee is too small
+          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' }
+        ]
+        const allMeasurements = honestMeasurements
+        const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+          hasRetrievalMajority: false,
+          retrievalResult: 'COMMITTEE_TOO_SMALL'
+        })
+
+        await updatePublicStats({
+          createPgClient,
+          committees,
+          honestMeasurements,
+          allMeasurements,
+          findDealClients
+        })
+        const { rows: created } = await pgClient.query(
+          'SELECT day::TEXT, tested, retrieval_majority_found, retrievable FROM daily_deals'
+        )
+        assert.deepStrictEqual(created, [
+          { day: today, tested: 4 + 3, retrieval_majority_found: 2 + 2, retrievable: 1 + 1 }
+        ])
+      }
+    })
+
+    it('handles a task not linked to any clients', async () => {
+      const findDealClients = (_minerId, _cid) => undefined
+
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT }
+
+      ]
+      const allMeasurements = honestMeasurements
+      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients
+      })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, client_id FROM daily_deals'
+      )
+      assert.deepStrictEqual(created, [])
     })
   })
 
