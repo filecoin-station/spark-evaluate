@@ -9,7 +9,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import pMap from 'p-map'
-import { createMeridianContract } from '../lib/ie-contract.js'
+import { createMeridianContract } from '../lib/contracts.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
@@ -140,7 +140,7 @@ console.error('Wrote human-readable summary for %s to %s', minerId, MINER_SUMMAR
  * @returns
  */
 async function getRecentMeasurementsAddedEvents (contractAddress, blocksToQuery = Number.POSITIVE_INFINITY) {
-  const { ieContract } = await createMeridianContract(contractAddress)
+  const ieContract = createMeridianContract(contractAddress)
 
   // max look-back period allowed by Glif.io is 2000 blocks (approx 16h40m)
   // in practice, requests for the last 2000 blocks are usually rejected,

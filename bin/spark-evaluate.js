@@ -9,7 +9,7 @@ import { recordTelemetry } from '../lib/telemetry.js'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
-import { createMeridianContract } from '../lib/ie-contract.js'
+import { createMeridianContract, provider } from '../lib/contracts.js'
 import { startCancelStuckTxs } from '../lib/cancel-stuck-txs.js'
 
 const {
@@ -28,7 +28,7 @@ assert(WALLET_SEED, 'WALLET_SEED required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
-const { ieContract, provider } = await createMeridianContract()
+const ieContract = await createMeridianContract()
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
