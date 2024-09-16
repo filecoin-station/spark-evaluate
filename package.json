@@ -28,7 +28,7 @@
     "drand-client": "^1.2.6",
     "ethers": "^6.13.2",
     "ipfs-car": "^1.2.0",
-    "ipfs-unixfs-exporter": "^13.5.0",
+    "ipfs-unixfs-exporter": "^13.6.1",
     "just-percentile": "^4.2.0",
     "k-closest": "^1.3.0",
     "ms": "^2.1.3",
