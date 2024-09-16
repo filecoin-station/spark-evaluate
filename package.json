@@ -18,6 +18,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@filecoin-station/spark-evaluations-recent-participants": "^3.0.0",
     "@filecoin-station/spark-impact-evaluator": "^1.1.1",
     "@glif/filecoin-address": "^3.0.12",
     "@influxdata/influxdb-client": "^1.35.0",
