@@ -31,11 +31,11 @@ await migrateWithPgConfig({ connectionString: DATABASE_URL })
 const { ieContract, provider } = await createMeridianContract()
 
 const wallet = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
-const signer = new ethers.NonceManager(wallet)
+const nonceManager = new ethers.NonceManager(wallet)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(wallet.address), CoinType.MAIN).toString()
 
 console.log('Wallet address:', wallet.address, walletDelegatedAddress)
-const ieContractWithSigner = ieContract.connect(signer)
+const ieContractWithSigner = ieContract.connect(nonceManager)
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -56,6 +56,7 @@ await Promise.all([
   startCancelStuckTxs({
     walletDelegatedAddress,
     address: wallet.address,
-    signer
+    // Bypass NonceManager as we need to cancel transactions with the same nonce
+    signer: wallet
   })
 ])
