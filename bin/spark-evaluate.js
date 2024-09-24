@@ -10,7 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { CancelStuckTransactions } from 'cancel-stuck-transactions'
+import { StuckTransactionsCanceller } from 'cancel-stuck-transactions'
 import ms from 'ms'
 import timers from 'node:timers/promises'
 
@@ -49,30 +49,32 @@ const createPgClient = async () => {
 }
 
 const pgClient = await createPgClient()
-const cancelStuckTransactions = new CancelStuckTransactions({
-  async store ({ hash, timestamp, from, maxPriorityFeePerGas, nonce }) {
-    await pgClient.query(`
-      INSERT INTO transactions_pending (hash, timestamp, from, max_priority_fee_per_gas, nonce)
-      VALUES ($1, $2, $3, $4, $5)
-      `,
-      [hash, timestamp, from, maxPriorityFeePerGas, nonce]
-    )
-  },
-  async list () {
-    const { rows } = await pgClient.query(`SELECT * FROM transactions_pending`)
-    return rows.map(row => ({
-      hash: row.hash,
-      timestamp: row.timestamp,
-      from: row.from,
-      maxPriorityFeePerGas: row.max_priority_fee_per_gas,
-      nonce: row.nonce
-    }))
-  },
-  async resolve (hash) {
-    await pgClient.query(
-      'DELETE FROM transactions_pending WHERE hash = $1',
-      [hash]
-    )
+const stuckTransactionsCanceller = new StuckTransactionsCanceller({
+  store: {
+    async set ({ hash, timestamp, from, maxPriorityFeePerGas, nonce }) {
+      await pgClient.query(`
+        INSERT INTO transactions_pending (hash, timestamp, from, max_priority_fee_per_gas, nonce)
+        VALUES ($1, $2, $3, $4, $5)
+        `,
+        [hash, timestamp, from, maxPriorityFeePerGas, nonce]
+      )
+    },
+    async list () {
+      const { rows } = await pgClient.query(`SELECT * FROM transactions_pending`)
+      return rows.map(row => ({
+        hash: row.hash,
+        timestamp: row.timestamp,
+        from: row.from,
+        maxPriorityFeePerGas: row.max_priority_fee_per_gas,
+        nonce: row.nonce
+      }))
+    },
+    async remove (hash) {
+      await pgClient.query(
+        'DELETE FROM transactions_pending WHERE hash = $1',
+        [hash]
+      )
+    },
   },
   log (str) {
     console.log(str)
@@ -91,12 +93,22 @@ await Promise.all([
     recordTelemetry,
     createPgClient,
     logger: console,
-    cancelStuckTransactions
+    stuckTransactionsCanceller
   }),
   (async () => {
     while (true) {
       try {
-        await cancelStuckTransactions.olderThan(2 * ROUND_LENGTH_MS)
+        const res = await stuckTransactionsCanceller.cancelOlderThan(
+          2 * ROUND_LENGTH_MS
+        )
+        if (res !== undefined) {
+          for (const { status, reason } of res) {
+            if (status === 'rejected') {
+              console.error('Failed to cancel transaction:', reason)
+              Sentry.captureException(reason)
+            }
+          }
+        }
       } catch (err) {
         console.error(err)
         Sentry.captureException(err)
