@@ -65,6 +65,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     await evaluate({
       round,
       roundIndex: 0n,
@@ -73,7 +79,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
@@ -83,6 +90,7 @@ describe('evaluate', async function () {
       setScoresCalls[0].scores[0],
       1000000000000000n
     )
+    assert.strictEqual(addPendingCalls.length, 1)
 
     const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
@@ -111,6 +119,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
@@ -121,7 +135,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
@@ -131,6 +146,7 @@ describe('evaluate', async function () {
     assert.deepStrictEqual(setScoresCalls[0].scores, [
       MAX_SCORE
     ])
+    assert.strictEqual(addPendingCalls.length, 1)
 
     let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
@@ -162,6 +178,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
@@ -172,7 +194,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
@@ -182,6 +205,7 @@ describe('evaluate', async function () {
     assert.deepStrictEqual(setScoresCalls[0].scores, [
       MAX_SCORE
     ])
+    assert.strictEqual(addPendingCalls.length, 1)
   })
   it('calculates reward shares', async () => {
     const round = new RoundData(0n)
@@ -207,6 +231,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
@@ -217,7 +247,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
@@ -230,6 +261,7 @@ describe('evaluate', async function () {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
+    assert.strictEqual(addPendingCalls.length, 1)
 
     const point = assertRecordedTelemetryPoint(telemetry, 'evaluate')
     assert(!!point,
@@ -254,6 +286,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     const logger = { log: debug, error: debug }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
@@ -265,7 +303,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
     assert.strictEqual(setScoresCalls.length, 1)
     const { scores, participantAddresses } = setScoresCalls[0]
@@ -273,6 +312,7 @@ describe('evaluate', async function () {
     const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
     assert.strictEqual(sum, MAX_SCORE)
     assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
+    assert.strictEqual(addPendingCalls.length, 1)
   })
 
   it('reports retrieval stats - honest & all', async () => {
@@ -299,6 +339,12 @@ describe('evaluate', async function () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
     }
+    const addPendingCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      }
+    }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     await evaluate({
@@ -309,7 +355,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
 
     let point = telemetry.find(p => p.name === 'retrieval_stats_honest')

@@ -10,7 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { startCancelStuckTxs } from '../lib/cancel-stuck-txs.js'
+import { createStuckTransactionsCanceller, startCancelStuckTransactions } from '../lib/cancel-stuck-transactions.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -43,6 +43,13 @@ const createPgClient = async () => {
   return pgClient
 }
 
+const pgClient = await createPgClient()
+const stuckTransactionsCanceller = createStuckTransactionsCanceller({
+  pgClient,
+  // Bypass NonceManager as we need to cancel transactions with the same nonce
+  signer: wallet
+})
+
 await Promise.all([
   startEvaluate({
     ieContract,
@@ -51,12 +58,8 @@ await Promise.all([
     fetchRoundDetails,
     recordTelemetry,
     createPgClient,
-    logger: console
+    logger: console,
+    stuckTransactionsCanceller
   }),
-  startCancelStuckTxs({
-    walletDelegatedAddress,
-    address: wallet.address,
-    // Bypass NonceManager as we need to cancel transactions with the same nonce
-    signer: wallet
-  })
+  startCancelStuckTransactions(stuckTransactionsCanceller)
 ])

@@ -216,7 +216,8 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     fetchRoundDetails,
     recordTelemetry,
     logger: { log: debug, error: debug },
-    ieContractWithSigner
+    ieContractWithSigner,
+    stuckTransactionsCanceller: { addPending: () => {} }
   })
 
   for (const m of round.measurements) {
