@@ -142,7 +142,8 @@ const { ignoredErrors } = await evaluate({
   ieContractWithSigner,
   logger: console,
   recordTelemetry,
-  createPgClient
+  createPgClient,
+  stuckTransactionsCanceller: { addPending: () => {} }
 })
 
 console.log('Duration: %sms', Date.now() - started)
