@@ -10,17 +10,12 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { StuckTransactionsCanceller } from 'cancel-stuck-transactions'
-import ms from 'ms'
-import timers from 'node:timers/promises'
+import { createStuckTransactionsCanceller, startCancelStuckTransactions } from '../lib/cancel-stuck-transactions.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED
 } = process.env
-
-const ROUND_LENGTH_MS = ms('20 minutes')
-const CHECK_STUCK_TXS_DELAY = ms('1 minute')
 
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
@@ -49,40 +44,7 @@ const createPgClient = async () => {
 }
 
 const pgClient = await createPgClient()
-const stuckTransactionsCanceller = new StuckTransactionsCanceller({
-  store: {
-    async set ({ hash, timestamp, from, maxPriorityFeePerGas, nonce }) {
-      await pgClient.query(`
-        INSERT INTO transactions_pending (hash, timestamp, from, max_priority_fee_per_gas, nonce)
-        VALUES ($1, $2, $3, $4, $5)
-        `,
-        [hash, timestamp, from, maxPriorityFeePerGas, nonce]
-      )
-    },
-    async list () {
-      const { rows } = await pgClient.query(`SELECT * FROM transactions_pending`)
-      return rows.map(row => ({
-        hash: row.hash,
-        timestamp: row.timestamp,
-        from: row.from,
-        maxPriorityFeePerGas: row.max_priority_fee_per_gas,
-        nonce: row.nonce
-      }))
-    },
-    async remove (hash) {
-      await pgClient.query(
-        'DELETE FROM transactions_pending WHERE hash = $1',
-        [hash]
-      )
-    },
-  },
-  log (str) {
-    console.log(str)
-  },
-  sendTransaction (tx) {
-    return signer.sendTransaction(tx)
-  }
-})
+const stuckTransactionsCanceller = createStuckTransactionsCanceller({ pgClient, signer })
 
 await Promise.all([
   startEvaluate({
@@ -95,25 +57,5 @@ await Promise.all([
     logger: console,
     stuckTransactionsCanceller
   }),
-  (async () => {
-    while (true) {
-      try {
-        const res = await stuckTransactionsCanceller.cancelOlderThan(
-          2 * ROUND_LENGTH_MS
-        )
-        if (res !== undefined) {
-          for (const { status, reason } of res) {
-            if (status === 'rejected') {
-              console.error('Failed to cancel transaction:', reason)
-              Sentry.captureException(reason)
-            }
-          }
-        }
-      } catch (err) {
-        console.error(err)
-        Sentry.captureException(err)
-      }
-      await timers.setTimeout(CHECK_STUCK_TXS_DELAY)
-    }
-  })()
+  startCancelStuckTransactions(stuckTransactionsCanceller)
 ])
