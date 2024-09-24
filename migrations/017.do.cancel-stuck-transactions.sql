@@ -3,5 +3,5 @@ CREATE TABLE transactions_pending (
   timestamp TEXT NOT NULL,
   from_address TEXT NOT NULL,
   max_priority_fee_per_gas BIGINT NOT NULL,
-  nonce NUMBER NOT NULL
+  nonce INT NOT NULL
 );
