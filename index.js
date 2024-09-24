@@ -1,3 +1,4 @@
+import ms from 'ms'
 import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { preprocess } from './lib/preprocess.js'
@@ -140,8 +141,8 @@ export const startEvaluate = async ({
     })
   })
 
-  // Update top measurement stations every 12 hours
-  setInterval(() => refreshDatabase(createPgClient), 1000 * 60 * 60 * 12)
+  // Periodically update tables aggregating fine-grained statistics
+  setInterval(() => refreshDatabase(createPgClient), ms('4 hours'))
 
   while (true) {
     await timers.setTimeout(10_000)
