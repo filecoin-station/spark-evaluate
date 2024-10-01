@@ -27,7 +27,7 @@
     "cancel-stuck-transactions": "^3.0.0",
     "debug": "^4.3.7",
     "drand-client": "^1.2.6",
-    "ethers": "^6.13.2",
+    "ethers": "^6.13.3",
     "ipfs-car": "^1.2.0",
     "ipfs-unixfs-exporter": "^13.6.1",
     "just-percentile": "^4.2.0",
