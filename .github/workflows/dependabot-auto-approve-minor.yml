@@ -23,6 +23,7 @@ jobs:
           - postgrator
           - '@types/'
           - standard
+          - ethers
     steps:
       - name: Dependabot metadata
         id: metadata
