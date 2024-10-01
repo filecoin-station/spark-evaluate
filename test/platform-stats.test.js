@@ -6,14 +6,11 @@ import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
 import {
   VALID_MEASUREMENT,
-  VALID_STATION_ID,
-  VALID_PARTICIPANT_ADDRESS,
-  VALID_INET_GROUP
+  VALID_STATION_ID
 } from './helpers/test-data.js'
 import {
   mapParticipantsToIds,
   updateDailyParticipants,
-  updateDailyStationStats,
   updateStationsAndParticipants,
   updatePlatformStats,
   aggregateAndCleanUpRecentData,
@@ -65,137 +62,6 @@ describe('platform-stats', () => {
 
   after(async () => {
     await pgClient.end()
-  })
-
-  describe('updateDailyStationStats', () => {
-    it('updates daily station stats for today with multiple measurements', async () => {
-      const stationIdMeasurement1 = { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
-      const stationIdMeasurement2 = { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
-
-      /** @type {Measurement[]} */
-      const honestMeasurements = [
-        stationIdMeasurement1,
-        stationIdMeasurement2,
-        { ...stationIdMeasurement1, participantAddress: '0x20' },
-        { ...stationIdMeasurement2, inet_group: 'other-group' }
-      ]
-      /** @type {Measurement[]} */
-      const allMeasurements = [
-        ...honestMeasurements,
-        { ...stationIdMeasurement1, fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...stationIdMeasurement2, fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...stationIdMeasurement1, participantAddress: '0x20', fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...stationIdMeasurement2, inet_group: 'other-group', fraudAssessment: 'TASK_NOT_IN_ROUND' }
-      ]
-
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
-
-      const { rows } = await pgClient.query(`
-        SELECT
-          station_id,
-          day::TEXT,
-          participant_address,
-          inet_group,
-          accepted_measurement_count,
-          total_measurement_count
-        FROM
-          daily_stations
-        ORDER BY station_id, participant_address, inet_group`
-      )
-      assert.deepStrictEqual(rows, [
-        {
-          day: today,
-          station_id: VALID_STATION_ID,
-          participant_address: VALID_PARTICIPANT_ADDRESS,
-          inet_group: VALID_INET_GROUP,
-          accepted_measurement_count: 1,
-          total_measurement_count: 2
-        },
-        {
-          day: today,
-          station_id: VALID_STATION_ID,
-          participant_address: '0x20',
-          inet_group: VALID_INET_GROUP,
-          accepted_measurement_count: 1,
-          total_measurement_count: 2
-        },
-        {
-          day: today,
-          station_id: VALID_STATION_ID_2,
-          participant_address: VALID_PARTICIPANT_ADDRESS,
-          inet_group: 'other-group',
-          accepted_measurement_count: 1,
-          total_measurement_count: 2
-        },
-        {
-          day: today,
-          station_id: VALID_STATION_ID_2,
-          participant_address: VALID_PARTICIPANT_ADDRESS,
-          inet_group: VALID_INET_GROUP,
-          accepted_measurement_count: 1,
-          total_measurement_count: 2
-        }
-      ])
-    })
-
-    it('counts measurements for the same station on the same day', async () => {
-      /** @type {Measurement[]} */
-      const honestMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2 }
-      ]
-
-      /** @type {Measurement[]} */
-      const allMeasurements = [
-        ...honestMeasurements,
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, fraudAssessment: 'TASK_NOT_IN_ROUND' }
-      ]
-
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
-
-      const { rows } = await pgClient.query(`
-        SELECT station_id, day::TEXT, accepted_measurement_count, total_measurement_count
-        FROM daily_stations
-        ORDER BY station_id`
-      )
-      assert.deepStrictEqual(rows, [
-        {
-          station_id: VALID_STATION_ID,
-          day: today,
-          accepted_measurement_count: 2,
-          total_measurement_count: 4
-        },
-        {
-          station_id: VALID_STATION_ID_2,
-          day: today,
-          accepted_measurement_count: 1,
-          total_measurement_count: 2
-        }
-      ])
-    })
-
-    it('ignores measurements without .stationId', async () => {
-      /** @type {Measurement[]} */
-      const honestMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: null },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID }
-      ]
-
-      /** @type {Measurement[]} */
-      const allMeasurements = [
-        ...honestMeasurements,
-        { ...VALID_MEASUREMENT, stationId: null, fraudAssessment: 'TASK_NOT_IN_ROUND' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, fraudAssessment: 'TASK_NOT_IN_ROUND' }
-      ]
-
-      await updateDailyStationStats(pgClient, honestMeasurements, allMeasurements, { day: today })
-
-      const { rows } = await pgClient.query('SELECT station_id, day::TEXT FROM daily_stations')
-      assert.deepStrictEqual(rows, [{ station_id: VALID_STATION_ID, day: today }])
-    })
   })
 
   describe('refreshDatabase', () => {
@@ -419,7 +285,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
         { ...VALID_MEASUREMENT, participantAddress: '0x20' }
       ]
-      await updatePlatformStats(pgClient, honestMeasurements, honestMeasurements)
+      await updatePlatformStats(pgClient, honestMeasurements)
 
       const { rows } = await pgClient.query(
         'SELECT day::TEXT, participant_id FROM daily_participants'
@@ -489,7 +355,7 @@ describe('platform-stats', () => {
         { ...VALID_MEASUREMENT, participantAddress: '0x30', fraudAssessment: 'TASK_NOT_IN_ROUND' }
       ]
 
-      await updatePlatformStats(pgClient, honestMeasurements, allMeasurements)
+      await updatePlatformStats(pgClient, allMeasurements)
 
       const { rows } = await pgClient.query(
         'SELECT day::TEXT, participant_id FROM daily_participants ORDER BY participant_id'
