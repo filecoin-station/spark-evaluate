@@ -20,6 +20,10 @@ jobs:
           - pg
           - braces
           - typescript
+          - postgrator
+          - '@types/'
+          - standard
+          - ethers
     steps:
       - name: Dependabot metadata
         id: metadata

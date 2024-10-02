@@ -23,7 +23,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: true,
         indexerResult: 'OK',
+        hasRetrievalMajority: true,
         retrievalResult: 'OK'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -38,7 +40,9 @@ describe('Committee', () => {
       c.addMeasurement({ ...VALID_MEASUREMENT })
       c.evaluate({ requiredCommitteeSize: 10 })
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: false,
         indexerResult: 'COMMITTEE_TOO_SMALL',
+        hasRetrievalMajority: false,
         retrievalResult: 'COMMITTEE_TOO_SMALL'
       })
       assert.strictEqual(c.measurements[0].fraudAssessment, 'COMMITTEE_TOO_SMALL')
@@ -53,7 +57,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: false,
         indexerResult: 'MAJORITY_NOT_FOUND',
+        hasRetrievalMajority: false,
         retrievalResult: 'MAJORITY_NOT_FOUND'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -73,7 +79,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: true,
         indexerResult: 'OK',
+        hasRetrievalMajority: true,
         retrievalResult: 'OK'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -92,7 +100,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: true,
         indexerResult: 'OK',
+        hasRetrievalMajority: false,
         retrievalResult: 'MAJORITY_NOT_FOUND'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -112,7 +122,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: true,
         indexerResult: 'OK',
+        hasRetrievalMajority: true,
         retrievalResult: 'CONTENT_VERIFICATION_FAILED'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -131,7 +143,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: false,
         indexerResult: 'MAJORITY_NOT_FOUND',
+        hasRetrievalMajority: false,
         retrievalResult: 'MAJORITY_NOT_FOUND'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -151,7 +165,9 @@ describe('Committee', () => {
       c.evaluate({ requiredCommitteeSize: 2 })
 
       assert.deepStrictEqual(c.evaluation, {
+        hasIndexMajority: true,
         indexerResult: 'HTTP_NOT_ADVERTISED',
+        hasRetrievalMajority: true,
         retrievalResult: 'OK'
       })
       assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -171,7 +187,9 @@ describe('Committee', () => {
     c.evaluate({ requiredCommitteeSize: 2 })
 
     assert.deepStrictEqual(c.evaluation, {
+      hasIndexMajority: true,
       indexerResult: 'OK',
+      hasRetrievalMajority: false,
       retrievalResult: 'MAJORITY_NOT_FOUND'
     })
     assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -191,7 +209,9 @@ describe('Committee', () => {
     c.evaluate({ requiredCommitteeSize: 2 })
 
     assert.deepStrictEqual(c.evaluation, {
+      hasIndexMajority: true,
       indexerResult: 'OK',
+      hasRetrievalMajority: true,
       retrievalResult: 'OK'
     })
     assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -210,7 +230,9 @@ describe('Committee', () => {
     c.evaluate({ requiredCommitteeSize: 2 })
 
     assert.deepStrictEqual(c.evaluation, {
+      hasIndexMajority: true,
       indexerResult: 'OK',
+      hasRetrievalMajority: false,
       retrievalResult: 'MAJORITY_NOT_FOUND'
     })
     assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [
@@ -230,7 +252,9 @@ describe('Committee', () => {
     c.evaluate({ requiredCommitteeSize: 2 })
 
     assert.deepStrictEqual(c.evaluation, {
+      hasIndexMajority: true,
       indexerResult: 'OK',
+      hasRetrievalMajority: true,
       retrievalResult: 'OK'
     })
     assert.deepStrictEqual(c.measurements.map(m => m.fraudAssessment), [

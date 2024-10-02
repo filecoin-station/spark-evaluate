@@ -10,7 +10,6 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { startCancelStuckTxs } from '../lib/cancel-stuck-txs.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -41,18 +40,12 @@ const createPgClient = async () => {
   return pgClient
 }
 
-await Promise.all([
-  startEvaluate({
-    ieContract,
-    signer,
-    fetchMeasurements,
-    fetchRoundDetails,
-    recordTelemetry,
-    createPgClient,
-    logger: console
-  }),
-  startCancelStuckTxs({
-    walletDelegatedAddress,
-    signer
-  })
-])
+await startEvaluate({
+  ieContract,
+  signer,
+  fetchMeasurements,
+  fetchRoundDetails,
+  recordTelemetry,
+  createPgClient,
+  logger: console
+})
