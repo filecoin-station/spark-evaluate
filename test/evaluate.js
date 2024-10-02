@@ -1,4 +1,4 @@
-import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS, createSetScoresBuckets, SetScoresBucket } from '../lib/evaluate.js'
+import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS } from '../lib/evaluate.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
@@ -738,21 +738,5 @@ describe('fraud detection', function () {
       'bafytwo::f030::TASK_WRONG_NODE',
       'bafytwo::f040::TASK_WRONG_NODE'
     ])
-  })
-})
-
-describe('set scores buckets', () => {
-  it('splits contract calls with many participants', async () => {
-    const participants = {}
-    for (let i = 0; i < MAX_SET_SCORES_PARTICIPANTS + 1; i++) {
-      participants[`0x${i}`] = 1000000000000000n
-    }
-    const buckets = createSetScoresBuckets(participants)
-    assert.strictEqual(buckets.length, 2)
-    assert.strictEqual(buckets[0].size, MAX_SET_SCORES_PARTICIPANTS)
-    assert.strictEqual(buckets[1].size, 1)
-    const bucket = new SetScoresBucket()
-    bucket.add(`0x${MAX_SET_SCORES_PARTICIPANTS}`, 1000000000000000n)
-    assert.deepStrictEqual(buckets[1], bucket)
   })
 })
