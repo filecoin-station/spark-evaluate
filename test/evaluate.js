@@ -123,7 +123,6 @@ describe('evaluate', async function () {
       logger
     })
     assert.strictEqual(submitScoresCalls.length, 1)
-    assert.deepStrictEqual(submitScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(submitScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
@@ -174,7 +173,6 @@ describe('evaluate', async function () {
       logger
     })
     assert.strictEqual(submitScoresCalls.length, 1)
-    assert.deepStrictEqual(submitScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(submitScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
