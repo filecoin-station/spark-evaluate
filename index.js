@@ -14,12 +14,12 @@ const EVALUATE_DELAY = PREPROCESS_DELAY + 60_000
 
 export const startEvaluate = async ({
   ieContract,
-  signer,
   fetchMeasurements,
   fetchRoundDetails,
   recordTelemetry,
   createPgClient,
-  logger
+  logger,
+  submitScores
 }) => {
   assert(typeof createPgClient === 'function', 'createPgClient must be a function')
 
@@ -112,11 +112,11 @@ export const startEvaluate = async ({
       round: rounds.previous,
       roundIndex: evaluatedRoundIndex,
       ieContract,
-      signer,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      submitScores
     }).catch(err => {
       console.error('CANNOT EVALUATE ROUND %s:', evaluatedRoundIndex, err)
       Sentry.captureException(err, {

@@ -127,14 +127,11 @@ const ieContract = {
     return contractAddress
   }
 }
-const signer = ethers.Wallet.createRandom()
-const mockedFetch = async (_, { body }) => {
+const submitScores = async (participants, scores) => {
   console.log('==EVALUATION RESULTS==')
-  const { participants, scores } = JSON.parse(body)
   console.log('participants:', participants)
   console.log('scores:', scores)
   console.log('==END OF RESULTS==')
-  return new Response()
 }
 
 const started = Date.now()
@@ -143,8 +140,7 @@ const { ignoredErrors } = await evaluate({
   round,
   fetchRoundDetails,
   ieContract,
-  signer,
-  fetch: mockedFetch,
+  submitScores,
   logger: console,
   recordTelemetry,
   createPgClient
