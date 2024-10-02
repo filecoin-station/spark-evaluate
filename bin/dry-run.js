@@ -14,7 +14,6 @@ import pg from 'pg'
 import { RoundData } from '../lib/round.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
-import { ethers } from 'ethers'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
 

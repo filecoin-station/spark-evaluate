@@ -1,4 +1,4 @@
-import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS } from '../lib/evaluate.js'
+import { MAX_SCORE, evaluate, runFraudDetection } from '../lib/evaluate.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
@@ -56,7 +56,7 @@ describe('evaluate', async function () {
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
@@ -101,7 +101,7 @@ describe('evaluate', async function () {
   it('handles empty rounds', async () => {
     const round = new RoundData(0n)
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
@@ -152,7 +152,7 @@ describe('evaluate', async function () {
   it('handles unknown rounds', async () => {
     const round = new RoundData(0n)
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
@@ -197,7 +197,7 @@ describe('evaluate', async function () {
       })
     }
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
@@ -244,7 +244,7 @@ describe('evaluate', async function () {
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
@@ -289,7 +289,7 @@ describe('evaluate', async function () {
       })
     }
     const submitScoresCalls = []
-    const submitScores = async (participantAddresses, scores)=> {
+    const submitScores = async (participantAddresses, scores) => {
       submitScoresCalls.push({ participantAddresses, scores })
     }
     const ieContract = {
