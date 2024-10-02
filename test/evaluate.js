@@ -55,12 +55,11 @@ describe('evaluate', async function () {
     }
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -69,18 +68,18 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
       logger
     })
-    assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
-    assert.strictEqual(setScoresCalls[0].scores.length, 1)
+    assert.strictEqual(submitScoresCalls.length, 1)
+    assert.deepStrictEqual(submitScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
+    assert.strictEqual(submitScoresCalls[0].scores.length, 1)
     assert.strictEqual(
-      setScoresCalls[0].scores[0],
+      submitScoresCalls[0].scores[0],
       1000000000000000n
     )
 
@@ -101,12 +100,11 @@ describe('evaluate', async function () {
 
   it('handles empty rounds', async () => {
     const round = new RoundData(0n)
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -117,18 +115,19 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
       logger
     })
-    assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
+    assert.strictEqual(submitScoresCalls.length, 1)
+    assert.deepStrictEqual(submitScoresCalls[0].roundIndex, 0n)
+    assert.deepStrictEqual(submitScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
-    assert.deepStrictEqual(setScoresCalls[0].scores, [
+    assert.deepStrictEqual(submitScoresCalls[0].scores, [
       MAX_SCORE
     ])
 
@@ -152,12 +151,11 @@ describe('evaluate', async function () {
   })
   it('handles unknown rounds', async () => {
     const round = new RoundData(0n)
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -167,19 +165,20 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       requiredCommitteeSize: 1,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
       logger
     })
-    assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
+    assert.strictEqual(submitScoresCalls.length, 1)
+    assert.deepStrictEqual(submitScoresCalls[0].roundIndex, 0n)
+    assert.deepStrictEqual(submitScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
-    assert.deepStrictEqual(setScoresCalls[0].scores, [
+    assert.deepStrictEqual(submitScoresCalls[0].scores, [
       MAX_SCORE
     ])
   })
@@ -197,12 +196,11 @@ describe('evaluate', async function () {
         protocol: 'bitswap'
       })
     }
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -213,23 +211,24 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
       logger
     })
-    assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
+    assert.strictEqual(submitScoresCalls.length, 1)
+    assert.deepStrictEqual(submitScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
     const sum = (
-      setScoresCalls[0].scores[0] +
-      setScoresCalls[0].scores[1]
+      submitScoresCalls[0].scores[0] +
+      submitScoresCalls[0].scores[1]
     ).toString()
     assert(
       ['1000000000000000', '999999999999999'].includes(sum),
       `Sum of scores not close enough. Got ${sum}`
     )
-    assert.strictEqual(setScoresCalls[0].scores.length, 2)
+    assert.strictEqual(submitScoresCalls[0].scores.length, 2)
 
     const point = assertRecordedTelemetryPoint(telemetry, 'evaluate')
     assert(!!point,
@@ -244,12 +243,11 @@ describe('evaluate', async function () {
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x234', inet_group: 'ig2' })
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -261,14 +259,15 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
       logger
     })
-    assert.strictEqual(setScoresCalls.length, 1)
-    const { scores, participantAddresses } = setScoresCalls[0]
+    assert.strictEqual(submitScoresCalls.length, 1)
+    const { scores, participantAddresses } = submitScoresCalls[0]
     assert.strictEqual(scores.length, 4)
     const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
     assert.strictEqual(sum, MAX_SCORE)
@@ -289,12 +288,11 @@ describe('evaluate', async function () {
         retrievalResult: 'TIMEOUT'
       })
     }
-    const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const submitScoresCalls = []
+    const submitScores = async (participantAddresses, scores)=> {
+      submitScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
       }
@@ -305,7 +303,8 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      submitScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
