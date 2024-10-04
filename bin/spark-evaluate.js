@@ -10,6 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
+import { submitScores } from '../lib/submit-scores.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -40,28 +41,6 @@ const createPgClient = async () => {
   return pgClient
 }
 
-const submitScores = async (participants, values) => {
-  const digest = ethers.solidityPackedKeccak256(
-    ['address[]', 'uint256[]'],
-    [participants, values]
-  )
-  const signed = await signer.signMessage(digest)
-  const { v, r, s } = ethers.Signature.from(signed)
-  const res = await fetch('https://spark-rewards.fly.dev/scores', {
-    method: 'POST',
-    body: JSON.stringify({
-      participants,
-      values: values.map(n => String(n)),
-      signature: { v, r, s }
-    })
-  })
-  if (res.status !== 200) {
-    throw new Error(
-      `spark-rewards responded with ${res.status}: ${await res.text().catch(err => err)}`
-    )
-  }
-}
-
 await startEvaluate({
   ieContract,
   fetchMeasurements,
@@ -69,5 +48,5 @@ await startEvaluate({
   recordTelemetry,
   createPgClient,
   logger: console,
-  submitScores
+  submitScores: (participants, values) => submitScores(signer, participants, values)
 })
