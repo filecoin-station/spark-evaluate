@@ -10,7 +10,7 @@
     "test:types": "tsc -p ."
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.8",
+    "@types/mocha": "^10.0.9",
     "@types/pg": "^8.11.10",
     "dotenv": "^16.4.5",
     "mocha": "^10.7.3",
