@@ -214,7 +214,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     recordTelemetry,
     logger: { log: debug, error: debug },
     ieContract,
-    submitScores: async () => {}
+    setScores: async () => {}
   })
 
   for (const m of round.measurements) {

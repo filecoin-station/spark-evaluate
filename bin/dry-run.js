@@ -126,7 +126,7 @@ const ieContract = {
     return contractAddress
   }
 }
-const submitScores = async (participants, scores) => {
+const setScores = async (participants, scores) => {
   console.log('==EVALUATION RESULTS==')
   console.log('participants:', participants)
   console.log('scores:', scores)
@@ -139,7 +139,7 @@ const { ignoredErrors } = await evaluate({
   round,
   fetchRoundDetails,
   ieContract,
-  submitScores,
+  setScores,
   logger: console,
   recordTelemetry,
   createPgClient

@@ -10,7 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { submitScores } from '../lib/submit-scores.js'
+import { setScores } from '../lib/submit-scores.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -48,5 +48,5 @@ await startEvaluate({
   recordTelemetry,
   createPgClient,
   logger: console,
-  submitScores: (participants, values) => submitScores(signer, participants, values)
+  setScores: (participants, values) => setScores(signer, participants, values)
 })
