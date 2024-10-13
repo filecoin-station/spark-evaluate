@@ -10,7 +10,7 @@ import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createMeridianContract } from '../lib/ie-contract.js'
-import { createStuckTransactionsCanceller, startCancelStuckTransactions } from '../lib/cancel-stuck-transactions.js'
+import { setScores } from '../lib/submit-scores.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -30,12 +30,10 @@ await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
 const { ieContract, provider } = await createMeridianContract()
 
-const wallet = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
-const nonceManager = new ethers.NonceManager(wallet)
-const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(wallet.address), CoinType.MAIN).toString()
+const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
+const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
 
-console.log('Wallet address:', wallet.address, walletDelegatedAddress)
-const ieContractWithSigner = ieContract.connect(nonceManager)
+console.log('Wallet address:', signer.address, walletDelegatedAddress)
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -43,23 +41,12 @@ const createPgClient = async () => {
   return pgClient
 }
 
-const pgClient = await createPgClient()
-const stuckTransactionsCanceller = createStuckTransactionsCanceller({
-  pgClient,
-  // Bypass NonceManager as we need to cancel transactions with the same nonce
-  signer: wallet
+await startEvaluate({
+  ieContract,
+  fetchMeasurements,
+  fetchRoundDetails,
+  recordTelemetry,
+  createPgClient,
+  logger: console,
+  setScores: (participants, values) => setScores(signer, participants, values)
 })
-
-await Promise.all([
-  startEvaluate({
-    ieContract,
-    ieContractWithSigner,
-    fetchMeasurements,
-    fetchRoundDetails,
-    recordTelemetry,
-    createPgClient,
-    logger: console,
-    stuckTransactionsCanceller
-  }),
-  startCancelStuckTransactions(stuckTransactionsCanceller)
-])

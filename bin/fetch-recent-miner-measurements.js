@@ -200,12 +200,9 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
   )
   signal.throwIfAborted()
 
-  const ieContractWithSigner = {
+  const ieContract = {
     async getAddress () {
       return contractAddress
-    },
-    async setScores (_roundIndex, _participantAddresses, _scores) {
-      return { hash: '0x234' }
     }
   }
 
@@ -216,8 +213,8 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     fetchRoundDetails,
     recordTelemetry,
     logger: { log: debug, error: debug },
-    ieContractWithSigner,
-    stuckTransactionsCanceller: { addPending: () => {} }
+    ieContract,
+    setScores: async () => {}
   })
 
   for (const m of round.measurements) {

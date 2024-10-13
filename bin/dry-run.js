@@ -121,17 +121,16 @@ for (const cid of measurementCids) {
 console.log('Fetched %s measurements', round.measurements.length)
 
 console.log('==EVALUATE==')
-const ieContractWithSigner = {
+const ieContract = {
   async getAddress () {
     return contractAddress
-  },
-  async setScores (_roundIndex, participantAddresses, scores) {
-    console.log('==EVALUATION RESULTS==')
-    console.log('participants:', participantAddresses)
-    console.log('scores:', scores)
-    console.log('==END OF RESULTS==')
-    return { hash: '0x234' }
   }
+}
+const setScores = async (participants, scores) => {
+  console.log('==EVALUATION RESULTS==')
+  console.log('participants:', participants)
+  console.log('scores:', scores)
+  console.log('==END OF RESULTS==')
 }
 
 const started = Date.now()
@@ -139,11 +138,11 @@ const { ignoredErrors } = await evaluate({
   roundIndex,
   round,
   fetchRoundDetails,
-  ieContractWithSigner,
+  ieContract,
+  setScores,
   logger: console,
   recordTelemetry,
-  createPgClient,
-  stuckTransactionsCanceller: { addPending: () => {} }
+  createPgClient
 })
 
 console.log('Duration: %sms', Date.now() - started)

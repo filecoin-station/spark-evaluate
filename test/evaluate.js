@@ -1,4 +1,4 @@
-import { MAX_SCORE, evaluate, runFraudDetection, MAX_SET_SCORES_PARTICIPANTS, createSetScoresBuckets, SetScoresBucket } from '../lib/evaluate.js'
+import { MAX_SCORE, evaluate, runFraudDetection } from '../lib/evaluate.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
@@ -56,41 +56,32 @@ describe('evaluate', async function () {
     /** @returns {Promise<RoundDetails>} */
     const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     await evaluate({
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
     assert.strictEqual(setScoresCalls[0].scores.length, 1)
     assert.strictEqual(
       setScoresCalls[0].scores[0],
       1000000000000000n
     )
-    assert.strictEqual(addPendingCalls.length, 1)
 
     const point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
@@ -110,19 +101,12 @@ describe('evaluate', async function () {
   it('handles empty rounds', async () => {
     const round = new RoundData(0n)
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     /** @returns {Promise<RoundDetails>} */
@@ -131,22 +115,20 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
     assert.deepStrictEqual(setScoresCalls[0].scores, [
       MAX_SCORE
     ])
-    assert.strictEqual(addPendingCalls.length, 1)
 
     let point = telemetry.find(p => p.name === 'evaluate')
     assert(!!point,
@@ -169,19 +151,12 @@ describe('evaluate', async function () {
   it('handles unknown rounds', async () => {
     const round = new RoundData(0n)
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (roundIndex, participantAddresses, scores) {
-        setScoresCalls.push({ roundIndex, participantAddresses, scores })
-        return { hash: '0x234' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     /** @returns {Promise<RoundDetails>} */
@@ -189,23 +164,21 @@ describe('evaluate', async function () {
     await evaluate({
       round,
       roundIndex: 0n,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       requiredCommitteeSize: 1,
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
-    assert.deepStrictEqual(setScoresCalls[0].roundIndex, 0n)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
       '0x000000000000000000000000000000000000dEaD'
     ])
     assert.deepStrictEqual(setScoresCalls[0].scores, [
       MAX_SCORE
     ])
-    assert.strictEqual(addPendingCalls.length, 1)
   })
   it('calculates reward shares', async () => {
     const round = new RoundData(0n)
@@ -222,19 +195,12 @@ describe('evaluate', async function () {
       })
     }
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     /** @returns {Promise<RoundDetails>} */
@@ -243,12 +209,12 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
@@ -261,7 +227,6 @@ describe('evaluate', async function () {
       `Sum of scores not close enough. Got ${sum}`
     )
     assert.strictEqual(setScoresCalls[0].scores.length, 2)
-    assert.strictEqual(addPendingCalls.length, 1)
 
     const point = assertRecordedTelemetryPoint(telemetry, 'evaluate')
     assert(!!point,
@@ -277,19 +242,12 @@ describe('evaluate', async function () {
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x456', inet_group: 'ig3' })
 
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     const logger = { log: debug, error: debug }
@@ -299,12 +257,12 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
     assert.strictEqual(setScoresCalls.length, 1)
     const { scores, participantAddresses } = setScoresCalls[0]
@@ -312,7 +270,6 @@ describe('evaluate', async function () {
     const sum = scores.reduce((prev, score) => (prev ?? 0) + score)
     assert.strictEqual(sum, MAX_SCORE)
     assert.strictEqual(participantAddresses.sort()[0], '0x000000000000000000000000000000000000dEaD')
-    assert.strictEqual(addPendingCalls.length, 1)
   })
 
   it('reports retrieval stats - honest & all', async () => {
@@ -330,19 +287,12 @@ describe('evaluate', async function () {
       })
     }
     const setScoresCalls = []
-    const ieContractWithSigner = {
-      async setScores (_, participantAddresses, scores) {
-        setScoresCalls.push({ participantAddresses, scores })
-        return { hash: '0x345' }
-      },
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
       async getAddress () {
         return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
-      }
-    }
-    const addPendingCalls = []
-    const stuckTransactionsCanceller = {
-      async addPending (tx) {
-        addPendingCalls.push(tx)
       }
     }
     /** @returns {Promise<RoundDetails>} */
@@ -351,12 +301,12 @@ describe('evaluate', async function () {
       round,
       roundIndex: 0n,
       requiredCommitteeSize: 1,
-      ieContractWithSigner,
+      ieContract,
+      setScores,
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger,
-      stuckTransactionsCanceller
+      logger
     })
 
     let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
@@ -785,21 +735,5 @@ describe('fraud detection', function () {
       'bafytwo::f030::TASK_WRONG_NODE',
       'bafytwo::f040::TASK_WRONG_NODE'
     ])
-  })
-})
-
-describe('set scores buckets', () => {
-  it('splits contract calls with many participants', async () => {
-    const participants = {}
-    for (let i = 0; i < MAX_SET_SCORES_PARTICIPANTS + 1; i++) {
-      participants[`0x${i}`] = 1000000000000000n
-    }
-    const buckets = createSetScoresBuckets(participants)
-    assert.strictEqual(buckets.length, 2)
-    assert.strictEqual(buckets[0].size, MAX_SET_SCORES_PARTICIPANTS)
-    assert.strictEqual(buckets[1].size, 1)
-    const bucket = new SetScoresBucket()
-    bucket.add(`0x${MAX_SET_SCORES_PARTICIPANTS}`, 1000000000000000n)
-    assert.deepStrictEqual(buckets[1], bucket)
   })
 })
