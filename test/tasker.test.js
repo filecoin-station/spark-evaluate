@@ -78,4 +78,17 @@ describe('tasksAllowedForStations', async () => {
 
     assert.strictEqual(tasksAllowedForStations.get(VALID_MEASUREMENT.stationId)?.length, 2)
   })
+
+  it('handles round with zero tasks', async () => {
+    /** @type {Measurement[]} */
+    const measurements = [VALID_MEASUREMENT]
+
+    const tasksAllowedForStations = await getTasksAllowedForStations(
+      { retrievalTasks: [], maxTasksPerNode: 0 },
+      RANDOMNESS,
+      measurements
+    )
+
+    assert.strictEqual(tasksAllowedForStations.get(VALID_MEASUREMENT.stationId)?.length, 0)
+  })
 })
