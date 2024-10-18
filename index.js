@@ -6,6 +6,7 @@ import { evaluate } from './lib/evaluate.js'
 import { RoundData } from './lib/round.js'
 import { refreshDatabase } from './lib/platform-stats.js'
 import timers from 'node:timers/promises'
+import { recoverRound, clearRoundBuffer } from './lib/round-buffer.js'
 
 // Tweak this value to improve the chances of the data being available
 const PREPROCESS_DELAY = 60_000
@@ -30,6 +31,13 @@ export const startEvaluate = async ({
   const cidsSeen = []
   const roundsSeen = []
   let lastNewEventSeenAt = null
+
+  try {
+    rounds.current = await recoverRound()
+  } catch (err) {
+    console.error('CANNOT RECOVER ROUND:', err)
+    Sentry.captureException(err)
+  }
 
   const onMeasurementsAdded = async (cid, _roundIndex) => {
     const roundIndex = BigInt(_roundIndex)
@@ -89,6 +97,13 @@ export const startEvaluate = async ({
     lastNewEventSeenAt = new Date()
 
     console.log('Event: RoundStart', { roundIndex })
+
+    try {
+      await clearRoundBuffer()
+    } catch (err) {
+      console.error('CANNOT CLEAR ROUND BUFFER:', err)
+      Sentry.captureException(err)
+    }
 
     if (!rounds.current) {
       console.error('No current round data available, skipping evaluation')
