@@ -11,10 +11,16 @@ import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
+import * as Client from '@web3-storage/w3up-client'
+import { ed25519 } from '@ucanto/principal'
+import { CarReader } from '@ipld/car'
+import { importDAG } from '@ucanto/core/delegation'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
-  WALLET_SEED
+  WALLET_SEED,
+  STORACHA_PRIVATE_KEY,
+  STORACHA_PROOF
 } = process.env
 
 Sentry.init({
@@ -25,8 +31,25 @@ Sentry.init({
 })
 
 assert(WALLET_SEED, 'WALLET_SEED required')
+assert(STORACHA_PRIVATE_KEY, 'STORACHA_PRIVATE_KEY required')
+assert(STORACHA_PROOF, 'STORACHA_PROOF required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
+
+async function parseProof (data) {
+  const blocks = []
+  const reader = await CarReader.fromBytes(Buffer.from(data, 'base64'))
+  for await (const block of reader.blocks()) {
+    blocks.push(block)
+  }
+  return importDAG(blocks)
+}
+
+const principal = ed25519.Signer.parse(STORACHA_PRIVATE_KEY)
+const storachaClient = await Client.create({ principal })
+const proof = await parseProof(STORACHA_PROOF)
+const space = await storachaClient.addSpace(proof)
+await storachaClient.setCurrentSpace(space.did())
 
 const { ieContract, rsrContract, provider } = createContracts()
 
