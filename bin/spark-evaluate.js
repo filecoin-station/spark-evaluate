@@ -21,7 +21,8 @@ const {
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
   STORACHA_PRIVATE_KEY,
-  STORACHA_PROOF
+  STORACHA_PROOF,
+  GIT_COMMIT
 } = process.env
 
 Sentry.init({
@@ -73,7 +74,8 @@ await Promise.all([
     recordTelemetry,
     createPgClient,
     logger: console,
-    setScores: (participants, values) => setScores(signer, participants, values)
+    setScores: (participants, values) => setScores(signer, participants, values),
+    gitCommit: GIT_COMMIT
   }),
   runPublishRsrLoop({
     createPgClient,

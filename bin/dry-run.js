@@ -142,7 +142,8 @@ const { ignoredErrors } = await evaluate({
   setScores,
   logger: console,
   recordTelemetry,
-  createPgClient
+  createPgClient,
+  gitCommit: ''
 })
 
 console.log('Duration: %sms', Date.now() - started)
