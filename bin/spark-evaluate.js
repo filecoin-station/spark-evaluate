@@ -11,6 +11,7 @@ import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
+import { runPublishRsrLoop } from '../lib/publish-rsr.js'
 import * as Client from '@web3-storage/w3up-client'
 import { ed25519 } from '@ucanto/principal'
 import { CarReader } from '@ipld/car'
@@ -64,12 +65,19 @@ const createPgClient = async () => {
   return pgClient
 }
 
-await startEvaluate({
-  ieContract,
-  fetchMeasurements,
-  fetchRoundDetails,
-  recordTelemetry,
-  createPgClient,
-  logger: console,
-  setScores: (participants, values) => setScores(signer, participants, values)
-})
+await Promise.all([
+  startEvaluate({
+    ieContract,
+    fetchMeasurements,
+    fetchRoundDetails,
+    recordTelemetry,
+    createPgClient,
+    logger: console,
+    setScores: (participants, values) => setScores(signer, participants, values)
+  }),
+  runPublishRsrLoop({
+    createPgClient,
+    storachaClient,
+    rsrContract: rsrContract.connect(signer)
+  })
+])
