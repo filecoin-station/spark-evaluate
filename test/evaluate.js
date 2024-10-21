@@ -42,6 +42,7 @@ describe('evaluate', async function () {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM retrieval_stats')
+    await pgClient.query('DELETE FROM publish_rsr_rounds')
   })
 
   after(async () => {
@@ -73,7 +74,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
@@ -120,7 +122,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
@@ -170,7 +173,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
@@ -214,7 +218,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
@@ -262,7 +267,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
     assert.strictEqual(setScoresCalls.length, 1)
     const { scores, participantAddresses } = setScoresCalls[0]
@@ -306,7 +312,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      gitCommit: ''
     })
 
     let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
