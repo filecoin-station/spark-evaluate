@@ -20,7 +20,7 @@ import { importDAG } from '@ucanto/core/delegation'
 const {
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
-  STORACHA_PRIVATE_KEY,
+  STORACHA_SECRET_KEY,
   STORACHA_PROOF,
   GIT_COMMIT
 } = process.env
@@ -33,7 +33,7 @@ Sentry.init({
 })
 
 assert(WALLET_SEED, 'WALLET_SEED required')
-assert(STORACHA_PRIVATE_KEY, 'STORACHA_PRIVATE_KEY required')
+assert(STORACHA_SECRET_KEY, 'STORACHA_SECRET_KEY required')
 assert(STORACHA_PROOF, 'STORACHA_PROOF required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
@@ -47,7 +47,7 @@ async function parseProof (data) {
   return importDAG(blocks)
 }
 
-const principal = ed25519.Signer.parse(STORACHA_PRIVATE_KEY)
+const principal = ed25519.Signer.parse(STORACHA_SECRET_KEY)
 const storachaClient = await Client.create({ principal })
 const proof = await parseProof(STORACHA_PROOF)
 const space = await storachaClient.addSpace(proof)
