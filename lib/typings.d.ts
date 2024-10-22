@@ -50,8 +50,6 @@ export type RetrievalResult =
   | 'OK'
   | 'TIMEOUT'
   | 'CAR_TOO_LARGE'
-  | 'BAD_GATEWAY'
-  | 'GATEWAY_TIMEOUT'
   | 'UNKNOWN_FETCH_ERROR'
   | 'UNSUPPORTED_MULTIADDR_FORMAT'
   | 'HOSTNAME_DNS_ERROR'
@@ -62,8 +60,8 @@ export type RetrievalResult =
   | 'CANNOT_PARSE_CAR_FILE'
   | 'IPNI_NOT_QUERIED'
   | `IPNI_${string}`
-  | `ERROR_${number}`
-  | 'ERROR_500'
+  | `HTTP_${number}`
+  | `LASSIE_${number}`
   | 'UNKNOWN_ERROR'
   | CommitteeCheckError
 
