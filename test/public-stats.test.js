@@ -200,9 +200,9 @@ describe('public-stats', () => {
 
       // Notice: this measurement is for the same task as honestMeasurements[0], therefore it's
       // effectively ignored as the other measurement was successful.
-      honestMeasurements.push({ ...VALID_MEASUREMENT, indexerResult: 'UNKNOWN_ERROR' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, indexerResult: 'ERROR_FETCH' })
       // This is a measurement for a new task.
-      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'UNKNOWN_ERROR' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy4', indexerResult: 'ERROR_FETCH' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({
@@ -228,7 +228,7 @@ describe('public-stats', () => {
       const honestMeasurements = [
         { ...VALID_MEASUREMENT },
         // HTTP_NOT_ADVERTISED means the deal is indexed
-        { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED', retrievalResult: 'IPNI_HTTP_NOT_ADVERTISED' },
+        { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED', retrievalResult: 'HTTP_502' },
         { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404', retrievalResult: 'IPNI_ERROR_404' },
         { ...VALID_MEASUREMENT, cid: 'bafy4', status_code: 502, retrievalResult: 'HTTP_502' }
       ]
@@ -255,7 +255,7 @@ describe('public-stats', () => {
       honestMeasurements.push({ ...VALID_MEASUREMENT, status_code: 502 })
       // These are measurements for a new task.
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK', status_code: 502, retrievalResult: 'HTTP_502' })
-      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_FETCH', retrievalResult: 'IPNI_ERROR_FETCH' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({
@@ -312,7 +312,7 @@ describe('public-stats', () => {
       {
         /** @type {Measurement[]} */
         const honestMeasurements = [
-          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'UNKNOWN_ERROR', retrievalResult: 'IPNI_UNKNOWN_ERROR' }
+          { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_FETCH', retrievalResult: 'IPNI_ERROR_FETCH' }
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
