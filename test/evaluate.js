@@ -665,7 +665,8 @@ describe('fraud detection', function () {
       {
         ...VALID_MEASUREMENT,
         inet_group: 'group1',
-        indexerResult: 'OK'
+        indexerResult:
+        /** @type {const} */('OK')
       },
       {
         ...VALID_MEASUREMENT,

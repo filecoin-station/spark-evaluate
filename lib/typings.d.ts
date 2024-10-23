@@ -61,7 +61,9 @@ export type RetrievalResult =
   | 'UNEXPECTED_CAR_BLOCK'
   | 'CANNOT_PARSE_CAR_FILE'
   | 'IPNI_NOT_QUERIED'
-  | `IPNI_${string}`
+  | 'IPNI_NO_VALID_ADVERTISEMENT'
+  | 'IPNI_ERROR_FETCH'
+  | `IPNI_ERROR_${string}`
   | `ERROR_${number}`
   | 'ERROR_500'
   | 'UNKNOWN_ERROR'
@@ -91,7 +93,15 @@ export interface RawMeasurement {
   byte_length: number;
   car_too_large: boolean;
   car_checksum: string;
-  indexer_result: string | undefined | null;
+  // See https://github.com/filecoin-station/spark/blob/main/lib/ipni-client.js
+  indexer_result:
+    | 'OK'
+    | 'HTTP_NOT_ADVERTISED'
+    | 'NO_VALID_ADVERTISEMENT'
+    | 'ERROR_FETCH'
+    | `ERROR_${number}`
+    | undefined
+    | null;
 }
 
 export type CreatePgClient = () => Promise<import('pg').Client>;
