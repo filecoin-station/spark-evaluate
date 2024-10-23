@@ -44,7 +44,7 @@ describe('retrieval statistics', () => {
       {
         ...VALID_MEASUREMENT,
         status_code: 500,
-        retrievalResult: 'ERROR_500',
+        retrievalResult: 'HTTP_500',
         indexerResult: 'NO_VALID_ADVERTISEMENT',
         participantAddress: '0xcheater',
         inet_group: 'abcd',
@@ -75,7 +75,7 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'result_rate_OK', '0.25')
     assertPointFieldValue(point, 'result_rate_TIMEOUT', '0.25')
     assertPointFieldValue(point, 'result_rate_CAR_TOO_LARGE', '0.25')
-    assertPointFieldValue(point, 'result_rate_ERROR_500', '0.25')
+    assertPointFieldValue(point, 'result_rate_HTTP_500', '0.25')
 
     assertPointFieldValue(point, 'ttfb_min', '1000i')
     assertPointFieldValue(point, 'ttfb_mean', '4000i')

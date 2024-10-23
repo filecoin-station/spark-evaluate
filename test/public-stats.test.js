@@ -228,9 +228,9 @@ describe('public-stats', () => {
       const honestMeasurements = [
         { ...VALID_MEASUREMENT },
         // HTTP_NOT_ADVERTISED means the deal is indexed
-        { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED', retrievalResult: 'ERROR_502' },
+        { ...VALID_MEASUREMENT, cid: 'bafy2', indexerResult: 'HTTP_NOT_ADVERTISED', retrievalResult: 'HTTP_502' },
         { ...VALID_MEASUREMENT, cid: 'bafy3', indexerResult: 'ERROR_404', retrievalResult: 'IPNI_ERROR_404' },
-        { ...VALID_MEASUREMENT, cid: 'bafy4', status_code: 502, retrievalResult: 'ERROR_502' }
+        { ...VALID_MEASUREMENT, cid: 'bafy4', status_code: 502, retrievalResult: 'HTTP_502' }
       ]
       const allMeasurements = honestMeasurements
       let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
@@ -254,7 +254,7 @@ describe('public-stats', () => {
       // effectively ignored as the other measurement was successful.
       honestMeasurements.push({ ...VALID_MEASUREMENT, status_code: 502 })
       // These are measurements for a new task.
-      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK', status_code: 502, retrievalResult: 'ERROR_502' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'OK', status_code: 502, retrievalResult: 'HTTP_502' })
       honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_FETCH', retrievalResult: 'IPNI_ERROR_FETCH' })
       committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
@@ -436,20 +436,20 @@ describe('public-stats', () => {
           // a majority is found, retrievalResult = OK
           { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
           { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
-          { ...VALID_MEASUREMENT, retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'HTTP_404' },
 
           // a majority is found, retrievalResult = ERROR_404
           { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'OK' },
-          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
-          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'HTTP_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'HTTP_404' },
 
           // committee is too small
           { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' },
 
           // no majority was found
           { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'OK' },
-          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_404' },
-          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'ERROR_502' }
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'HTTP_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'HTTP_502' }
         ]
         honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
         const allMeasurements = honestMeasurements
@@ -480,7 +480,7 @@ describe('public-stats', () => {
           { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
 
           // a majority is found, retrievalResult = ERROR_404
-          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'ERROR_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'HTTP_404' },
 
           // committee is too small
           { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' }

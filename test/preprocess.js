@@ -110,7 +110,7 @@ describe('getRetrievalResult', () => {
     miner_id: 'f1abc',
     provider_address: '/ip4/108.89.91.150/tcp/46717/p2p/12D3KooWSsaFCtzDJUEhLQYDdwoFtdCMqqfk562UMvccFz12kYxU',
     provider_id: 'PROVIDERID',
-    protocol: 'graphsync',
+    protocol: 'http',
     indexer_result: 'OK'
   }
 
@@ -137,36 +137,56 @@ describe('getRetrievalResult', () => {
     assert.strictEqual(result, 'CAR_TOO_LARGE')
   })
 
-  it('BAD_GATEWAY', () => {
+  it('HTTP_502 (Bad Gateway)', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
+      protocol: 'http',
       status_code: 502
     })
-    assert.strictEqual(result, 'BAD_GATEWAY')
+    assert.strictEqual(result, 'HTTP_502')
   })
 
-  it('GATEWAY_TIMEOUT', () => {
+  it('LASSIE_502 (Bad Gateway)', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
-      status_code: 504
+      protocol: 'graphsync',
+      status_code: 502
     })
-    assert.strictEqual(result, 'GATEWAY_TIMEOUT')
+    assert.strictEqual(result, 'LASSIE_502')
   })
 
-  it('SERVER_ERROR - 500', () => {
+  it('HTTP_504 (Gateway Timeout)', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      protocol: 'http',
+      status_code: 504
+    })
+    assert.strictEqual(result, 'HTTP_504')
+  })
+
+  it('LASSIE_504 (Gateway Timeout)', () => {
+    const result = getRetrievalResult({
+      ...SUCCESSFUL_RETRIEVAL,
+      protocol: 'graphsync',
+      status_code: 504
+    })
+    assert.strictEqual(result, 'LASSIE_504')
+  })
+
+  it('SERVER_ERROR - 500 (over HTTP)', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 500
     })
-    assert.strictEqual(result, 'ERROR_500')
+    assert.strictEqual(result, 'HTTP_500')
   })
 
-  it('SERVER_ERROR - 503', () => {
+  it('SERVER_ERROR - 503 (over HTTP)', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
       status_code: 503
     })
-    assert.strictEqual(result, 'ERROR_503')
+    assert.strictEqual(result, 'HTTP_503')
   })
 
   it('UNKNOWN_ERROR - missing end_at', () => {

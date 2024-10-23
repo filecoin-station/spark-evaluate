@@ -95,7 +95,7 @@ describe('Committee', () => {
       const c = new Committee(VALID_TASK)
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'OK' })
       c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'IPNI_ERROR_404' })
-      c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'ERROR_502' })
+      c.addMeasurement({ ...VALID_MEASUREMENT, retrievalResult: 'HTTP_502' })
 
       c.evaluate({ requiredCommitteeSize: 2 })
 
