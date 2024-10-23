@@ -20,7 +20,7 @@ export const VALID_MEASUREMENT = {
   provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
   providerId: 'PROVIDERID',
   spark_version: '1.10.4',
-  protocol: 'http',
+  protocol: 'bitswap',
   participantAddress: VALID_PARTICIPANT_ADDRESS,
   stationId: VALID_STATION_ID,
   inet_group: VALID_INET_GROUP,
