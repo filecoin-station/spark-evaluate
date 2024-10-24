@@ -64,7 +64,7 @@ await Promise.all([
     postEvaluate: round => postEvaluate({
       createPgClient,
       round,
-      gitCommit: GIT_COMMIT
+      sparkEvaluateVersion: GIT_COMMIT
     })
   }),
   runPublishRsrLoop({
