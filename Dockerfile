@@ -14,6 +14,9 @@ ENV NODE_ENV=production
 # 4096MB available memory - 200MB for anything else
 ENV NODE_OPTIONS="--max-old-space-size=3896"
 
+ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
+
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
