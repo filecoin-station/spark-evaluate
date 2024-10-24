@@ -11,7 +11,7 @@ import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
-import { runPublishRsrLoop } from '../lib/publish-rsr.js'
+import { runPublishRsrLoop, postEvaluate } from '../lib/publish-rsr.js'
 import { createStorachaClient } from '../lib/storacha.js'
 
 const {
@@ -61,7 +61,11 @@ await Promise.all([
     createPgClient,
     logger: console,
     setScores: (participants, values) => setScores(signer, participants, values),
-    gitCommit: GIT_COMMIT
+    postEvaluate: round => postEvaluate({
+      createPgClient,
+      round,
+      gitCommit: GIT_COMMIT
+    })
   }),
   runPublishRsrLoop({
     createPgClient,

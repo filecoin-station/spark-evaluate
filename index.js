@@ -20,7 +20,7 @@ export const startEvaluate = async ({
   createPgClient,
   logger,
   setScores,
-  gitCommit
+  postEvaluate
 }) => {
   assert(typeof createPgClient === 'function', 'createPgClient must be a function')
 
@@ -118,7 +118,7 @@ export const startEvaluate = async ({
       createPgClient,
       logger,
       setScores,
-      gitCommit
+      postEvaluate
     }).catch(err => {
       console.error('CANNOT EVALUATE ROUND %s:', evaluatedRoundIndex, err)
       Sentry.captureException(err, {

@@ -215,7 +215,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     logger: { log: debug, error: debug },
     ieContract,
     setScores: async () => {},
-    gitCommit: ''
+    postEvaluate: async () => {}
   })
 
   for (const m of round.measurements) {
