@@ -4,5 +4,5 @@ CREATE TABLE unpublished_rsr_rounds (
   spark_evaluate_version TEXT NOT NULL,
   measurement_commitments TEXT[] NOT NULL,
   round_details JSONB NOT NULL,
-  providers JSONB NOT NULL
+  provider_retrieval_result_stats JSONB NOT NULL
 );
