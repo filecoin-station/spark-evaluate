@@ -61,9 +61,10 @@ await Promise.all([
     createPgClient,
     logger: console,
     setScores: (participants, values) => setScores(signer, participants, values),
-    prepareAcceptedRetrievalTaskMeasurementsCommitment: round => prepareAcceptedRetrievalTaskMeasurementsCommitment({
+    prepareAcceptedRetrievalTaskMeasurementsCommitment: (round, committees) => prepareAcceptedRetrievalTaskMeasurementsCommitment({
       createPgClient,
       round,
+      committees,
       sparkEvaluateVersion: GIT_COMMIT
     })
   }),
