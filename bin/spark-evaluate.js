@@ -39,7 +39,7 @@ const storachaClient = await createStorachaClient({
   secretKey: STORACHA_SECRET_KEY,
   proof: STORACHA_PROOF
 })
-const { ieContract, rsrContract, provider } = createContracts()
+const { ieContract, ieContractAddress, rsrContract, provider } = createContracts()
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
@@ -65,7 +65,8 @@ await Promise.all([
       createPgClient,
       round,
       committees,
-      sparkEvaluateVersion: GIT_COMMIT
+      sparkEvaluateVersion: GIT_COMMIT,
+      ieContractAddress
     })
   }),
   runPublishRsrLoop({
