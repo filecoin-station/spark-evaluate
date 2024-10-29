@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import * as providerRetrievalResultStats from '../lib/provider-retrieval-result-stats.js'
+import { CID } from 'multiformats'
 
 describe('Provider Retrieval Result Stats', () => {
   describe('build()', () => {
@@ -35,5 +36,23 @@ describe('Provider Retrieval Result Stats', () => {
         ['1', { total: 2, successful: 0 }]
       ]))
     })
+  })
+  describe('publishRoundDetails()', () => {
+    it('should publish round details', async () => {
+      const uploadCARCalls = []
+      const storachaClient = {
+        uploadCAR: async car => {
+          uploadCARCalls.push(car)
+        }
+      }
+      const round = {
+        details: {
+          beep: 'boop'
+        }
+      }
+      const cid = await providerRetrievalResultStats.publishRoundDetails({ storachaClient, round })
+      assert(cid instanceof CID)
+      assert.strictEqual(uploadCARCalls.length, 1)
+      // TODO: Assert the CAR content
   })
 })
