@@ -54,5 +54,6 @@ describe('Provider Retrieval Result Stats', () => {
       assert(cid instanceof CID)
       assert.strictEqual(uploadCARCalls.length, 1)
       // TODO: Assert the CAR content
+    })
   })
 })
