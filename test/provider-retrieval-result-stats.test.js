@@ -276,42 +276,27 @@ describe('Provider Retrieval Result Stats', () => {
       const ieContractAddress = '0x'
       const sparkEvaluateVersion = 'v0'
       const roundDetailsCid = ROUND_DETAILS
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      await pgClient.query(`
-        INSERT INTO unpublished_provider_retrieval_result_stats_rounds
-        (evaluated_at, round_index, contract_address, spark_evaluate_version, measurement_batches, round_details, provider_retrieval_result_stats)
-        VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
-      `, [
-        yesterday,
-        round.index,
-        ieContractAddress,
-        sparkEvaluateVersion,
-        round.measurementBatches,
-        roundDetailsCid,
-        {
-          0: { successful: 2, total: 2 },
-          1: { successful: 0, total: 2 }
-        }
-      ])
-      await pgClient.query(`
-        INSERT INTO unpublished_provider_retrieval_result_stats_rounds
-        (evaluated_at, round_index, contract_address, spark_evaluate_version, measurement_batches, round_details, provider_retrieval_result_stats)
-        VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
-      `, [
-        new Date(),
-        round.index + 1,
-        ieContractAddress,
-        sparkEvaluateVersion,
-        round.measurementBatches,
-        roundDetailsCid,
-        {
-          0: { successful: 2, total: 2 },
-          1: { successful: 0, total: 2 }
-        }
-      ])
+      for (let i = 0; i < 2; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() - 1 + i)
+        await pgClient.query(`
+          INSERT INTO unpublished_provider_retrieval_result_stats_rounds
+          (evaluated_at, round_index, contract_address, spark_evaluate_version, measurement_batches, round_details, provider_retrieval_result_stats)
+          VALUES
+          ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+          date,
+          round.index + i,
+          ieContractAddress,
+          sparkEvaluateVersion,
+          round.measurementBatches,
+          roundDetailsCid,
+          {
+            0: { successful: 2, total: 2 },
+            1: { successful: 0, total: 2 }
+          }
+        ])
+      }
       await providerRetrievalResultStats.publish({
         createPgClient,
         storachaClient: {
