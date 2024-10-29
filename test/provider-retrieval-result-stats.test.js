@@ -187,7 +187,6 @@ describe('Provider Retrieval Result Stats', () => {
       }
       const ieContractAddress = '0x'
       const sparkEvaluateVersion = 'v0'
-      const roundDetailsCid = ROUND_DETAILS
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
       await pgClient.query(`
@@ -201,7 +200,7 @@ describe('Provider Retrieval Result Stats', () => {
         ieContractAddress,
         sparkEvaluateVersion,
         round.measurementBatches,
-        roundDetailsCid,
+        ROUND_DETAILS,
         {
           0: { successful: 2, total: 2 },
           1: { successful: 0, total: 2 }
@@ -224,7 +223,33 @@ describe('Provider Retrieval Result Stats', () => {
         }
       })
       assert.strictEqual(uploadCARCalls.length, 1)
-      // TODO: Assert the CAR content
+      const reader = await CarReader.fromBytes(await uploadCARCalls[0].bytes())
+      const block = await reader.get(uploadCARCalls[0].roots[0])
+      assert.deepStrictEqual(dagJSON.decode(block.bytes), {
+        date: yesterday.toISOString().split('T')[0],
+        meta: {
+          rounds: [{
+            contractAddress: ieContractAddress,
+            details: CID.parse(ROUND_DETAILS),
+            index: String(round.index),
+            measurementBatches: round.measurementBatches.map(c => CID.parse(c)),
+            sparkEvaluateVersion: {
+              gitCommit: sparkEvaluateVersion
+            },
+          }]
+        },
+        providerRetrievalResultStats: [
+          {
+            providerId: '0',
+            successful: 2,
+            total: 2
+          }, {
+            providerId: '1',
+            successful: 0,
+            total: 2
+          }
+        ]
+      })
     })
     it('should add stats to the RSR contract', async () => {
       const round = {
