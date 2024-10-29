@@ -1,4 +1,4 @@
-CREATE TABLE unpublished_rsr_rounds (
+CREATE TABLE unpublished_provider_retrieval_result_stats_rounds (
   round_index NUMERIC NOT NULL,
   contract_address TEXT NOT NULL,
   evaluated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

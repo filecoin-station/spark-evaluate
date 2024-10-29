@@ -42,7 +42,7 @@ describe('evaluate', async function () {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM retrieval_stats')
-    await pgClient.query('DELETE FROM unpublished_rsr_rounds')
+    await pgClient.query('DELETE FROM unpublished_provider_retrieval_result_stats_rounds')
   })
 
   after(async () => {
