@@ -233,7 +233,7 @@ describe('Provider Retrieval Result Stats', () => {
             measurementBatches: round.measurementBatches.map(c => CID.parse(c)),
             sparkEvaluateVersion: {
               gitCommit: sparkEvaluateVersion
-            },
+            }
           }]
         },
         providerRetrievalResultStats: [
