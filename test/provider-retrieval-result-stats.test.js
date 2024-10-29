@@ -6,15 +6,13 @@ import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
 import { CarReader } from '@ipld/car'
 import * as dagJSON from '@ipld/dag-json'
+import { MEASUREMENT_BATCH, ROUND_DETAILS } from './helpers/test-data.js'
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
   await pgClient.connect()
   return pgClient
 }
-
-const MEASUREMENT_BATCH = 'bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4'
-const ROUND_DETAILS = 'bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4'
 
 describe('Provider Retrieval Result Stats', () => {
   let pgClient
