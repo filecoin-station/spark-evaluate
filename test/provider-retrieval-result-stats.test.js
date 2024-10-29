@@ -45,15 +45,46 @@ describe('Provider Retrieval Result Stats', () => {
           uploadCARCalls.push(car)
         }
       }
-      const round = {
-        details: {
-          beep: 'boop'
+      const cid = await providerRetrievalResultStats.publishRoundDetails({
+        storachaClient,
+        round: {
+          details: {
+            beep: 'boop'
+          }
         }
-      }
-      const cid = await providerRetrievalResultStats.publishRoundDetails({ storachaClient, round })
+      })
       assert(cid instanceof CID)
       assert.strictEqual(uploadCARCalls.length, 1)
       // TODO: Assert the CAR content
+    })
+  })
+  describe('prepare()', () => {
+    it('should publish round details', async () => {
+      const uploadCARCalls = []
+      const storachaClient = {
+        uploadCAR: async car => {
+          uploadCARCalls.push(car)
+        }
+      }
+      const createPgClient = async () => {
+        return {
+          query: async () => {},
+          end: async () => {}
+        }
+      }
+      await providerRetrievalResultStats.prepare({
+        storachaClient,
+        round: {
+          details: {
+            beep: 'boop'
+          }
+        },
+        createPgClient,
+        committees: [],
+        sparkEvaluateVersion: 'v0',
+        ieContractAddress: '0x0'
+      })
+      assert.strictEqual(uploadCARCalls.length, 1)
     })
   })
 })
