@@ -53,6 +53,7 @@ describe('preprocess', () => {
       })
     ])
     assert.deepStrictEqual(getCalls, [cid])
+    assert.deepStrictEqual(round.measurementBatches, [cid])
 
     const point = assertRecordedTelemetryPoint(telemetry, 'spark_versions')
     assertPointFieldValue(point, 'round_index', '0i')
