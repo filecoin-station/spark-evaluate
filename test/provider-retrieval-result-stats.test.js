@@ -165,8 +165,8 @@ describe('Provider Retrieval Result Stats', () => {
         contract_address: ieContractAddress,
         measurement_batches: round.measurementBatches,
         provider_retrieval_result_stats: {
-          '0': { successful: 2, total: 2 },
-          '1': { successful: 0, total: 2 }
+          0: { successful: 2, total: 2 },
+          1: { successful: 0, total: 2 }
         },
         round_details: 'baguqeerawg5jfpiy2g5xp5d422uwa3mpyzkmiguoeecesds7q65mn2hdoa4q',
         round_index: String(round.index),
@@ -178,7 +178,7 @@ describe('Provider Retrieval Result Stats', () => {
     it('should upload stats to Storacha', async () => {
       const round = {
         index: 0,
-        measurementBatches: [MEASUREMENT_BATCH],
+        measurementBatches: [MEASUREMENT_BATCH]
       }
       const ieContractAddress = '0x'
       const sparkEvaluateVersion = 'v0'
@@ -198,8 +198,8 @@ describe('Provider Retrieval Result Stats', () => {
         round.measurementBatches,
         roundDetailsCid,
         {
-          '0': { successful: 2, total: 2 },
-          '1': { successful: 0, total: 2 }
+          0: { successful: 2, total: 2 },
+          1: { successful: 0, total: 2 }
         }
       ])
       const uploadCARCalls = []
@@ -224,7 +224,7 @@ describe('Provider Retrieval Result Stats', () => {
     it('should add stats to the RSR contract', async () => {
       const round = {
         index: 0,
-        measurementBatches: [MEASUREMENT_BATCH],
+        measurementBatches: [MEASUREMENT_BATCH]
       }
       const ieContractAddress = '0x'
       const sparkEvaluateVersion = 'v0'
@@ -244,15 +244,15 @@ describe('Provider Retrieval Result Stats', () => {
         round.measurementBatches,
         roundDetailsCid,
         {
-          '0': { successful: 2, total: 2 },
-          '1': { successful: 0, total: 2 }
+          0: { successful: 2, total: 2 },
+          1: { successful: 0, total: 2 }
         }
       ])
       const addProviderRetrievalResultStatsCalls = []
       await providerRetrievalResultStats.publish({
         createPgClient,
         storachaClient: {
-          uploadCAR: async () => {},
+          uploadCAR: async () => {}
         },
         rsrContract: {
           addProviderRetrievalResultStats: async cid => {
