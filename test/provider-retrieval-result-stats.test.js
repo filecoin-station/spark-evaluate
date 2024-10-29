@@ -328,7 +328,7 @@ describe('Provider Retrieval Result Stats', () => {
       const { rows } = await pgClient.query('SELECT * FROM unpublished_provider_retrieval_result_stats_rounds')
       assert.strictEqual(rows.length, 1)
     })
-    it('should choose the all rounds with the oldest evaluated_at date')
+    it('should choose all rounds with the oldest evaluated_at date')
     it('should ignore data from today')
     it('should noop when there is nothing in the database')
   })
