@@ -221,7 +221,53 @@ describe('Provider Retrieval Result Stats', () => {
       assert.strictEqual(uploadCARCalls.length, 1)
       // TODO: Assert the CAR content
     })
-    it('should add stats to the RSR contract')
+    it('should add stats to the RSR contract', async () => {
+      const round = {
+        index: 0,
+        measurementBatches: [MEASUREMENT_BATCH],
+      }
+      const ieContractAddress = '0x'
+      const sparkEvaluateVersion = 'v0'
+      const roundDetailsCid = ROUND_DETAILS
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      await pgClient.query(`
+        INSERT INTO unpublished_provider_retrieval_result_stats_rounds
+        (evaluated_at, round_index, contract_address, spark_evaluate_version, measurement_batches, round_details, provider_retrieval_result_stats)
+        VALUES
+        ($1, $2, $3, $4, $5, $6, $7)
+      `, [
+        yesterday,
+        round.index,
+        ieContractAddress,
+        sparkEvaluateVersion,
+        round.measurementBatches,
+        roundDetailsCid,
+        {
+          '0': { successful: 2, total: 2 },
+          '1': { successful: 0, total: 2 }
+        }
+      ])
+      const addProviderRetrievalResultStatsCalls = []
+      await providerRetrievalResultStats.publish({
+        createPgClient,
+        storachaClient: {
+          uploadCAR: async () => {},
+        },
+        rsrContract: {
+          addProviderRetrievalResultStats: async cid => {
+            addProviderRetrievalResultStatsCalls.push(cid)
+            return {
+              wait: async () => {}
+            }
+          }
+        }
+      })
+      assert.deepStrictEqual(
+        addProviderRetrievalResultStatsCalls,
+        ['baguqeeramqwzxhhqzofl5e56ugixuthw3dyxbvzg2e4efh4guyi55pyvy5sa']
+      )
+    })
     it('should delete published stats from the database')
     it('should choose the all rounds with the oldest evaluated_at date')
     it('should ignore data from today')
