@@ -62,6 +62,7 @@ await Promise.all([
     logger: console,
     setScores: (participants, values) => setScores(signer, participants, values),
     prepareProviderRetrievalResultStats: (round, committees) => prepareProviderRetrievalResultStats({
+      storachaClient,
       createPgClient,
       round,
       committees,
