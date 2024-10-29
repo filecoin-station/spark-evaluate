@@ -126,7 +126,31 @@ describe('Provider Retrieval Result Stats', () => {
         storachaClient,
         round,
         createPgClient,
-        committees: [],
+        committees: [
+          {
+            measurements: [
+              {
+                minerId: '0',
+                retrievalResult: 'OK'
+              },
+              {
+                minerId: '1',
+                retrievalResult: 'TIMEOUT'
+              }
+            ]
+          }, {
+            measurements: [
+              {
+                minerId: '0',
+                retrievalResult: 'OK'
+              },
+              {
+                minerId: '1',
+                retrievalResult: 'TIMEOUT'
+              }
+            ]
+          }
+        ],
         sparkEvaluateVersion: 'v0',
         ieContractAddress
       })
@@ -137,7 +161,10 @@ describe('Provider Retrieval Result Stats', () => {
       assert.deepStrictEqual(rows, [{
         contract_address: ieContractAddress,
         measurement_batches: round.measurementBatches,
-        provider_retrieval_result_stats: {},
+        provider_retrieval_result_stats: {
+          '0': { successful: 2, total: 2 },
+          '1': { successful: 0, total: 2 }
+        },
         round_details: 'baguqeerawg5jfpiy2g5xp5d422uwa3mpyzkmiguoeecesds7q65mn2hdoa4q',
         round_index: String(round.index),
         spark_evaluate_version: sparkEvaluateVersion
