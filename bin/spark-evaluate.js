@@ -9,12 +9,17 @@ import { recordTelemetry } from '../lib/telemetry.js'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
-import { createMeridianContract } from '../lib/ie-contract.js'
+import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
+import * as providerRetrievalResultStats from '../lib/provider-retrieval-result-stats.js'
+import { createStorachaClient } from '../lib/storacha.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
-  WALLET_SEED
+  WALLET_SEED,
+  STORACHA_SECRET_KEY,
+  STORACHA_PROOF,
+  GIT_COMMIT
 } = process.env
 
 Sentry.init({
@@ -25,10 +30,16 @@ Sentry.init({
 })
 
 assert(WALLET_SEED, 'WALLET_SEED required')
+assert(STORACHA_SECRET_KEY, 'STORACHA_SECRET_KEY required')
+assert(STORACHA_PROOF, 'STORACHA_PROOF required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
-const { ieContract, provider } = await createMeridianContract()
+const storachaClient = await createStorachaClient({
+  secretKey: STORACHA_SECRET_KEY,
+  proof: STORACHA_PROOF
+})
+const { ieContract, ieContractAddress, rsrContract, provider } = createContracts()
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
@@ -41,12 +52,27 @@ const createPgClient = async () => {
   return pgClient
 }
 
-await startEvaluate({
-  ieContract,
-  fetchMeasurements,
-  fetchRoundDetails,
-  recordTelemetry,
-  createPgClient,
-  logger: console,
-  setScores: (participants, values) => setScores(signer, participants, values)
-})
+await Promise.all([
+  startEvaluate({
+    ieContract,
+    fetchMeasurements,
+    fetchRoundDetails,
+    recordTelemetry,
+    createPgClient,
+    logger: console,
+    setScores: (participants, values) => setScores(signer, participants, values),
+    prepareProviderRetrievalResultStats: (round, committees) => providerRetrievalResultStats.prepare({
+      storachaClient,
+      createPgClient,
+      round,
+      committees,
+      sparkEvaluateVersion: GIT_COMMIT,
+      ieContractAddress
+    })
+  }),
+  providerRetrievalResultStats.runPublishLoop({
+    createPgClient,
+    storachaClient,
+    rsrContract: rsrContract.connect(signer)
+  })
+])

@@ -12,7 +12,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { RoundData } from '../lib/round.js'
-import { createMeridianContract } from '../lib/ie-contract.js'
+import { createContracts } from '../lib/contracts.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 /** @typedef {import('../lib/preprocess.js').Measurement} Measurement */
@@ -142,7 +142,8 @@ const { ignoredErrors } = await evaluate({
   setScores,
   logger: console,
   recordTelemetry,
-  createPgClient
+  createPgClient,
+  prepareProviderRetrievalResultStats: async () => {}
 })
 
 console.log('Duration: %sms', Date.now() - started)
@@ -213,7 +214,7 @@ async function fetchMeasurementsAddedEvents (contractAddress, roundIndex) {
  * @param {bigint} roundIndex
  */
 async function fetchMeasurementsAddedFromChain (contractAddress, roundIndex) {
-  const { ieContract, provider } = await createMeridianContract(contractAddress)
+  const { ieContract, provider } = createContracts(contractAddress)
 
   console.log('Fetching MeasurementsAdded events from the ledger')
 
@@ -268,6 +269,6 @@ function isEventLog (logOrEventLog) {
  * @param {string} contractAddress
  */
 async function fetchLastRoundIndex (contractAddress) {
-  const { ieContract } = await createMeridianContract(contractAddress)
+  const { ieContract } = await createContracts(contractAddress)
   return await ieContract.currentRoundIndex()
 }

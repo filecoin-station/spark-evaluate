@@ -3,6 +3,8 @@ import { groupMeasurementsToCommittees } from '../../lib/committee.js'
 export const VALID_PARTICIPANT_ADDRESS = '0x000000000000000000000000000000000000dEaD'
 export const VALID_STATION_ID = '8800000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 export const VALID_INET_GROUP = 'some-group-id'
+export const MEASUREMENT_BATCH = 'bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4'
+export const ROUND_DETAILS = 'bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4'
 
 /** @import { Measurement} from  '../../lib/preprocess.js' */
 

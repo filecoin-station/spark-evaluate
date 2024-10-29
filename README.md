@@ -155,7 +155,7 @@ You can perform a dry-run evaluation of a given Meridan round using the script `
 You can optionally specify the smart contract address, round index and list of CIDs of measurements
 to load.  For example, run the following command to evaluate round `273` of the Meridian version
 `0x3113b83ccec38a18df936f31297de490485d7b2e` with measurements from CID
-`bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4z`:
+`bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnbpscfjarv4`:
 
 ```shell
 node bin/dry-run.js \

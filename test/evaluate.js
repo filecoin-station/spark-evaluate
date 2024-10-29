@@ -42,6 +42,7 @@ describe('evaluate', async function () {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM retrieval_stats')
+    await pgClient.query('DELETE FROM unpublished_provider_retrieval_result_stats_rounds')
   })
 
   after(async () => {
@@ -73,7 +74,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [VALID_MEASUREMENT.participantAddress])
@@ -120,7 +122,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
@@ -170,7 +173,8 @@ describe('evaluate', async function () {
       fetchRoundDetails,
       recordTelemetry,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses, [
@@ -214,7 +218,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
     assert.strictEqual(setScoresCalls.length, 1)
     assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x123', '0x234'])
@@ -262,7 +267,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
     assert.strictEqual(setScoresCalls.length, 1)
     const { scores, participantAddresses } = setScoresCalls[0]
@@ -306,7 +312,8 @@ describe('evaluate', async function () {
       recordTelemetry,
       fetchRoundDetails,
       createPgClient,
-      logger
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
     })
 
     let point = telemetry.find(p => p.name === 'retrieval_stats_honest')
@@ -322,6 +329,45 @@ describe('evaluate', async function () {
     assertPointFieldValue(point, 'measurements', '10i')
     assertPointFieldValue(point, 'unique_tasks', '2i')
     assertPointFieldValue(point, 'success_rate', '0.5')
+  })
+
+  it('prepares provider retrieval result stats', async () => {
+    const round = new RoundData(0n)
+    for (let i = 0; i < 5; i++) {
+      round.measurements.push({ ...VALID_MEASUREMENT })
+    }
+    const setScores = async () => {}
+    const prepareProviderRetrievalResultStatsCalls = []
+    const prepareProviderRetrievalResultStats = async (round, committees) => {
+      prepareProviderRetrievalResultStatsCalls.push({ round, committees })
+    }
+    const ieContract = {
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
+      }
+    }
+    /** @returns {Promise<RoundDetails>} */
+    const roundDetails = { ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] }
+    const fetchRoundDetails = async () => roundDetails
+    await evaluate({
+      round,
+      roundIndex: 0n,
+      requiredCommitteeSize: 1,
+      ieContract,
+      setScores,
+      recordTelemetry,
+      fetchRoundDetails,
+      createPgClient,
+      logger,
+      prepareProviderRetrievalResultStats
+    })
+
+    assert.strictEqual(prepareProviderRetrievalResultStatsCalls.length, 1)
+    const call = prepareProviderRetrievalResultStatsCalls[0]
+    assert(call.round instanceof RoundData)
+    assert.strictEqual(call.round.details, roundDetails)
+    assert(Array.isArray(call.committees))
+    assert.strictEqual(call.committees.length, 1)
   })
 })
 

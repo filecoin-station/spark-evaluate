@@ -6,7 +6,7 @@ import { ethers } from 'ethers'
 import { CoinType, newDelegatedEthAddress } from '@glif/filecoin-address'
 import pRetry from 'p-retry'
 
-import { createMeridianContract } from '../lib/ie-contract.js'
+import { createContracts } from '../lib/contracts.js'
 
 const {
   WALLET_SEED
@@ -17,7 +17,7 @@ const [, , tx] = process.argv
 assert(WALLET_SEED, 'WALLET_SEED required')
 assert(tx, 'Transaction hash must be provided as the first argument')
 
-const { provider } = await createMeridianContract()
+const { provider } = createContracts()
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const walletDelegatedAddress = newDelegatedEthAddress(/** @type {any} */(signer.address), CoinType.MAIN).toString()
