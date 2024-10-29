@@ -330,6 +330,45 @@ describe('evaluate', async function () {
     assertPointFieldValue(point, 'unique_tasks', '2i')
     assertPointFieldValue(point, 'success_rate', '0.5')
   })
+
+  it('prepares provider retrieval result stats', async () => {
+    const round = new RoundData(0n)
+    for (let i = 0; i < 5; i++) {
+      round.measurements.push({ ...VALID_MEASUREMENT })
+    }
+    const setScores = async () => {}
+    const prepareProviderRetrievalResultStatsCalls = []
+    const prepareProviderRetrievalResultStats = async (round, committees) => {
+      prepareProviderRetrievalResultStatsCalls.push({ round, committees })
+    }
+    const ieContract = {
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
+      }
+    }
+    /** @returns {Promise<RoundDetails>} */
+    const roundDetails = { ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] }
+    const fetchRoundDetails = async () => roundDetails
+    await evaluate({
+      round,
+      roundIndex: 0n,
+      requiredCommitteeSize: 1,
+      ieContract,
+      setScores,
+      recordTelemetry,
+      fetchRoundDetails,
+      createPgClient,
+      logger,
+      prepareProviderRetrievalResultStats
+    })
+
+    assert.strictEqual(prepareProviderRetrievalResultStatsCalls.length, 1)
+    const call = prepareProviderRetrievalResultStatsCalls[0]
+    assert(call.round instanceof RoundData)
+    assert.strictEqual(call.round.details, roundDetails)
+    assert(Array.isArray(call.committees))
+    assert.strictEqual(call.committees.length, 1)
+  })
 })
 
 describe('fraud detection', function () {
