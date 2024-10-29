@@ -322,13 +322,7 @@ describe('Provider Retrieval Result Stats', () => {
             uploadCARCalls.push(car)
           }
         },
-        rsrContract: {
-          addProviderRetrievalResultStats: async () => {
-            return {
-              wait: async () => {}
-            }
-          }
-        }
+        rsrContract: {}
       })
       assert.strictEqual(uploadCARCalls.length, 0)
     })
