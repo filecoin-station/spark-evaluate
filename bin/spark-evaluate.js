@@ -11,7 +11,7 @@ import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
 import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
-import { runPublishProviderRetrievalResultStatsLoop, prepareProviderRetrievalResultStats } from '../lib/publish-rsr.js'
+import * as providerRetrievalResultStats from '../lib/provider-retrieval-result-stats.js'
 import { createStorachaClient } from '../lib/storacha.js'
 
 const {
@@ -61,7 +61,7 @@ await Promise.all([
     createPgClient,
     logger: console,
     setScores: (participants, values) => setScores(signer, participants, values),
-    prepareProviderRetrievalResultStats: (round, committees) => prepareProviderRetrievalResultStats({
+    prepareProviderRetrievalResultStats: (round, committees) => providerRetrievalResultStats.prepare({
       storachaClient,
       createPgClient,
       round,
@@ -70,7 +70,7 @@ await Promise.all([
       ieContractAddress
     })
   }),
-  runPublishProviderRetrievalResultStatsLoop({
+  providerRetrievalResultStats.runPublishLoop({
     createPgClient,
     storachaClient,
     rsrContract: rsrContract.connect(signer)
