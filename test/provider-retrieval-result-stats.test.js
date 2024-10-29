@@ -4,6 +4,8 @@ import { CID } from 'multiformats'
 import pg from 'pg'
 import { DATABASE_URL } from '../lib/config.js'
 import { migrateWithPgClient } from '../lib/migrate.js'
+import { CarReader } from '@ipld/car'
+import * as dagJSON from '@ipld/dag-json'
 
 const createPgClient = async () => {
   const pgClient = new pg.Client({ connectionString: DATABASE_URL })
@@ -65,6 +67,9 @@ describe('Provider Retrieval Result Stats', () => {
   })
   describe('publishRoundDetails()', () => {
     it('should publish round details', async () => {
+      const roundDetails = {
+        beep: 'boop'
+      }
       const uploadCARCalls = []
       const storachaClient = {
         uploadCAR: async car => {
@@ -74,14 +79,14 @@ describe('Provider Retrieval Result Stats', () => {
       const cid = await providerRetrievalResultStats.publishRoundDetails({
         storachaClient,
         round: {
-          details: {
-            beep: 'boop'
-          }
+          details: roundDetails
         }
       })
       assert(cid instanceof CID)
       assert.strictEqual(uploadCARCalls.length, 1)
-      // TODO: Assert the CAR content
+      const reader = await CarReader.fromBytes(await uploadCARCalls[0].bytes())
+      const block = await reader.get(cid)
+      assert.deepStrictEqual(dagJSON.decode(block.bytes), roundDetails)
     })
   })
   describe('prepare()', () => {
