@@ -257,15 +257,15 @@ describe('Provider Retrieval Result Stats', () => {
       const ieContractAddress = '0x'
       const sparkEvaluateVersion = 'v0'
       const roundDetailsCid = ROUND_DETAILS
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
+      const date = new Date()
+      date.setFullYear(2024, 9, 28)
       await pgClient.query(`
         INSERT INTO unpublished_provider_retrieval_result_stats_rounds
         (evaluated_at, round_index, contract_address, spark_evaluate_version, measurement_batches, round_details, provider_retrieval_result_stats)
         VALUES
         ($1, $2, $3, $4, $5, $6, $7)
       `, [
-        yesterday,
+        date,
         round.index,
         ieContractAddress,
         sparkEvaluateVersion,
