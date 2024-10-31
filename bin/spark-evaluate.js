@@ -5,7 +5,6 @@ import { fetchRoundDetails } from '../lib/spark-api.js'
 import assert from 'node:assert'
 import { ethers } from 'ethers'
 import { CoinType, newDelegatedEthAddress } from '@glif/filecoin-address'
-import { recordTelemetry } from '../lib/telemetry.js'
 import { fetchMeasurements } from '../lib/preprocess.js'
 import { migrateWithPgConfig } from '../lib/migrate.js'
 import pg from 'pg'
@@ -13,13 +12,15 @@ import { createContracts } from '../lib/contracts.js'
 import { setScores } from '../lib/submit-scores.js'
 import * as providerRetrievalResultStats from '../lib/provider-retrieval-result-stats.js'
 import { createStorachaClient } from '../lib/storacha.js'
+import { createInflux } from '../lib/telemetry.js'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
   STORACHA_SECRET_KEY,
   STORACHA_PROOF,
-  GIT_COMMIT
+  GIT_COMMIT,
+  INFLUXDB_TOKEN
 } = process.env
 
 Sentry.init({
@@ -32,6 +33,7 @@ Sentry.init({
 assert(WALLET_SEED, 'WALLET_SEED required')
 assert(STORACHA_SECRET_KEY, 'STORACHA_SECRET_KEY required')
 assert(STORACHA_PROOF, 'STORACHA_PROOF required')
+assert(INFLUXDB_TOKEN, 'INFLUXDB_TOKEN required')
 
 await migrateWithPgConfig({ connectionString: DATABASE_URL })
 
@@ -51,6 +53,8 @@ const createPgClient = async () => {
   await pgClient.connect()
   return pgClient
 }
+
+const { recordTelemetry } = createInflux(INFLUXDB_TOKEN)
 
 await Promise.all([
   startEvaluate({
