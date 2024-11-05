@@ -16,8 +16,11 @@ import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 import { evaluate } from '../lib/evaluate.js'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 
+/** @import {Measurement} from '../lib/preprocess.js' */
+
 const {
   STORE_ALL_MINERS,
+  SHOW_EVALUATION_RESULT,
   KEEP_REJECTED
 } = process.env
 
@@ -86,6 +89,7 @@ const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
 const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
 
 const keepRejected = isFlagEnabled(KEEP_REJECTED)
+const showEvaluationResult = isFlagEnabled(SHOW_EVALUATION_RESULT) || keepRejected
 
 const allMeasurementsWriter = isFlagEnabled(STORE_ALL_MINERS)
   ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
@@ -93,7 +97,7 @@ const allMeasurementsWriter = isFlagEnabled(STORE_ALL_MINERS)
 
 const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
 const minerSummaryWriter = fs.createWriteStream(MINER_SUMMARY_FILE)
-minerSummaryWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
+minerSummaryWriter.write(formatHeader({ showEvaluationResult }) + '\n')
 
 const abortController = new AbortController()
 const signal = abortController.signal
@@ -218,18 +222,21 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
     prepareProviderRetrievalResultStats: async () => {}
   })
 
+  const isAccepted = (/** @type {Measurement} */ m) =>
+    m.fraudAssessment === 'OK' ||
+    m.fraudAssessment === 'MINORITY_RESULT' ||
+    m.fraudAssessment === 'COMMITTEE_TOO_SMALL' ||
+    m.fraudAssessment === 'MAJORITY_NOT_FOUND'
+
   for (const m of round.measurements) {
-    if (m.minerId !== minerId || m.fraudAssessment !== 'OK') continue
+    if (m.minerId !== minerId || !isAccepted(m)) continue
     resultCounts.total++
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
 
   if (!keepRejected) {
-    round.measurements = round.measurements
-      // Keep accepted measurements only
-      .filter(m => m.fraudAssessment === 'OK')
-      // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
-      .map(m => ({ ...m, fraudAssessment: undefined }))
+    // Keep accepted measurements only
+    round.measurements = round.measurements.filter(isAccepted)
   }
 
   if (allMeasurementsWriter) {
@@ -240,7 +247,7 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
   minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
   minerSummaryWriter.write(
     minerMeasurements
-      .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
+      .map(m => formatMeasurement(m, { showEvaluationResult }) + '\n')
       .join('')
   )
   console.error(' → added %s new measurements from this round', minerMeasurements.length)
@@ -291,17 +298,23 @@ function recordTelemetry (measurementName, fn) {
 /**
  * @param {import('../lib/preprocess.js').Measurement} m
  * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
+ * @param {boolean} [options.showEvaluationResult]
  */
-function formatMeasurement (m, { includeFraudAssesment } = {}) {
+function formatMeasurement (m, { showEvaluationResult } = {}) {
   const fields = [
     new Date(m.finished_at).toISOString(),
     (m.cid ?? '').padEnd(70),
     (m.protocol ?? '').padEnd(10)
   ]
 
-  if (includeFraudAssesment) {
-    fields.push((m.fraudAssessment === 'OK' ? '🫡  ' : '🙅  '))
+  if (showEvaluationResult) {
+    switch (m.fraudAssessment) {
+      case 'OK': fields.push('🫡  '); break
+      case 'MINORITY_RESULT': fields.push('🫠  '); break
+      case 'COMMITTEE_TOO_SMALL': fields.push('🤷 '); break
+      case 'MAJORITY_NOT_FOUND': fields.push('🤷 '); break
+      default: fields.push('🙅 ')
+    }
   }
 
   fields.push((m.retrievalResult ?? ''))
@@ -311,16 +324,16 @@ function formatMeasurement (m, { includeFraudAssesment } = {}) {
 
 /**
  * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
+ * @param {boolean} [options.showEvaluationResult]
  */
-function formatHeader ({ includeFraudAssesment } = {}) {
+function formatHeader ({ showEvaluationResult } = {}) {
   const fields = [
     'Timestamp'.padEnd(new Date().toISOString().length),
     'CID'.padEnd(70),
     'Protocol'.padEnd(10)
   ]
 
-  if (includeFraudAssesment) {
+  if (showEvaluationResult) {
     fields.push('🕵️  ')
   }
 
