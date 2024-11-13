@@ -6,7 +6,7 @@ import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 import { fetchRoundDetails } from '../lib/spark-api.js'
 import createDebug from 'debug'
 import { Point } from '@influxdata/influxdb-client'
-import { createHash } from 'node:crypto'
+import { basename } from 'node:path'
 
 const { KEEP_REJECTED } = process.env
 
@@ -36,9 +36,7 @@ for (const line of measurementsFile.split('\n').filter(Boolean)) {
   rounds.get(roundIndex).push(measurement)
 }
 
-const EVALUATION_FILE = `evaluation-${
-  createHash('sha256').update(measurementsFile).digest('hex').substring(0, 7)
-}.txt`
+const EVALUATION_FILE = `${basename(measurementsPath)}.evaluation.txt`
 const evaluationWriter = fs.createWriteStream(EVALUATION_FILE)
 
 evaluationWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
