@@ -174,7 +174,7 @@ for (const [r, c] of Object.entries(resultCounts)) {
 }
 
 if (allMeasurementsWriter) {
-console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
+  console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
 }
 if (minerDataWriter) {
   console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
