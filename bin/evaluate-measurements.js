@@ -36,10 +36,13 @@ for (const line of measurementsFile.split('\n').filter(Boolean)) {
   rounds.get(roundIndex).push(measurement)
 }
 
-const EVALUATION_FILE = `${basename(measurementsPath, '.ndjson')}.evaluation.txt`
-const evaluationWriter = fs.createWriteStream(EVALUATION_FILE)
+const EVALUATION_TXT_FILE = `${basename(measurementsPath, '.ndjson')}.evaluation.txt`
+const EVALUATION_NDJSON_FILE = `${basename(measurementsPath, '.ndjson')}.evaluation.ndjson`
 
-evaluationWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
+const evaluationTxtWriter = fs.createWriteStream(EVALUATION_TXT_FILE)
+const evaluationNdjsonWriter = fs.createWriteStream(EVALUATION_NDJSON_FILE)
+
+evaluationTxtWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
 
 const resultCounts = {
   total: 0
@@ -63,7 +66,8 @@ for (const [r, c] of Object.entries(resultCounts)) {
   )
 }
 
-console.error('Wrote evaluation to %s', EVALUATION_FILE)
+console.error('Wrote   human-readable evaluation to %s', EVALUATION_TXT_FILE)
+console.error('Wrote machine-readable evaluation to %s', EVALUATION_NDJSON_FILE)
 
 /**
  * @param {bigint} roundIndex
@@ -107,9 +111,14 @@ async function processRound (roundIndex, measurements, resultCounts) {
       .map(m => ({ ...m, fraudAssessment: undefined }))
   }
 
-  evaluationWriter.write(
+  evaluationTxtWriter.write(
     round.measurements
       .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
+      .join('')
+  )
+  evaluationNdjsonWriter.write(
+    round.measurements
+      .map(m => JSON.stringify(m) + '\n')
       .join('')
   )
   console.error(' → added %s accepted measurements from this round', round.measurements.length)
