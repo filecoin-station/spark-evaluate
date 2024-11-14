@@ -36,7 +36,7 @@ for (const line of measurementsFile.split('\n').filter(Boolean)) {
   rounds.get(roundIndex).push(measurement)
 }
 
-const EVALUATION_FILE = `${basename(measurementsPath)}.evaluation.txt`
+const EVALUATION_FILE = `${basename(measurementsPath, '.ndjson')}.evaluation.txt`
 const evaluationWriter = fs.createWriteStream(EVALUATION_FILE)
 
 evaluationWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
