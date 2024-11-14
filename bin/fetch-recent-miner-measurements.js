@@ -13,13 +13,8 @@ import { createContracts } from '../lib/contracts.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
-import { evaluate } from '../lib/evaluate.js'
-import { fetchRoundDetails } from '../lib/spark-api.js'
 
-const {
-  STORE_ALL_MINERS,
-  KEEP_REJECTED
-} = process.env
+const { STORE_ALL_MINERS } = process.env
 
 Sentry.init({
   dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
@@ -83,17 +78,12 @@ console.error(' → found %s complete rounds', rounds.length)
 
 const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
 const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
-const MINER_SUMMARY_FILE = `measurements-${minerId}.txt`
-
-const keepRejected = isFlagEnabled(KEEP_REJECTED)
 
 const allMeasurementsWriter = isFlagEnabled(STORE_ALL_MINERS)
   ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
   : undefined
 
 const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
-const minerSummaryWriter = fs.createWriteStream(MINER_SUMMARY_FILE)
-minerSummaryWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
 
 const abortController = new AbortController()
 const signal = abortController.signal
@@ -118,7 +108,7 @@ if (signal.aborted) {
   console.error('Interrupted, exiting. Output files contain partial data.')
 }
 
-console.log('Found %s accepted measurements.', resultCounts.total)
+console.log('Found %s valid measurements.', resultCounts.total)
 for (const [r, c] of Object.entries(resultCounts)) {
   if (r === 'total') continue
   console.log('  %s %s (%s%)',
@@ -132,7 +122,6 @@ if (allMeasurementsWriter) {
   console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
 }
 console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
-console.error('Wrote human-readable summary for %s to %s', minerId, MINER_SUMMARY_FILE)
 
 /**
  * @param {string} contractAddress
@@ -200,50 +189,37 @@ async function processRound (roundIndex, measurementCids, resultCounts) {
   )
   signal.throwIfAborted()
 
-  const ieContract = {
-    async getAddress () {
-      return contractAddress
-    }
-  }
-
-  console.error(' → evaluating the round')
-  await evaluate({
-    roundIndex: round.index,
-    round,
-    fetchRoundDetails,
-    recordTelemetry,
-    logger: { log: debug, error: debug },
-    ieContract,
-    setScores: async () => {},
-    prepareProviderRetrievalResultStats: async () => {}
-  })
-
   for (const m of round.measurements) {
-    if (m.minerId !== minerId || m.fraudAssessment !== 'OK') continue
+    if (m.minerId !== minerId) continue
     resultCounts.total++
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
 
-  if (!keepRejected) {
-    round.measurements = round.measurements
-      // Keep accepted measurements only
-      .filter(m => m.fraudAssessment === 'OK')
-      // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
-      .map(m => ({ ...m, fraudAssessment: undefined }))
-  }
-
-  if (allMeasurementsWriter) {
-    allMeasurementsWriter.write(round.measurements.map(m => JSON.stringify(m) + '\n').join(''))
+  if (allMeasurementsWriter && round.measurements.length > 0) {
+    allMeasurementsWriter.write(
+      round.measurements
+        .map(measurement => ndJsonLine({ roundIndex: round.index.toString(), measurement }))
+        .join('')
+    )
   }
 
   const minerMeasurements = round.measurements.filter(m => m.minerId === minerId)
-  minerDataWriter.write(minerMeasurements.map(m => JSON.stringify(m) + '\n').join(''))
-  minerSummaryWriter.write(
-    minerMeasurements
-      .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
-      .join('')
-  )
+  if (minerMeasurements.length > 0) {
+    minerDataWriter.write(
+      minerMeasurements
+        .map(measurement => ndJsonLine({ roundIndex: round.index.toString(), measurement }))
+        .join('')
+    )
+  }
   console.error(' → added %s new measurements from this round', minerMeasurements.length)
+}
+
+/**
+ * @param {*} obj
+ * @returns string
+ */
+function ndJsonLine (obj) {
+  return JSON.stringify(obj) + '\n'
 }
 
 /**
@@ -286,47 +262,6 @@ function recordTelemetry (measurementName, fn) {
   const point = new Point(measurementName)
   fn(point)
   debug('TELEMETRY %s %o', measurementName, point.fields)
-}
-
-/**
- * @param {import('../lib/preprocess.js').Measurement} m
- * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
- */
-function formatMeasurement (m, { includeFraudAssesment } = {}) {
-  const fields = [
-    new Date(m.finished_at).toISOString(),
-    (m.cid ?? '').padEnd(70),
-    (m.protocol ?? '').padEnd(10)
-  ]
-
-  if (includeFraudAssesment) {
-    fields.push((m.fraudAssessment === 'OK' ? '🫡  ' : '🙅  '))
-  }
-
-  fields.push((m.retrievalResult ?? ''))
-
-  return fields.join(' ')
-}
-
-/**
- * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
- */
-function formatHeader ({ includeFraudAssesment } = {}) {
-  const fields = [
-    'Timestamp'.padEnd(new Date().toISOString().length),
-    'CID'.padEnd(70),
-    'Protocol'.padEnd(10)
-  ]
-
-  if (includeFraudAssesment) {
-    fields.push('🕵️  ')
-  }
-
-  fields.push('RetrievalResult')
-
-  return fields.join(' ')
 }
 
 /**
