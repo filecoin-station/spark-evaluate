@@ -24,6 +24,7 @@ jobs:
           - '@types/'
           - standard
           - ethers
+          - p-retry
     steps:
       - name: Dependabot metadata
         id: metadata
