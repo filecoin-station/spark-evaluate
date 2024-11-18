@@ -26,6 +26,7 @@ jobs:
           - ethers
           - p-retry
           - '@web3-storage/w3up-client'
+          - cross-spawn
     steps:
       - name: Dependabot metadata
         id: metadata
