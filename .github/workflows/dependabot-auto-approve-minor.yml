@@ -25,6 +25,7 @@ jobs:
           - standard
           - ethers
           - p-retry
+          - '@web3-storage/w3up-client'
     steps:
       - name: Dependabot metadata
         id: metadata
