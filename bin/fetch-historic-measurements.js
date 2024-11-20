@@ -57,12 +57,6 @@ Example:
   ${nodePath} ${selfPath} 2024-10-01T00:00:00Z 2024-10-02T00:00:00Z
 `
 
-if (!contractAddress) {
-  console.error('Missing required argument: contractAddress')
-  console.error(USAGE)
-  process.exit(1)
-}
-
 if (!startStr) {
   console.error('Missing required argument: range-start')
   console.error(USAGE)

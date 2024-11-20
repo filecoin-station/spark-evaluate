@@ -39,12 +39,6 @@ Usage:
   ${nodePath} ${selfPath} [contract-address] minerId [blocksToQuery]
 `
 
-if (!contractAddress) {
-  console.error('Missing required argument: contractAddress')
-  console.error(USAGE)
-  process.exit(1)
-}
-
 if (!minerId) {
   console.error('Missing required argument: minerId')
   console.error(USAGE)

@@ -42,12 +42,6 @@ Usage:
   ${nodePath} ${selfPath} [contract-address] <round-index> [measurements-cid-1 [cid2 [cid3...]]]
 `
 
-if (!contractAddress) {
-  console.error('Missing required argument: contractAddress')
-  console.log(USAGE)
-  process.exit(1)
-}
-
 /** @type {bigint} */
 let roundIndex
 if (roundIndexStr) {
