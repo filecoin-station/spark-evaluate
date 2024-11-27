@@ -14,7 +14,7 @@ Usage:
    with the real credentials:
 
    ```sh
-   DATABASE_URL="postgres://user:password@localhost:5454/spark" [contract-address] node bin/fetch-historic-measurements.js <range-start> <range-end>
+   DATABASE_URL="postgres://user:password@localhost:5454/spark" node bin/fetch-historic-measurements.js [contract-address] <range-start> <range-end>
    ```
 
    This will fetch all measurements committed between range-start (inclusive) and range-end (exclusive)
