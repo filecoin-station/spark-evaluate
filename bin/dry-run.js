@@ -31,22 +31,11 @@ Sentry.init({
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
-const [nodePath, selfPath, ...args] = process.argv
+const args = process.argv.slice(2)
 if (args.length === 0 || !args[0].startsWith('0x')) {
   args.unshift(SparkImpactEvaluator.ADDRESS)
 }
 const [contractAddress, roundIndexStr, ...measurementCids] = args
-
-const USAGE = `
-Usage:
-  ${nodePath} ${selfPath} [contract-address] <round-index> [measurements-cid-1 [cid2 [cid3...]]]
-`
-
-if (!contractAddress) {
-  console.error('Missing required argument: contractAddress')
-  console.log(USAGE)
-  process.exit(1)
-}
 
 /** @type {bigint} */
 let roundIndex

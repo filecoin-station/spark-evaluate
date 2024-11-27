@@ -1,63 +1,106 @@
+/*
+Usage:
+
+1. Setup port forwarding between your local computer and Postgres instance hosted by Fly.io
+  ([docs](https://fly.io/docs/postgres/connecting/connecting-with-flyctl/)). Remember to use a
+  different port if you have a local Postgres server for development!
+   ```sh
+   fly proxy 5454:5432 -a spark-db
+   ```
+
+2. Find spark-db entry in 1Password and get the user and password from the connection string.
+
+3. Run the following command to fetch all measurements, remember to replace "user" and "password"
+   with the real credentials:
+
+   ```sh
+   DATABASE_URL="postgres://user:password@localhost:5454/spark" node bin/fetch-historic-measurements.js <range-start> <range-end>
+   ```
+
+   This will fetch all measurements committed between range-start (inclusive) and range-end (exclusive)
+   and write them to file.
+*/
+
 // dotenv must be imported before importing anything else
 import 'dotenv/config'
 
 import { Point } from '@influxdata/influxdb-client'
-import * as Sentry from '@sentry/node'
 import createDebug from 'debug'
 import fs from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import pMap from 'p-map'
-import { createContracts } from '../lib/contracts.js'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
-import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
+import pg from 'pg'
 
-const { STORE_ALL_MINERS } = process.env
-
-Sentry.init({
-  dsn: 'https://d0651617f9690c7e9421ab9c949d67a4@o1408530.ingest.sentry.io/4505906069766144',
-  environment: process.env.SENTRY_ENVIRONMENT || 'dry-run',
-  // Performance Monitoring
-  tracesSampleRate: 0.1 // Capture 10% of the transactions
-})
+const { DATABASE_URL } = process.env
 
 const debug = createDebug('spark:bin')
 
 const cacheDir = path.resolve('.cache')
 await mkdir(cacheDir, { recursive: true })
 
-const [nodePath, selfPath, ...args] = process.argv
-if (args.length === 0 || !args[0].startsWith('0x')) {
-  args.unshift(SparkImpactEvaluator.ADDRESS)
-}
-const [contractAddress, minerId, blocksToQuery] = args
+const [nodePath, selfPath, startStr, endStr, minerId] = process.argv
 
 const USAGE = `
 Usage:
-  ${nodePath} ${selfPath} [contract-address] minerId [blocksToQuery]
+  ${nodePath} ${selfPath} range-start range-end [minerId]
+
+Example:
+  ${nodePath} ${selfPath} 2024-10-01T00:00:00Z 2024-10-02T00:00:00Z
 `
 
-if (!minerId) {
-  console.error('Missing required argument: minerId')
+if (!startStr) {
+  console.error('Missing required argument: range-start')
   console.error(USAGE)
   process.exit(1)
 }
 
-if (!minerId.startsWith('f0')) {
+const start = new Date(startStr)
+if (Number.isNaN(start.getTime())) {
+  console.error('Invalid range-start: not a valid date-time string')
+  console.error(USAGE)
+  process.exit(1)
+}
+
+if (!endStr) {
+  console.error('Missing required argument: range-start')
+  console.error(USAGE)
+  process.exit(1)
+}
+
+const end = new Date(endStr)
+if (Number.isNaN(end.getTime())) {
+  console.error('Invalid range-end: not a valid date-time string')
+  console.error(USAGE)
+  process.exit(1)
+}
+
+if (minerId && !minerId.startsWith('f0')) {
   console.warn('Warning: miner id %s does not start with "f0", is it a valid miner address?', minerId)
 }
 
-console.error('Querying the chain for recent MeasurementsAdded events')
-const measurementsAddedEvents = await getRecentMeasurementsAddedEvents(contractAddress, blocksToQuery)
-console.error(' → found %s events', measurementsAddedEvents.length)
+console.error('Fetching measurements committed between %j and %j', start, end)
+const client = new pg.Client({ connectionString: DATABASE_URL })
+await client.connect()
+
+const { rows } = await client.query(`
+  SELECT cid, meridian_round FROM commitments
+  WHERE published_at >= $1 AND published_at < $2
+  `, [
+  start,
+  end
+])
+
+console.error('Found %s commitments', rows.length)
 
 // Group events by rounds
 
 /** @type {{roundIndex: bigint, measurementCids: string[]}[]} */
 const rounds = []
-for (const { roundIndex, cid } of measurementsAddedEvents) {
+for (const { meridian_round: roundIndex, cid } of rows) {
   if (!rounds.length || rounds[rounds.length - 1].roundIndex !== roundIndex) {
     rounds.push({ roundIndex, measurementCids: [] })
   }
@@ -73,11 +116,10 @@ console.error(' → found %s complete rounds', rounds.length)
 const ALL_MEASUREMENTS_FILE = 'measurements-all.ndjson'
 const MINER_DATA_FILE = `measurements-${minerId}.ndjson`
 
-const allMeasurementsWriter = isFlagEnabled(STORE_ALL_MINERS)
-  ? fs.createWriteStream(ALL_MEASUREMENTS_FILE)
-  : undefined
-
-const minerDataWriter = fs.createWriteStream(MINER_DATA_FILE)
+const allMeasurementsWriter = fs.createWriteStream(ALL_MEASUREMENTS_FILE)
+const minerDataWriter = minerId
+  ? fs.createWriteStream(MINER_DATA_FILE)
+  : null
 
 const abortController = new AbortController()
 const signal = abortController.signal
@@ -115,33 +157,10 @@ for (const [r, c] of Object.entries(resultCounts)) {
 if (allMeasurementsWriter) {
   console.error('Wrote (ALL) raw measurements to %s', ALL_MEASUREMENTS_FILE)
 }
-console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
-
-/**
- * @param {string} contractAddress
- * @param {number | string} blocksToQuery
- * @returns
- */
-async function getRecentMeasurementsAddedEvents (contractAddress, blocksToQuery = Number.POSITIVE_INFINITY) {
-  const { ieContract } = createContracts(contractAddress)
-
-  // max look-back period allowed by Glif.io is 2000 blocks (approx 16h40m)
-  // in practice, requests for the last 2000 blocks are usually rejected,
-  // so it's safer to use a slightly smaller number
-  const fromBlock = Math.max(-blocksToQuery, -1990)
-  debug('queryFilter(MeasurementsAdded, %s)', fromBlock)
-  const rawEvents = await ieContract.queryFilter('MeasurementsAdded', fromBlock)
-
-  rawEvents.sort((a, b) => a.blockNumber - b.blockNumber)
-
-  /** @type {Array<{ cid: string, roundIndex: bigint, sender: string }>} */
-  const events = rawEvents
-    .filter(isEventLog)
-    .map(({ args: [cid, roundIndex, sender] }) => ({ cid, roundIndex, sender }))
-  // console.log('events', events)
-
-  return events
+if (minerDataWriter) {
+  console.error('Wrote (minerId=%s) raw measurements to %s', minerId, MINER_DATA_FILE)
 }
+await client.end()
 
 /**
  * @param {string} cid
@@ -241,14 +260,6 @@ async function fetchAndPreprocess (round, cid) {
 }
 
 /**
- * @param {import('ethers').Log | import('ethers').EventLog} logOrEventLog
- * @returns {logOrEventLog is import('ethers').EventLog}
- */
-function isEventLog (logOrEventLog) {
-  return 'args' in logOrEventLog
-}
-
-/**
  * @param {string} measurementName
  * @param {(point: Point) => void} fn
  */
@@ -256,11 +267,4 @@ function recordTelemetry (measurementName, fn) {
   const point = new Point(measurementName)
   fn(point)
   debug('TELEMETRY %s %o', measurementName, point.fields)
-}
-
-/**
- * @param {string | undefined} envVarValue
- */
-function isFlagEnabled (envVarValue) {
-  return !!envVarValue && envVarValue.toLowerCase() !== 'false' && envVarValue !== '0'
 }
