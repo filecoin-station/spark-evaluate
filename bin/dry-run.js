@@ -31,7 +31,7 @@ Sentry.init({
 const cacheDir = fileURLToPath(new URL('../.cache', import.meta.url))
 await mkdir(cacheDir, { recursive: true })
 
-const [nodePath, selfPath, ...args] = process.argv
+const args = process.argv.slice(2)
 if (args.length === 0 || !args[0].startsWith('0x')) {
   args.unshift(SparkImpactEvaluator.ADDRESS)
 }
