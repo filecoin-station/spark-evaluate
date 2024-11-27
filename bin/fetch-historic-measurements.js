@@ -14,7 +14,7 @@ Usage:
    with the real credentials:
 
    ```sh
-   DATABASE_URL="postgres://user:password@localhost:5454/spark" node bin/fetch-historic-measurements.js [contract-address] <range-start> <range-end>
+   DATABASE_URL="postgres://user:password@localhost:5454/spark" node bin/fetch-historic-measurements.js <range-start> <range-end>
    ```
 
    This will fetch all measurements committed between range-start (inclusive) and range-end (exclusive)
@@ -43,15 +43,11 @@ const debug = createDebug('spark:bin')
 const cacheDir = path.resolve('.cache')
 await mkdir(cacheDir, { recursive: true })
 
-const [nodePath, selfPath, ...args] = process.argv
-if (args.length === 0 || !args[0].startsWith('0x')) {
-  args.unshift(SparkImpactEvaluator.ADDRESS)
-}
-const [contractAddress, startStr, endStr, minerId] = args
+const [nodePath, selfPath, startStr, endStr, minerId] = process.argv
 
 const USAGE = `
 Usage:
-  ${nodePath} ${selfPath} [contract-address] range-start range-end [minerId]
+  ${nodePath} ${selfPath} range-start range-end [minerId]
 
 Example:
   ${nodePath} ${selfPath} 2024-10-01T00:00:00Z 2024-10-02T00:00:00Z
