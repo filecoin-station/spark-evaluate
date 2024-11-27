@@ -33,7 +33,6 @@ import path from 'node:path'
 import pMap from 'p-map'
 import { fetchMeasurements, preprocess } from '../lib/preprocess.js'
 import { RoundData } from '../lib/round.js'
-import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 import pg from 'pg'
 
 const { DATABASE_URL } = process.env
