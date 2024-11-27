@@ -37,11 +37,6 @@ if (args.length === 0 || !args[0].startsWith('0x')) {
 }
 const [contractAddress, roundIndexStr, ...measurementCids] = args
 
-const USAGE = `
-Usage:
-  ${nodePath} ${selfPath} [contract-address] <round-index> [measurements-cid-1 [cid2 [cid3...]]]
-`
-
 /** @type {bigint} */
 let roundIndex
 if (roundIndexStr) {
