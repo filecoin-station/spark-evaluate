@@ -28,6 +28,7 @@ jobs:
           - '@web3-storage/w3up-client'
           - cross-spawn
           - p-map
+          - dotenv
     steps:
       - name: Dependabot metadata
         id: metadata
