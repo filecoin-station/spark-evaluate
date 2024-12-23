@@ -28,6 +28,7 @@ describe('public-stats', () => {
     await pgClient.query('DELETE FROM retrieval_stats')
     await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_deals')
+    await pgClient.query('DELETE FROM ttfb_retreival_stats')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -557,6 +558,96 @@ describe('public-stats', () => {
         'SELECT day::TEXT, miner_id, client_id FROM daily_deals'
       )
       assert.deepStrictEqual(created, [])
+    })
+  })
+
+  describe('ttfb_retrieval_stats', () => {
+    it('creates or updates the row for today - one miner only', async () => {
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, cid: 'cidone', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, cid: 'cidtwo', retrievalResult: 'TIMEOUT' }
+      ]
+      const allMeasurements = honestMeasurements
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, ttfb_median FROM ttfb_retreival_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, miner_id: 'f1test', task_id: 'cidone::f1test::0', ttfb_median: 1000 }
+      ])
+
+      honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'UNKNOWN_ERROR' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, ttfb_median FROM ttfb_retreival_stats'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1test', task_id: 'cidone::f1test::0', ttfb_median: 1000 }
+      ])
+    })
+
+    it('creates or updates the row for today - multiple miners', async () => {
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'TIMEOUT' },
+        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }
+      ]
+      const allMeasurements = honestMeasurements
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, ttfb_median FROM ttfb_retreival_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', ttfb_median: 1000 },
+        { day: today, miner_id: 'f1second', task_id: 'cidone::f1second::0', ttfb_median: 1000 }
+      ])
+
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
+      honestMeasurements.push({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, ttfb_median FROM ttfb_retreival_stats'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', ttfb_median: 1000 },
+        { day: today, miner_id: 'f1second', task_id: 'cidone::f1second::0', ttfb_median: 1000 }
+      ])
     })
   })
 
