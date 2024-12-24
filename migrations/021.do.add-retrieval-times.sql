@@ -1,4 +1,4 @@
-CREATE TABLE retreival_times (
+CREATE TABLE retrieval_times (
   day DATE NOT NULL,
   miner_id TEXT NOT NULL,
   task_id TEXT NOT NULL,
