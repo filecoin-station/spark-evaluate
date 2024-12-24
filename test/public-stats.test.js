@@ -28,7 +28,7 @@ describe('public-stats', () => {
     await pgClient.query('DELETE FROM retrieval_stats')
     await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_deals')
-    await pgClient.query('DELETE FROM retreival_times')
+    await pgClient.query('DELETE FROM retrieval_times')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -589,7 +589,7 @@ describe('public-stats', () => {
         findDealClients: (_minerId, _cid) => ['f0client']
       })
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retreival_times'
+        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
       )
       assert.deepStrictEqual(created, [
         { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', time_to_first_byte_p50: 2000 }
@@ -614,7 +614,7 @@ describe('public-stats', () => {
       })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retreival_times'
+        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
       )
 
       // on conflict, we average the values (2000 + 1000) / 2 = 1500
