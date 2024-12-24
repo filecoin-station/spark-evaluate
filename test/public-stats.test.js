@@ -28,6 +28,7 @@ describe('public-stats', () => {
     await pgClient.query('DELETE FROM retrieval_stats')
     await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_deals')
+    await pgClient.query('DELETE FROM retrieval_times')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -534,8 +535,75 @@ describe('public-stats', () => {
     })
   })
 
+  describe('retrieval_times', () => {
+    it.only('creates or updates the row for today', async () => {
+      const currentTime = new Date('2024-11-01T09:00:00.00Z').getTime()
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 1), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 2), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 3), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }
+      ]
+
+      /** @type {Measurement[]} */
+      const dishonestMeasurements = [
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 0.2), cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 0.3), cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 0.5), cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }
+      ]
+
+      let allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', time_to_first_byte_p50: 2000 }
+      ])
+
+      /** @type {Measurement[]} */
+      const newHonestMeasurements = [
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 1), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 1), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, start_at: currentTime, first_byte_at: addSeconds(currentTime, 1), cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }
+      ]
+
+      allMeasurements = newHonestMeasurements
+      committees = buildEvaluatedCommitteesFromMeasurements(newHonestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
+      )
+
+      // on conflict, we average the values (2000 + 1000) / 2 = 1500
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', time_to_first_byte_p50: 1500 }
+      ])
+    })
+  })
+
   const getCurrentDate = async () => {
     const { rows: [{ today }] } = await pgClient.query('SELECT now()::DATE::TEXT as today')
     return today
+  }
+
+  function addSeconds (timestamp, seconds) {
+    return timestamp + seconds * 1000
   }
 })

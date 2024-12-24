@@ -41,16 +41,18 @@ describe('preprocess', () => {
     await preprocess({ round, cid, roundIndex, fetchMeasurements, recordTelemetry, logger })
 
     assert.deepStrictEqual(round.measurements, [
-      new Measurement({
-        participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
-        station_id: VALID_STATION_ID,
-        spark_version: '1.2.3',
-        inet_group: 'ig1',
-        finished_at: '2023-11-01T09:00:00.000Z',
-        first_byte_at: '2023-11-01T09:00:01.000Z',
-        start_at: '2023-11-01T09:00:02.000Z',
-        end_at: '2023-11-01T09:00:03.000Z'
-      })
+      new Measurement(
+        round,
+        {
+          participant_address: '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E',
+          station_id: VALID_STATION_ID,
+          spark_version: '1.2.3',
+          inet_group: 'ig1',
+          finished_at: '2023-11-01T09:00:00.000Z',
+          first_byte_at: '2023-11-01T09:00:01.000Z',
+          start_at: '2023-11-01T09:00:02.000Z',
+          end_at: '2023-11-01T09:00:03.000Z'
+        })
     ])
     assert.deepStrictEqual(getCalls, [cid])
     assert.deepStrictEqual(round.measurementBatches, [cid])
