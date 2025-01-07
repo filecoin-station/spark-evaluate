@@ -19,7 +19,8 @@ describe('retrieval statistics', () => {
     /** @type {Measurement[]} */
     const measurements = [
       {
-        ...VALID_MEASUREMENT
+        ...VALID_MEASUREMENT,
+        protocol: 'http'
       },
       {
         ...VALID_MEASUREMENT,
@@ -31,7 +32,8 @@ describe('retrieval statistics', () => {
         first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
         end_at: new Date('2023-11-01T09:00:50.000Z').getTime(),
         finished_at: new Date('2023-11-01T09:00:30.000Z').getTime(),
-        byte_length: 2048
+        byte_length: 2048,
+        protocol: 'http'
       },
       {
         ...VALID_MEASUREMENT,
@@ -57,7 +59,7 @@ describe('retrieval statistics', () => {
         // invalid task
         cid: 'bafyinvalid',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-        protocol: 'bitswap'
+        protocol: 'http'
       }
     ]
 
@@ -68,6 +70,8 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'measurements', '4i')
     assertPointFieldValue(point, 'unique_tasks', '3i')
     assertPointFieldValue(point, 'success_rate', '0.25')
+    assertPointFieldValue(point, 'success_rate_http', '0.25')
+    assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
     assertPointFieldValue(point, 'download_bandwidth', '209718272i')
