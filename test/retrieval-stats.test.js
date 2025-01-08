@@ -56,8 +56,8 @@ describe('retrieval statistics', () => {
 
         // invalid task
         cid: 'bafyinvalid',
-        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn'
-        // Check that the task is ignored if the retrieval result is not OK
+        provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
+        protocol: 'bitswap'
       }
     ]
 
@@ -68,7 +68,6 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'measurements', '4i')
     assertPointFieldValue(point, 'unique_tasks', '3i')
     assertPointFieldValue(point, 'success_rate', '0.25')
-    assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
     assertPointFieldValue(point, 'download_bandwidth', '209718272i')
