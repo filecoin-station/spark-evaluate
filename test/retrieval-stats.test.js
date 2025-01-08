@@ -224,6 +224,7 @@ describe('retrieval statistics', () => {
       },
       {
         ...VALID_MEASUREMENT,
+        protocol: 'http',
         retrievalResult: 'HTTP_500'
       },
       {
