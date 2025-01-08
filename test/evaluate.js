@@ -97,7 +97,7 @@ describe('evaluate', async function () {
       miner_id: VALID_TASK.minerId,
       total: 1,
       successful: 1,
-      // None of the measurments use http
+      // None of the measurements use http
       successful_http: 0
     }])
   })
