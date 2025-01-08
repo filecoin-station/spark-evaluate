@@ -151,11 +151,11 @@ describe('public-stats', () => {
         findDealClients: (_minerId, _cid) => ['f0client']
       })
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, total, successful, successful_http FROM retrieval_stats'
+        'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
       )
       assert.deepStrictEqual(created, [
-        { day: today, miner_id: 'f1first', total: 2, successful: 1, successful_http: 0 },
-        { day: today, miner_id: 'f1second', total: 1, successful: 1, successful_http: 0 }
+        { day: today, miner_id: 'f1first', total: 2, successful: 1 },
+        { day: today, miner_id: 'f1second', total: 1, successful: 1 }
       ])
 
       honestMeasurements.push({ ...VALID_MEASUREMENT, minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' })
@@ -171,11 +171,11 @@ describe('public-stats', () => {
       })
 
       const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, total, successful, successful_http FROM retrieval_stats'
+        'SELECT day::TEXT, miner_id, total, successful FROM retrieval_stats'
       )
       assert.deepStrictEqual(updated, [
-        { day: today, miner_id: 'f1first', total: 2 + 3, successful: 1 + 1, successful_http: 0 },
-        { day: today, miner_id: 'f1second', total: 1 + 2, successful: 1 + 1, successful_http: 0 }
+        { day: today, miner_id: 'f1first', total: 2 + 3, successful: 1 + 1 },
+        { day: today, miner_id: 'f1second', total: 1 + 2, successful: 1 + 1 }
       ])
     })
 
