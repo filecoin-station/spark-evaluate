@@ -19,8 +19,7 @@ describe('retrieval statistics', () => {
     /** @type {Measurement[]} */
     const measurements = [
       {
-        ...VALID_MEASUREMENT,
-        protocol: 'http'
+        ...VALID_MEASUREMENT
       },
       {
         ...VALID_MEASUREMENT,
@@ -32,8 +31,7 @@ describe('retrieval statistics', () => {
         first_byte_at: new Date('2023-11-01T09:00:10.000Z').getTime(),
         end_at: new Date('2023-11-01T09:00:50.000Z').getTime(),
         finished_at: new Date('2023-11-01T09:00:30.000Z').getTime(),
-        byte_length: 2048,
-        protocol: 'http'
+        byte_length: 2048
       },
       {
         ...VALID_MEASUREMENT,
@@ -59,8 +57,7 @@ describe('retrieval statistics', () => {
         // invalid task
         cid: 'bafyinvalid',
         provider_address: '/dns4/production-ipfs-peer.pinata.cloud/tcp/3000/ws/p2p/Qma8ddFEQWEU8ijWvdxXm3nxU7oHsRtCykAaVz8WUYhiKn',
-        // Check that the task is ignored if the retrieval result is not OK
-        protocol: 'http'
+        protocol: 'bitswap'
       }
     ]
 
@@ -71,8 +68,6 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'measurements', '4i')
     assertPointFieldValue(point, 'unique_tasks', '3i')
     assertPointFieldValue(point, 'success_rate', '0.25')
-    assertPointFieldValue(point, 'success_rate_http', '0.25')
-    assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'participants', '2i')
     assertPointFieldValue(point, 'inet_groups', '2i')
     assertPointFieldValue(point, 'download_bandwidth', '209718272i')
@@ -212,6 +207,39 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'nano_score_per_inet_group_min', '166666667i' /* =1/6 */)
     assertPointFieldValue(point, 'nano_score_per_inet_group_p50', '333333333i' /* =2/6 */)
     assertPointFieldValue(point, 'nano_score_per_inet_group_max', '500000000i' /* =3/6 */)
+  })
+
+  it('records successful http rate', async () => {
+    /** @type {Measurement[]} */
+    const measurements = [
+      {
+        // Standard measurement, no http protocol used
+        ...VALID_MEASUREMENT
+      },
+      {
+        // A successful http measurement
+        ...VALID_MEASUREMENT,
+        protocol: 'http'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        retrievalResult: 'HTTP_500'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        // Should not be picked up, as the retrieval timed out
+        retrievalResult: 'TIMEOUT',
+        protocol: 'http'
+      }
+    ]
+
+    const point = new Point('stats')
+    buildRetrievalStats(measurements, point)
+    debug('stats', point.fields)
+
+    assertPointFieldValue(point, 'success_rate', '0.5')
+    // Only one of the successful measurements used http
+    assertPointFieldValue(point, 'success_rate_http', '0.25')
   })
 })
 
