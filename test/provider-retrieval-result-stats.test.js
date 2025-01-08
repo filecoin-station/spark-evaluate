@@ -54,9 +54,9 @@ describe('Provider Retrieval Result Stats', () => {
               protocol: 'bitswap'
             },
             {
+              // Should be able to handle and reject undefined protocol
               minerId: '1',
-              retrievalResult: 'TIMEOUT',
-              protocol: 'bitswap'
+              retrievalResult: 'TIMEOUT'
             }
           ]
         }
