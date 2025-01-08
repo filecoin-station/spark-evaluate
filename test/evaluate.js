@@ -322,6 +322,7 @@ describe('evaluate', async function () {
     assertPointFieldValue(point, 'measurements', '1i')
     assertPointFieldValue(point, 'unique_tasks', '1i')
     assertPointFieldValue(point, 'success_rate', '1')
+    // The default protocol is not http. While the overall success rate is 1, we expect the http success rate to be 0.
     assertPointFieldValue(point, 'success_rate_http', '0')
 
     point = telemetry.find(p => p.name === 'retrieval_stats_all')
