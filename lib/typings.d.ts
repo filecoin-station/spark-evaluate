@@ -41,7 +41,6 @@ export type FraudAssesment =
   | 'TASK_WRONG_NODE'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
-  | 'IPNI_NOT_QUERIED'
   | CommitteeCheckError
 
 
@@ -58,7 +57,6 @@ export type RetrievalResult =
   | 'CONTENT_VERIFICATION_FAILED'
   | 'UNEXPECTED_CAR_BLOCK'
   | 'CANNOT_PARSE_CAR_FILE'
-  | 'IPNI_NOT_QUERIED'
   | 'IPNI_NO_VALID_ADVERTISEMENT'
   | 'IPNI_ERROR_FETCH'
   | `IPNI_ERROR_${number}`
@@ -97,9 +95,7 @@ export interface RawMeasurement {
     | 'HTTP_NOT_ADVERTISED'
     | 'NO_VALID_ADVERTISEMENT'
     | 'ERROR_FETCH'
-    | `ERROR_${number}`
-    | undefined
-    | null;
+    | `ERROR_${number}`;
 }
 
 export type CreatePgClient = () => Promise<import('pg').Client>;
