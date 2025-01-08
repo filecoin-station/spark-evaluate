@@ -214,7 +214,8 @@ describe('retrieval statistics', () => {
     const measurements = [
       {
         // Standard measurement, no http protocol used
-        ...VALID_MEASUREMENT
+        ...VALID_MEASUREMENT,
+        protocol: 'graphsync'
       },
       {
         // A successful http measurement
@@ -223,6 +224,7 @@ describe('retrieval statistics', () => {
       },
       {
         ...VALID_MEASUREMENT,
+        protocol: 'http',
         retrievalResult: 'HTTP_500'
       },
       {
