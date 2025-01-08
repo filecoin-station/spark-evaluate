@@ -208,6 +208,41 @@ describe('retrieval statistics', () => {
     assertPointFieldValue(point, 'nano_score_per_inet_group_p50', '333333333i' /* =2/6 */)
     assertPointFieldValue(point, 'nano_score_per_inet_group_max', '500000000i' /* =3/6 */)
   })
+
+  it('records successful http rate', async () => {
+    /** @type {Measurement[]} */
+    const measurements = [
+      {
+        // Standard measurement, no http protocol used
+        ...VALID_MEASUREMENT,
+        protocol: 'graphsync'
+      },
+      {
+        // A successful http measurement
+        ...VALID_MEASUREMENT,
+        protocol: 'http'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        protocol: 'http',
+        retrievalResult: 'HTTP_500'
+      },
+      {
+        ...VALID_MEASUREMENT,
+        // Should not be picked up, as the retrieval timed out
+        retrievalResult: 'TIMEOUT',
+        protocol: 'http'
+      }
+    ]
+
+    const point = new Point('stats')
+    buildRetrievalStats(measurements, point)
+    debug('stats', point.fields)
+
+    assertPointFieldValue(point, 'success_rate', '0.5')
+    // Only one of the successful measurements used http
+    assertPointFieldValue(point, 'success_rate_http', '0.25')
+  })
 })
 
 describe('getValueAtPercentile', () => {
