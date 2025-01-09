@@ -96,10 +96,11 @@ describe('evaluate', async function () {
       day: today(),
       miner_id: VALID_TASK.minerId,
       total: 1,
-      successful: 1
+      successful: 1,
+      // None of the measurements use http
+      successful_http: 0
     }])
   })
-
   it('handles empty rounds', async () => {
     const round = new RoundData(0n)
     const setScoresCalls = []

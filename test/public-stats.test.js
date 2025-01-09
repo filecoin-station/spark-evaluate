@@ -87,6 +87,50 @@ describe('public-stats', () => {
         { day: today, total: 2 + 3, successful: 1 + 1 }
       ])
     })
+    it('calculates successful http retrievals correctly', async () => {
+      /** @type {Measurement[]} */
+      const honestMeasurements = [
+        { ...VALID_MEASUREMENT, protocol: 'http', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, protocol: 'graphsync', retrievalResult: 'OK' },
+        { ...VALID_MEASUREMENT, protocol: 'http', retrievalResult: 'HTTP_500' },
+        { ...VALID_MEASUREMENT, protocol: 'graphsync', retrievalResult: 'LASSIE_500' }
+      ]
+      const allMeasurements = honestMeasurements
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, total, successful, successful_http FROM retrieval_stats'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, total: 4, successful: 2, successful_http: 1 }
+      ])
+
+      // Let's add another successful http retrieval to make sure the updating process works as expected
+      honestMeasurements.push({ ...VALID_MEASUREMENT, retrievalResult: 'OK', protocol: 'http' })
+      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        honestMeasurements,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, total, successful, successful_http FROM retrieval_stats'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, total: 4 + 5, successful: 2 + 3, successful_http: 1 + 2 }
+      ])
+    })
 
     it('creates or updates the row for today - multiple miners', async () => {
       /** @type {Measurement[]} */
@@ -164,10 +208,10 @@ describe('public-stats', () => {
       })
 
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, total, successful FROM retrieval_stats'
+        'SELECT day::TEXT, total, successful, successful_http FROM retrieval_stats'
       )
       assert.deepStrictEqual(created, [
-        { day: today, total: 3, successful: 2 }
+        { day: today, total: 3, successful: 2, successful_http: 0 }
       ])
     })
   })

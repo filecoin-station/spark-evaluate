@@ -37,20 +37,24 @@ describe('Provider Retrieval Result Stats', () => {
           measurements: [
             {
               minerId: '0',
-              retrievalResult: 'OK'
+              retrievalResult: 'OK',
+              protocol: 'http'
             },
             {
               minerId: '1',
-              retrievalResult: 'TIMEOUT'
+              retrievalResult: 'TIMEOUT',
+              protocol: 'http'
             }
           ]
         }, {
           measurements: [
             {
               minerId: '0',
-              retrievalResult: 'OK'
+              retrievalResult: 'OK',
+              protocol: 'bitswap'
             },
             {
+              // Should be able to handle and reject undefined protocol
               minerId: '1',
               retrievalResult: 'TIMEOUT'
             }
@@ -58,8 +62,8 @@ describe('Provider Retrieval Result Stats', () => {
         }
       ])
       assert.deepStrictEqual(stats, new Map([
-        ['0', { total: 2, successful: 2 }],
-        ['1', { total: 2, successful: 0 }]
+        ['0', { total: 2, successful: 2, successfulHttp: 1 }],
+        ['1', { total: 2, successful: 0, successfulHttp: 0 }]
       ]))
     })
   })
@@ -137,22 +141,26 @@ describe('Provider Retrieval Result Stats', () => {
             measurements: [
               {
                 minerId: '0',
-                retrievalResult: 'OK'
+                retrievalResult: 'OK',
+                protocol: 'http'
               },
               {
                 minerId: '1',
-                retrievalResult: 'TIMEOUT'
+                retrievalResult: 'TIMEOUT',
+                protocol: 'http'
               }
             ]
           }, {
             measurements: [
               {
                 minerId: '0',
-                retrievalResult: 'OK'
+                retrievalResult: 'OK',
+                protocol: 'bitswap'
               },
               {
                 minerId: '1',
-                retrievalResult: 'TIMEOUT'
+                retrievalResult: 'TIMEOUT',
+                protocol: 'bitswap'
               }
             ]
           }
@@ -168,8 +176,8 @@ describe('Provider Retrieval Result Stats', () => {
         contract_address: ieContractAddress,
         measurement_batches: round.measurementBatches,
         provider_retrieval_result_stats: {
-          0: { successful: 2, total: 2 },
-          1: { successful: 0, total: 2 }
+          0: { successful: 2, total: 2, successfulHttp: 1 },
+          1: { successful: 0, total: 2, successfulHttp: 0 }
         },
         round_details: 'baguqeerawg5jfpiy2g5xp5d422uwa3mpyzkmiguoeecesds7q65mn2hdoa4q',
         round_index: String(round.index),
