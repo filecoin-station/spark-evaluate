@@ -11,7 +11,8 @@ export const ROUND_DETAILS = 'bafybeie5rekb2jox77ow64wjjd2bjdsp6d3yeivhzzd234hnb
 export const VALID_TASK = {
   cid: 'QmUuEoBdjC8D1PfWZCc7JCSK8nj7TV6HbXWDHYHzZHCVGS',
   minerId: 'f1test',
-  clients: ['f1client']
+  clients: ['f1client'],
+  roundId: '0'
 }
 Object.freeze(VALID_TASK)
 
@@ -40,7 +41,8 @@ export const VALID_MEASUREMENT = {
   carTooLarge: false,
   retrievalResult: 'OK',
   indexerResult: 'OK',
-  fraudAssessment: null
+  fraudAssessment: null,
+  roundId: '0'
 }
 
 // Fraud detection is mutating the measurements parsed from JSON
