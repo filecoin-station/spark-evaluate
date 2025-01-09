@@ -58,7 +58,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -75,7 +74,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -101,7 +99,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -119,7 +116,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -146,7 +142,6 @@ describe('public-stats', () => {
 
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -165,7 +160,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -202,7 +196,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -230,7 +223,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -252,7 +244,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -282,7 +273,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -305,7 +295,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients: (_minerId, _cid) => ['f0client']
       })
@@ -338,7 +327,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -364,7 +352,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -417,7 +404,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -456,7 +442,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -503,7 +488,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -539,7 +523,6 @@ describe('public-stats', () => {
         await updatePublicStats({
           createPgClient,
           committees,
-          honestMeasurements,
           allMeasurements,
           findDealClients
         })
@@ -566,7 +549,6 @@ describe('public-stats', () => {
       await updatePublicStats({
         createPgClient,
         committees,
-        honestMeasurements,
         allMeasurements,
         findDealClients
       })
