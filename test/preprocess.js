@@ -1,9 +1,16 @@
-import { getRetrievalResult, parseParticipantAddress, preprocess, Measurement, parseMeasurements } from '../lib/preprocess.js'
+import {
+  getRetrievalResult,
+  parseParticipantAddress,
+  preprocess,
+  Measurement,
+  parseMeasurements,
+  assertValidMeasurement
+} from '../lib/preprocess.js'
 import { Point } from '../lib/telemetry.js'
 import assert from 'node:assert'
 import createDebug from 'debug'
 import { assertPointFieldValue, assertRecordedTelemetryPoint } from './helpers/assertions.js'
-import { VALID_STATION_ID } from './helpers/test-data.js'
+import { VALID_MEASUREMENT, VALID_STATION_ID } from './helpers/test-data.js'
 import { RoundData } from '../lib/round.js'
 
 const debug = createDebug('test')
@@ -27,6 +34,7 @@ describe('preprocess', () => {
       station_id: VALID_STATION_ID,
       spark_version: '1.2.3',
       inet_group: 'ig1',
+      indexer_result: 'OK',
       finished_at: '2023-11-01T09:00:00.000Z',
       first_byte_at: '2023-11-01T09:00:01.000Z',
       start_at: '2023-11-01T09:00:02.000Z',
@@ -46,6 +54,7 @@ describe('preprocess', () => {
         station_id: VALID_STATION_ID,
         spark_version: '1.2.3',
         inet_group: 'ig1',
+        indexer_result: 'OK',
         finished_at: '2023-11-01T09:00:00.000Z',
         first_byte_at: '2023-11-01T09:00:01.000Z',
         start_at: '2023-11-01T09:00:02.000Z',
@@ -207,22 +216,6 @@ describe('getRetrievalResult', () => {
     assert.strictEqual(result, 'UNKNOWN_ERROR')
   })
 
-  it('missing indexer result -> IPNI_NOT_QUERIED', () => {
-    const result = getRetrievalResult({
-      ...SUCCESSFUL_RETRIEVAL,
-      indexer_result: undefined
-    })
-    assert.strictEqual(result, 'IPNI_NOT_QUERIED')
-  })
-
-  it('indexer result is null -> IPNI_NOT_QUERIED', () => {
-    const result = getRetrievalResult({
-      ...SUCCESSFUL_RETRIEVAL,
-      indexer_result: null
-    })
-    assert.strictEqual(result, 'IPNI_NOT_QUERIED')
-  })
-
   it('IPNI HTTP_NOT_ADVERTISED -> OK', () => {
     const result = getRetrievalResult({
       ...SUCCESSFUL_RETRIEVAL,
@@ -303,5 +296,18 @@ describe('getRetrievalResult', () => {
       status_code: 904
     })
     assert.strictEqual(result, 'CANNOT_PARSE_CAR_FILE')
+  })
+})
+
+describe('assertValidMeasurement', () => {
+  it('rejects measurements where indexer_result is null', () => {
+    const m = {
+      ...VALID_MEASUREMENT,
+      indexerResult: null
+    }
+    assert.throws(
+      () => assertValidMeasurement(m),
+      /field `indexerResult` must be set/
+    )
   })
 })

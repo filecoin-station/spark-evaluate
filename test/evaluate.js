@@ -699,45 +699,6 @@ describe('fraud detection', function () {
     )
   })
 
-  it('rejects measurements missing indexer result', async () => {
-    /** @type {RoundDetails} */
-    const sparkRoundDetails = {
-      ...SPARK_ROUND_DETAILS,
-      retrievalTasks: [
-        {
-          cid: VALID_MEASUREMENT.cid,
-          minerId: 'f1test'
-        }
-      ]
-    }
-
-    const measurements = [
-      {
-        ...VALID_MEASUREMENT,
-        inet_group: 'group1',
-        indexerResult: /** @type {const} */('OK')
-      },
-      {
-        ...VALID_MEASUREMENT,
-        inet_group: 'group2',
-        indexerResult: undefined
-      }
-    ]
-
-    await runFraudDetection({
-      roundIndex: 1n,
-      measurements,
-      sparkRoundDetails,
-      requiredCommitteeSize: 1,
-      logger
-    })
-
-    assert.deepStrictEqual(
-      measurements.map(m => m.fraudAssessment),
-      ['OK', 'IPNI_NOT_QUERIED']
-    )
-  })
-
   it('rejects tasks not allowed by the tasking algorithm', async () => {
     /** @type {RoundDetails} */
     const sparkRoundDetails = {
