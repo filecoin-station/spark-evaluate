@@ -148,7 +148,7 @@ if (ignoredErrors.length) {
 }
 
 if (DUMP) {
-  const props = ['cid', 'minerId', 'participantAddress', 'inet_group', 'retrievalResult', 'fraudAssessment']
+  const props = ['cid', 'minerId', 'participantAddress', 'inet_group', 'retrievalResult', 'taskingEvaluation']
   for (const k of Object.keys(round.measurements[0])) {
     if (!props.includes(k)) props.push(k)
   }

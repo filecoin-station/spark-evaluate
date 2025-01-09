@@ -186,12 +186,17 @@ describe('public-stats', () => {
         { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
         { ...VALID_MEASUREMENT, retrievalResult: 'TIMEOUT' }
       ]
-      for (const m of honestMeasurements) m.fraudAssessment = 'OK'
+      for (const m of honestMeasurements) m.taskingEvaluation = 'OK'
       const allMeasurements = honestMeasurements
       const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
       assert.strictEqual(committees.length, 1)
       committees[0].evaluate({ requiredCommitteeSize: 3 })
-      assert.deepStrictEqual(allMeasurements.map(m => m.fraudAssessment), [
+      assert.deepStrictEqual(allMeasurements.map(m => m.taskingEvaluation), [
+        'OK',
+        'OK',
+        'OK'
+      ])
+      assert.deepStrictEqual(allMeasurements.map(m => m.majorityEvaluation), [
         'OK',
         'OK',
         'MINORITY_RESULT'
@@ -409,7 +414,7 @@ describe('public-stats', () => {
           { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'NO_VALID_ADVERTISEMENT' },
           { ...VALID_MEASUREMENT, cid: 'bafy5', indexerResult: 'ERROR_404' }
         ]
-        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        honestMeasurements.forEach(m => { m.taskingEvaluation = 'OK' })
         const allMeasurements = honestMeasurements
         const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
         committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))
@@ -495,7 +500,7 @@ describe('public-stats', () => {
           { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'HTTP_404' },
           { ...VALID_MEASUREMENT, cid: 'bafy5', retrievalResult: 'HTTP_502' }
         ]
-        honestMeasurements.forEach(m => { m.fraudAssessment = 'OK' })
+        honestMeasurements.forEach(m => { m.taskingEvaluation = 'OK' })
         const allMeasurements = honestMeasurements
         const committees = [...groupMeasurementsToCommittees(honestMeasurements).values()]
         committees.forEach(c => c.evaluate({ requiredCommitteeSize: 3 }))

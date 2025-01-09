@@ -419,7 +419,7 @@ describe('fraud detection', function () {
       logger
     })
     assert.deepStrictEqual(
-      measurements.map(m => m.fraudAssessment),
+      measurements.map(m => m.taskingEvaluation),
       ['OK', 'TASK_NOT_IN_ROUND', 'TASK_NOT_IN_ROUND']
     )
   })
@@ -440,7 +440,7 @@ describe('fraud detection', function () {
       logger
     })
     assert.deepStrictEqual(
-      measurements.map(m => m.fraudAssessment),
+      measurements.map(m => m.taskingEvaluation),
       ['OK', 'DUP_INET_GROUP']
     )
   })
@@ -492,7 +492,7 @@ describe('fraud detection', function () {
       logger
     })
     assert.deepStrictEqual(
-      measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
+      measurements.map(m => `${m.participantAddress}::${m.taskingEvaluation}`),
       [
         'pa1::OK',
         'pa1::DUP_INET_GROUP',
@@ -548,7 +548,7 @@ describe('fraud detection', function () {
     })
 
     assert.strictEqual(
-      measurements.filter(m => m.fraudAssessment === 'OK').length,
+      measurements.filter(m => m.taskingEvaluation === 'OK').length,
       2 // maxTasksPerNode
     )
   })
@@ -617,7 +617,7 @@ describe('fraud detection', function () {
     })
 
     assert.deepStrictEqual(
-      measurements.map(m => `${m.participantAddress}::${m.fraudAssessment}`),
+      measurements.map(m => `${m.participantAddress}::${m.taskingEvaluation}`),
       [
         'pa1::OK',
         'pa1::OK',
@@ -686,7 +686,7 @@ describe('fraud detection', function () {
     })
 
     assert.deepStrictEqual(
-      measurements.map(m => m.fraudAssessment),
+      measurements.map(m => m.taskingEvaluation),
       [
         'OK',
         'TOO_MANY_TASKS',
@@ -735,7 +735,7 @@ describe('fraud detection', function () {
       logger
     })
 
-    assert.deepStrictEqual(measurements.map(m => `${m.cid}::${m.minerId}::${m.fraudAssessment}`), [
+    assert.deepStrictEqual(measurements.map(m => `${m.cid}::${m.minerId}::${m.taskingEvaluation}`), [
       'bafyone::f010::TASK_WRONG_NODE',
       'bafyone::f020::OK',
       'bafyone::f030::OK',

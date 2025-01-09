@@ -42,7 +42,7 @@ const EVALUATION_NDJSON_FILE = `${basename(measurementsPath, '.ndjson')}.evaluat
 const evaluationTxtWriter = fs.createWriteStream(EVALUATION_TXT_FILE)
 const evaluationNdjsonWriter = fs.createWriteStream(EVALUATION_NDJSON_FILE)
 
-evaluationTxtWriter.write(formatHeader({ includeFraudAssesment: keepRejected }) + '\n')
+evaluationTxtWriter.write(formatHeader({ includeEvaluation: keepRejected }) + '\n')
 
 const resultCounts = {
   total: 0
@@ -98,7 +98,7 @@ async function processRound (roundIndex, measurements, resultCounts) {
   })
 
   for (const m of round.measurements) {
-    if (m.fraudAssessment !== 'OK') continue
+    if (m.taskingEvaluation !== 'OK') continue
     resultCounts.total++
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
@@ -106,14 +106,14 @@ async function processRound (roundIndex, measurements, resultCounts) {
   if (!keepRejected) {
     round.measurements = round.measurements
       // Keep accepted measurements only
-      .filter(m => m.fraudAssessment === 'OK')
+      .filter(m => m.taskingEvaluation === 'OK')
       // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
       .map(m => ({ ...m, fraudAssessment: undefined }))
   }
 
   evaluationTxtWriter.write(
     round.measurements
-      .map(m => formatMeasurement(m, { includeFraudAssesment: keepRejected }) + '\n')
+      .map(m => formatMeasurement(m, { includeEvaluation: keepRejected }) + '\n')
       .join('')
   )
   evaluationNdjsonWriter.write(
@@ -144,17 +144,17 @@ function isFlagEnabled (envVarValue) {
 /**
  * @param {import('../lib/preprocess.js').Measurement} m
  * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
+ * @param {boolean} [options.includeEvaluation]
  */
-function formatMeasurement (m, { includeFraudAssesment } = {}) {
+function formatMeasurement (m, { includeEvaluation } = {}) {
   const fields = [
     new Date(m.finished_at).toISOString(),
     (m.cid ?? '').padEnd(70),
     (m.protocol ?? '').padEnd(10)
   ]
 
-  if (includeFraudAssesment) {
-    fields.push((m.fraudAssessment === 'OK' ? '🫡  ' : '🙅  '))
+  if (includeEvaluation) {
+    fields.push((m.taskingEvaluation === 'OK' ? '🫡  ' : '🙅  '))
   }
 
   fields.push((m.retrievalResult ?? ''))
@@ -164,16 +164,16 @@ function formatMeasurement (m, { includeFraudAssesment } = {}) {
 
 /**
  * @param {object} options
- * @param {boolean} [options.includeFraudAssesment]
+ * @param {boolean} [options.includeEvaluation]
  */
-function formatHeader ({ includeFraudAssesment } = {}) {
+function formatHeader ({ includeEvaluation } = {}) {
   const fields = [
     'Timestamp'.padEnd(new Date().toISOString().length),
     'CID'.padEnd(70),
     'Protocol'.padEnd(10)
   ]
 
-  if (includeFraudAssesment) {
+  if (includeEvaluation) {
     fields.push('🕵️  ')
   }
 

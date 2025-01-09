@@ -1,4 +1,5 @@
 import { Point } from '@influxdata/influxdb-client'
+import type { Committee } from './committee.js';
 
 export {
   Point
@@ -34,15 +35,17 @@ export type CommitteeCheckError =
 | 'MAJORITY_NOT_FOUND'
 | 'MINORITY_RESULT'
 
+export type MajorityEvaluation =
+  | 'OK'
+  | CommitteeCheckError
+
 // When adding a new enum value, remember to update the summary initializer inside `evaluate()`
-export type FraudAssesment =
+export type TaskingEvaluation =
   | 'OK'
   | 'TASK_NOT_IN_ROUND'
   | 'TASK_WRONG_NODE'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
-  | CommitteeCheckError
-
 
 // When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
 export type RetrievalResult =
