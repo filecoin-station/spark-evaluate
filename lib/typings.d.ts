@@ -1,5 +1,4 @@
 import { Point } from '@influxdata/influxdb-client'
-import type { Committee } from './committee.js';
 
 export {
   Point
