@@ -241,6 +241,43 @@ describe('evaluate', async function () {
     assertPointFieldValue(point, 'total_nodes', '3i')
   })
 
+  it('rewards majority measurements only', async () => {
+    const round = new RoundData(0n)
+    // Majority
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x10' })
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x20', inet_group: 'group2' })
+    // Minority
+    round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x30', inet_group: 'group3', retrievalResult: 'TIMEOUT' })
+
+    const setScoresCalls = []
+    const setScores = async (participantAddresses, scores) => {
+      setScoresCalls.push({ participantAddresses, scores })
+    }
+    const ieContract = {
+      async getAddress () {
+        return '0x811765AccE724cD5582984cb35f5dE02d587CA12'
+      }
+    }
+    /** @returns {Promise<RoundDetails>} */
+    const fetchRoundDetails = async () => ({ ...SPARK_ROUND_DETAILS, retrievalTasks: [VALID_TASK] })
+    await evaluate({
+      round,
+      roundIndex: 0n,
+      requiredCommitteeSize: 1,
+      ieContract,
+      setScores,
+      recordTelemetry,
+      fetchRoundDetails,
+      createPgClient,
+      logger,
+      prepareProviderRetrievalResultStats: async () => {}
+    })
+
+    assert.strictEqual(setScoresCalls.length, 1)
+    assert.deepStrictEqual(setScoresCalls[0].participantAddresses.sort(), ['0x10', '0x20'])
+    assert.deepStrictEqual(setScoresCalls[0].scores, [MAX_SCORE / 2n, MAX_SCORE / 2n])
+  })
+
   it('adds a dummy entry to ensure scores add up exactly to MAX_SCORE', async () => {
     const round = new RoundData(0n)
     round.measurements.push({ ...VALID_MEASUREMENT, participantAddress: '0x123', inet_group: 'ig1' })
