@@ -98,7 +98,9 @@ async function processRound (roundIndex, measurements, resultCounts) {
   })
 
   for (const m of round.measurements) {
-    if (m.taskingEvaluation !== 'OK') continue
+    // FIXME: we should include non-majority measurements too
+    // See https://github.com/filecoin-station/spark-evaluate/pull/396
+    if (m.taskingEvaluation !== 'OK' && m.majorityEvaluation === 'OK') continue
     resultCounts.total++
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
@@ -109,8 +111,8 @@ async function processRound (roundIndex, measurements, resultCounts) {
       // FIXME: we should include non-majority measurements too
       // See https://github.com/filecoin-station/spark-evaluate/pull/396
       .filter(m => m.taskingEvaluation === 'OK' && m.majorityEvaluation === 'OK')
-      // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
-      .map(m => ({ ...m, fraudAssessment: undefined }))
+      // Remove the taskingEvaluation and majorityEvaluation fields as all accepted measurements have the same 'OK' value
+      .map(m => ({ ...m, taskingEvaluation: undefined, majorityEvaluation: undefined }))
   }
 
   evaluationTxtWriter.write(
