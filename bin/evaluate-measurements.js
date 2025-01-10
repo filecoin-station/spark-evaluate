@@ -106,7 +106,9 @@ async function processRound (roundIndex, measurements, resultCounts) {
   if (!keepRejected) {
     round.measurements = round.measurements
       // Keep accepted measurements only
-      .filter(m => m.taskingEvaluation === 'OK')
+      // FIXME: we should include non-majority measurements too
+      // See https://github.com/filecoin-station/spark-evaluate/pull/396
+      .filter(m => m.taskingEvaluation === 'OK' && m.majorityEvaluation === 'OK')
       // Remove the fraudAssessment field as all accepted measurements have the same 'OK' value
       .map(m => ({ ...m, fraudAssessment: undefined }))
   }
