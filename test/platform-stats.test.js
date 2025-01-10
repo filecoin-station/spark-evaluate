@@ -280,12 +280,12 @@ describe('platform-stats', () => {
   describe('daily_participants', () => {
     it('submits daily_participants data for today', async () => {
       /** @type {Measurement[]} */
-      const honestMeasurements = [
+      const allMeasurements = [
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
         { ...VALID_MEASUREMENT, participantAddress: '0x10' },
         { ...VALID_MEASUREMENT, participantAddress: '0x20' }
       ]
-      await updatePlatformStats(pgClient, honestMeasurements)
+      await updatePlatformStats(pgClient, allMeasurements)
 
       const { rows } = await pgClient.query(
         'SELECT day::TEXT, participant_id FROM daily_participants'
