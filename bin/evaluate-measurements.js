@@ -158,7 +158,9 @@ function formatMeasurement (m, { includeEvaluation } = {}) {
   ]
 
   if (includeEvaluation) {
-    fields.push((m.taskingEvaluation === 'OK' ? '🫡  ' : '🙅  '))
+    // FIXME: we should distinguish tasking and majority evaluation
+    // See https://github.com/filecoin-station/spark-evaluate/pull/396
+    fields.push((m.taskingEvaluation === 'OK' && m.majorityEvaluation === 'OK' ? '🫡  ' : '🙅  '))
   }
 
   fields.push((m.retrievalResult ?? ''))
