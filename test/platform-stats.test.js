@@ -166,6 +166,37 @@ describe('platform-stats', () => {
       ])
     })
 
+    it('counts only majority measurements as accepted', async () => {
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10']))
+
+      /** @type {Measurement[]} */
+      const allMeasurements = [
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'MINORITY_RESULT' }
+      ]
+
+      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: today })
+
+      const { rows: stationDetails } = await pgClient.query(`
+        SELECT
+          day::TEXT,
+          participant_id,
+          accepted_measurement_count,
+          total_measurement_count
+        FROM recent_station_details
+        WHERE day = $1::DATE
+      `, [today])
+
+      assert.deepStrictEqual(stationDetails, [
+        {
+          day: today,
+          participant_id: 1,
+          accepted_measurement_count: 1,
+          total_measurement_count: 2
+        }
+      ])
+    })
+
     it('updates top measurements participants yesterday materialized view', async () => {
       const validStationId3 = VALID_STATION_ID.slice(0, -1) + '2'
       const yesterday = await getYesterdayDate()
