@@ -197,10 +197,17 @@ describe('retrieval statistics', () => {
         ...VALID_MEASUREMENT,
         inet_group: 'ig3',
         taskingEvaluation: 'OK'
+      },
+      // measurements not in majority are excluded
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig3',
+        taskingEvaluation: 'OK',
+        majorityEvaluation: 'MINORITY_RESULT'
       }
     ]
     for (const m of measurements) {
-      if (m.taskingEvaluation === 'OK') m.majorityEvaluation = 'OK'
+      if (!m.majorityEvaluation && m.taskingEvaluation === 'OK') m.majorityEvaluation = 'OK'
     }
 
     const point = new Point('stats')
