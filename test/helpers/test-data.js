@@ -41,8 +41,7 @@ export const VALID_MEASUREMENT = {
   carTooLarge: false,
   retrievalResult: 'OK',
   indexerResult: 'OK',
-  fraudAssessment: null,
-  roundId: '0'
+  fraudAssessment: null
 }
 
 // Fraud detection is mutating the measurements parsed from JSON
