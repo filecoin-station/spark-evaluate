@@ -562,7 +562,7 @@ describe('public-stats', () => {
   })
 
   describe('retrieval_times', () => {
-    it('creates the row for today', async () => {
+    it('creates or updates rows for today', async () => {
       /** @type {Measurement[]} */
       const honestMeasurements = [
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
@@ -583,8 +583,8 @@ describe('public-stats', () => {
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' }, 100)
       ]
 
-      const allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
-      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      let allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
+      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({
         createPgClient,
@@ -593,10 +593,30 @@ describe('public-stats', () => {
         findDealClients: (_minerId, _cid) => ['f0client']
       })
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, ttfb_p50 FROM retrieval_timings'
+        'SELECT day::TEXT, miner_id, ttfb_p50 FROM retrieval_timings ORDER BY miner_id'
       )
       assert.deepStrictEqual(created, [
         { day: today, miner_id: 'f1first', ttfb_p50: [2000] },
+        { day: today, miner_id: 'f1second', ttfb_p50: [1000] }
+      ])
+
+      allMeasurements = [
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 5000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000)
+      ]
+      committees = buildEvaluatedCommitteesFromMeasurements(allMeasurements)
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, ttfb_p50 FROM retrieval_timings ORDER BY miner_id'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1first', ttfb_p50: [2000, 3000] },
         { day: today, miner_id: 'f1second', ttfb_p50: [1000] }
       ])
     })
