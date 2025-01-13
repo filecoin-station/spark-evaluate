@@ -564,7 +564,7 @@ describe('public-stats', () => {
   describe('retrieval_times', () => {
     it('creates or updates rows for today', async () => {
       /** @type {Measurement[]} */
-      const honestMeasurements = [
+      const acceptedMeasurements = [
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 2000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
