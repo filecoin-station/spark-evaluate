@@ -607,7 +607,7 @@ describe('public-stats', () => {
    * @param {number} timeToFirstByte  Time in milliseconds
    * @returns
    */
-  function givenTimeToFirstByte (measurment, timeToFirstByte) {
+  function givenTimeToFirstByte (measurement, timeToFirstByte) {
     measurment.first_byte_at = measurment.start_at + timeToFirstByte
     return measurment
   }
