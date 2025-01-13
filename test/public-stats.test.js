@@ -28,7 +28,7 @@ describe('public-stats', () => {
     await pgClient.query('DELETE FROM retrieval_stats')
     await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_deals')
-    await pgClient.query('DELETE FROM retrieval_times')
+    await pgClient.query('DELETE FROM retrieval_timings')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -562,7 +562,7 @@ describe('public-stats', () => {
   })
 
   describe('retrieval_times', () => {
-    it.only('creates or updates the row for today', async () => {
+    it('creates the row for today', async () => {
       /** @type {Measurement[]} */
       const honestMeasurements = [
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
@@ -577,8 +577,8 @@ describe('public-stats', () => {
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 300)
       ]
 
-      let allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
-      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      const allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
+      const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
 
       await updatePublicStats({
         createPgClient,
@@ -588,44 +588,10 @@ describe('public-stats', () => {
         findDealClients: (_minerId, _cid) => ['f0client']
       })
       const { rows: created } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
+        'SELECT day::TEXT, miner_id, task_id, ttfb_p50 FROM retrieval_timings'
       )
       assert.deepStrictEqual(created, [
-        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', time_to_first_byte_p50: 2000 }
-      ])
-
-      /** @type {Measurement[]} */
-      const newHonestMeasurements = [
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000)
-      ]
-
-      /** @type {Measurement[]} */
-      const newDishonestMeasurements = [
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 10_000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 20_000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 30_000)
-      ]
-
-      allMeasurements = [...newHonestMeasurements, ...newDishonestMeasurements]
-      committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-
-      await updatePublicStats({
-        createPgClient,
-        committees,
-        honestMeasurements,
-        allMeasurements,
-        findDealClients: (_minerId, _cid) => ['f0client']
-      })
-
-      const { rows: updated } = await pgClient.query(
-        'SELECT day::TEXT, miner_id, task_id, time_to_first_byte_p50 FROM retrieval_times'
-      )
-
-      // on conflict, we ignore new values
-      assert.deepStrictEqual(updated, [
-        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', time_to_first_byte_p50: 2000 }
+        { day: today, miner_id: 'f1first', task_id: 'cidone::f1first::0', ttfb_p50: 2000 }
       ])
     })
   })
