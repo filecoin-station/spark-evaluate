@@ -564,13 +564,11 @@ describe('public-stats', () => {
   describe('retrieval_times', () => {
     it('creates or updates rows for today', async () => {
       /** @type {Measurement[]} */
-      const acceptedMeasurements = [
+      let acceptedMeasurements = [
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 2000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 2000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 1000),
-        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 1000)
       ]
 
       /** @type {Measurement[]} */
@@ -583,8 +581,8 @@ describe('public-stats', () => {
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' }, 100)
       ]
 
-      let allMeasurements = [...honestMeasurements, ...dishonestMeasurements]
-      let committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
+      let allMeasurements = [...acceptedMeasurements, ...rejectedMeasurements]
+      let committees = buildEvaluatedCommitteesFromMeasurements(acceptedMeasurements)
 
       await updatePublicStats({
         createPgClient,
@@ -597,15 +595,16 @@ describe('public-stats', () => {
       )
       assert.deepStrictEqual(created, [
         { day: today, miner_id: 'f1first', ttfb_p50: [2000] },
-        { day: today, miner_id: 'f1second', ttfb_p50: [1000] }
+        { day: today, miner_id: 'f1second', ttfb_p50: [1500] }
       ])
 
-      allMeasurements = [
+      acceptedMeasurements = [
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 5000),
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000)
       ]
-      committees = buildEvaluatedCommitteesFromMeasurements(allMeasurements)
+      allMeasurements = [...acceptedMeasurements, ...rejectedMeasurements]
+      committees = buildEvaluatedCommitteesFromMeasurements(acceptedMeasurements)
       await updatePublicStats({
         createPgClient,
         committees,
@@ -617,7 +616,7 @@ describe('public-stats', () => {
       )
       assert.deepStrictEqual(updated, [
         { day: today, miner_id: 'f1first', ttfb_p50: [2000, 3000] },
-        { day: today, miner_id: 'f1second', ttfb_p50: [1000] }
+        { day: today, miner_id: 'f1second', ttfb_p50: [1500] }
       ])
     })
   })
