@@ -571,8 +571,7 @@ describe('public-stats', () => {
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 1000),
         // measurments with invalid values
         givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, -1000),
-        // @ts-ignore
-        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK', first_byte_at: 'invalid' }
+        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK', first_byte_at: /** @type {any} */('invalid') }
       ]
 
       /** @type {Measurement[]} */
