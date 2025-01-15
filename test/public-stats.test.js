@@ -28,6 +28,7 @@ describe('public-stats', () => {
     await pgClient.query('DELETE FROM retrieval_stats')
     await pgClient.query('DELETE FROM indexer_query_stats')
     await pgClient.query('DELETE FROM daily_deals')
+    await pgClient.query('DELETE FROM retrieval_timings')
 
     // Run all tests inside a transaction to ensure `now()` always returns the same value
     // See https://dba.stackexchange.com/a/63549/125312
@@ -565,8 +566,82 @@ describe('public-stats', () => {
     })
   })
 
+  describe('retrieval_times', () => {
+    it('creates or updates rows for today', async () => {
+      /** @type {Measurement[]} */
+      let acceptedMeasurements = [
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 2000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, 1000),
+        // measurments with invalid values
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK' }, -1000),
+        { ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'OK', first_byte_at: /** @type {any} */('invalid') }
+      ]
+
+      /** @type {Measurement[]} */
+      const rejectedMeasurements = [
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 100),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 200),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'UNKNOWN_ERROR' }, 300),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' }, 300),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' }, 200),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1second', retrievalResult: 'UNKNOWN_ERROR' }, 100)
+      ]
+
+      let allMeasurements = [...acceptedMeasurements, ...rejectedMeasurements]
+      let committees = buildEvaluatedCommitteesFromMeasurements(acceptedMeasurements)
+
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+      const { rows: created } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, ttfb_p50 FROM retrieval_timings ORDER BY miner_id'
+      )
+      assert.deepStrictEqual(created, [
+        { day: today, miner_id: 'f1first', ttfb_p50: [2000] },
+        { day: today, miner_id: 'f1second', ttfb_p50: [1500] }
+      ])
+
+      acceptedMeasurements = [
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 3000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 5000),
+        givenTimeToFirstByte({ ...VALID_MEASUREMENT, cid: 'cidone', minerId: 'f1first', retrievalResult: 'OK' }, 1000)
+      ]
+      allMeasurements = [...acceptedMeasurements, ...rejectedMeasurements]
+      committees = buildEvaluatedCommitteesFromMeasurements(acceptedMeasurements)
+      await updatePublicStats({
+        createPgClient,
+        committees,
+        allMeasurements,
+        findDealClients: (_minerId, _cid) => ['f0client']
+      })
+      const { rows: updated } = await pgClient.query(
+        'SELECT day::TEXT, miner_id, ttfb_p50 FROM retrieval_timings ORDER BY miner_id'
+      )
+      assert.deepStrictEqual(updated, [
+        { day: today, miner_id: 'f1first', ttfb_p50: [2000, 3000] },
+        { day: today, miner_id: 'f1second', ttfb_p50: [1500] }
+      ])
+    })
+  })
+
   const getCurrentDate = async () => {
     const { rows: [{ today }] } = await pgClient.query('SELECT now()::DATE::TEXT as today')
     return today
+  }
+
+  /**
+   *
+   * @param {Measurement} measurement
+   * @param {number} timeToFirstByte  Time in milliseconds
+   * @returns
+   */
+  function givenTimeToFirstByte (measurement, timeToFirstByte) {
+    measurement.first_byte_at = measurement.start_at + timeToFirstByte
+    return measurement
   }
 })
