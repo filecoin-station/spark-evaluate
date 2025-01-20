@@ -1,6 +1,7 @@
 {
   "name": "spark-evaluate",
   "type": "module",
+  "version": "v1.0.0",
   "scripts": {
     "migrate": "node bin/migrate.js",
     "start": "node bin/spark-evaluate.js",
