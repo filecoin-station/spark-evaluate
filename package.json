@@ -27,7 +27,7 @@
     "@ipld/car": "^5.4.0",
     "@ipld/dag-json": "^10.2.3",
     "@sentry/node": "^8.50.0",
-    "@ucanto/core": "^10.0.1",
+    "@ucanto/core": "^10.2.0",
     "@ucanto/principal": "^9.0.1",
     "@web3-storage/car-block-validator": "^1.2.0",
     "@web3-storage/w3up-client": "^16.5.2",
