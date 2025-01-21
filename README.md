@@ -169,3 +169,11 @@ node bin/dry-run.js \
 ```bash
 $ git push
 ```
+
+## Publish
+
+Publish a new version of `spark-evaluate` package:
+
+```bash
+$ npm run release
+```
