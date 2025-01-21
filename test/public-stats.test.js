@@ -191,9 +191,9 @@ describe('public-stats', () => {
         'OK',
         'OK'
       ])
-      assert.deepStrictEqual(allMeasurements.map(m => m.majorityEvaluation), [
-        'OK',
-        'OK',
+      assert.deepStrictEqual(allMeasurements.map(m => m.consensusEvaluation), [
+        'MAJORITY_RESULT',
+        'MAJORITY_RESULT',
         'MINORITY_RESULT'
       ])
       // The last measurement is rejected because it's a minority result
@@ -440,7 +440,7 @@ describe('public-stats', () => {
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluationDetails, {
           hasIndexMajority: false,
           indexerResult: 'COMMITTEE_TOO_SMALL'
         })
@@ -511,17 +511,17 @@ describe('public-stats', () => {
         /** @type {Measurement[]} */
         const honestMeasurements = [
           // a majority is found, retrievalResult = OK
-          { ...VALID_MEASUREMENT, retrievalResult: 'OK' },
+          { ...VALID_MEASUREMENT, retrievalResult: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
 
           // a majority is found, retrievalResult = ERROR_404
-          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'HTTP_404' },
+          { ...VALID_MEASUREMENT, cid: 'bafy3', retrievalResult: 'HTTP_404', consensusEvaluation: 'MAJORITY_RESULT' },
 
           // committee is too small
-          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK' }
+          { ...VALID_MEASUREMENT, cid: 'bafy4', retrievalResult: 'OK', consensusEvaluation: 'COMMITTEE_TOO_SMALL' }
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluation, {
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluationDetails, {
           hasRetrievalMajority: false,
           retrievalResult: 'COMMITTEE_TOO_SMALL'
         })

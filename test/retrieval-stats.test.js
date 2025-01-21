@@ -203,11 +203,11 @@ describe('retrieval statistics', () => {
         ...VALID_MEASUREMENT,
         inet_group: 'ig3',
         taskingEvaluation: 'OK',
-        majorityEvaluation: 'MINORITY_RESULT'
+        consensusEvaluation: 'MINORITY_RESULT'
       }
     ]
     for (const m of measurements) {
-      if (!m.majorityEvaluation && m.taskingEvaluation === 'OK') m.majorityEvaluation = 'OK'
+      if (!m.consensusEvaluation && m.taskingEvaluation === 'OK') m.consensusEvaluation = 'MAJORITY_RESULT'
     }
 
     const point = new Point('stats')
@@ -413,12 +413,12 @@ describe('recordCommitteeSizes', () => {
     ]
     for (const m of measurements) {
       m.taskingEvaluation = 'OK'
-      m.majorityEvaluation = 'OK'
+      m.consensusEvaluation = 'MAJORITY_RESULT'
     }
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
-    measurements[0].majorityEvaluation = 'MINORITY_RESULT'
+    measurements[0].consensusEvaluation = 'MINORITY_RESULT'
 
     recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)

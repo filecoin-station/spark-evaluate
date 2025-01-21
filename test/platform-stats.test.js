@@ -102,9 +102,9 @@ describe('platform-stats', () => {
 
       /** @type {Measurement[]} */
       const allMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
         { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', taskingEvaluation: 'TASK_NOT_IN_ROUND' }
       ]
 
@@ -171,8 +171,8 @@ describe('platform-stats', () => {
 
       /** @type {Measurement[]} */
       const allMeasurements = [
-        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'MINORITY_RESULT' }
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MINORITY_RESULT' }
       ]
 
       await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: today })
@@ -205,10 +205,10 @@ describe('platform-stats', () => {
 
       /** @type {Measurement[]} */
       const allMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: '0x10', taskingEvaluation: 'OK', majorityEvaluation: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: '0x20', taskingEvaluation: 'OK', majorityEvaluation: 'OK' }
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: '0x20', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' }
       ]
 
       await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: yesterday })

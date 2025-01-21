@@ -34,8 +34,8 @@ export type CommitteeCheckError =
 | 'MAJORITY_NOT_FOUND'
 | 'MINORITY_RESULT'
 
-export type MajorityEvaluation =
-  | 'OK'
+export type ConsensusEvaluation =
+  | 'MAJORITY_RESULT'
   | CommitteeCheckError
 
 // When adding a new enum value, remember to update the summary initializer inside `evaluate()`

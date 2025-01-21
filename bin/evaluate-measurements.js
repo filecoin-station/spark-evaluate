@@ -100,7 +100,7 @@ async function processRound (roundIndex, measurements, resultCounts) {
   for (const m of round.measurements) {
     // FIXME: we should include non-majority measurements too
     // See https://github.com/filecoin-station/spark-evaluate/pull/396
-    if (m.taskingEvaluation !== 'OK' && m.majorityEvaluation === 'OK') continue
+    if (m.taskingEvaluation !== 'OK' && m.consensusEvaluation === 'MAJORITY_RESULT') continue
     resultCounts.total++
     resultCounts[m.retrievalResult] = (resultCounts[m.retrievalResult] ?? 0) + 1
   }
@@ -110,8 +110,8 @@ async function processRound (roundIndex, measurements, resultCounts) {
       // Keep accepted measurements only
       // FIXME: we should include non-majority measurements too
       // See https://github.com/filecoin-station/spark-evaluate/pull/396
-      .filter(m => m.taskingEvaluation === 'OK' && m.majorityEvaluation === 'OK')
-      // Remove the taskingEvaluation and majorityEvaluation fields as all accepted measurements have the same 'OK' value
+      .filter(m => m.taskingEvaluation === 'OK' && m.consensusEvaluation === 'MAJORITY_RESULT')
+      // Remove the taskingEvaluation and consensusEvaluation fields as all accepted measurements have the same value
       .map(m => ({ ...m, taskingEvaluation: undefined, majorityEvaluation: undefined }))
   }
 
@@ -160,7 +160,7 @@ function formatMeasurement (m, { includeEvaluation } = {}) {
   if (includeEvaluation) {
     // FIXME: we should distinguish tasking and majority evaluation
     // See https://github.com/filecoin-station/spark-evaluate/pull/396
-    fields.push((m.taskingEvaluation === 'OK' && m.majorityEvaluation === 'OK' ? '🫡  ' : '🙅  '))
+    fields.push((m.taskingEvaluation === 'OK' && m.consensusEvaluation === 'MAJORITY_RESULT' ? '🫡  ' : '🙅  '))
   }
 
   fields.push((m.retrievalResult ?? ''))
