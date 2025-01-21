@@ -1,5 +1,5 @@
 {
-  "name": "spark-evaluate",
+  "name": "@filecoin-station/spark-evaluate",
   "type": "module",
   "version": "0.0.0",
   "scripts": {
