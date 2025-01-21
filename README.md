@@ -172,7 +172,7 @@ $ git push
 
 ## Publish
 
-Publish a new version of `spark-evaluate` package:
+Publish a new version of `@filecoin-station/spark-evaluate`:
 
 ```bash
 $ npm run release
