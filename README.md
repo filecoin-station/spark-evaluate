@@ -169,3 +169,11 @@ node bin/dry-run.js \
 ```bash
 $ git push
 ```
+
+## Publish
+
+Publish a new version of `@filecoin-station/spark-evaluate`:
+
+```bash
+$ npm run release
+```

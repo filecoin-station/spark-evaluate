@@ -8,7 +8,7 @@ import { refreshDatabase } from './lib/platform-stats.js'
 import timers from 'node:timers/promises'
 
 // Tweak this value to improve the chances of the data being available
-const PREPROCESS_DELAY = 60_000
+const PREPROCESS_DELAY = 120_000
 
 const EVALUATE_DELAY = PREPROCESS_DELAY + 60_000
 

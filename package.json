@@ -1,19 +1,22 @@
 {
-  "name": "spark-evaluate",
+  "name": "@filecoin-station/spark-evaluate",
   "type": "module",
+  "version": "0.0.0",
   "scripts": {
     "migrate": "node bin/migrate.js",
     "start": "node bin/spark-evaluate.js",
     "test": "npm run test:types && npm run test:lint && npm run test:unit",
     "test:lint": "standard",
     "test:unit": "mocha",
-    "test:types": "tsc -p ."
+    "test:types": "tsc -p .",
+    "publish": "np"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/pg": "^8.11.10",
     "dotenv": "^16.4.7",
     "mocha": "^11.0.1",
+    "np": "^10.1.0",
     "standard": "^17.1.2",
     "typescript": "^5.7.3"
   },
@@ -23,8 +26,8 @@
     "@influxdata/influxdb-client": "^1.35.0",
     "@ipld/car": "^5.4.0",
     "@ipld/dag-json": "^10.2.3",
-    "@sentry/node": "^8.48.0",
-    "@ucanto/core": "^10.0.1",
+    "@sentry/node": "^8.50.0",
+    "@ucanto/core": "^10.2.0",
     "@ucanto/principal": "^9.0.1",
     "@web3-storage/car-block-validator": "^1.2.0",
     "@web3-storage/w3up-client": "^16.5.2",
