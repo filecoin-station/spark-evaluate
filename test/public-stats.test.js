@@ -440,8 +440,8 @@ describe('public-stats', () => {
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluationDetails, {
-          hasIndexMajority: false,
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').decision, {
+          indexMajorityFound: false,
           indexerResult: 'COMMITTEE_TOO_SMALL'
         })
 
@@ -521,8 +521,8 @@ describe('public-stats', () => {
         ]
         const allMeasurements = honestMeasurements
         const committees = buildEvaluatedCommitteesFromMeasurements(honestMeasurements)
-        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').evaluationDetails, {
-          hasRetrievalMajority: false,
+        Object.assign(committees.find(c => c.retrievalTask.cid === 'bafy4').decision, {
+          retrievalMajorityFound: false,
           retrievalResult: 'COMMITTEE_TOO_SMALL'
         })
 
