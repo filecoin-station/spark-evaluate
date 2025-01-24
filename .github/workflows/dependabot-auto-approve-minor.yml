@@ -29,7 +29,7 @@ jobs:
           - cross-spawn
           - p-map
           - dotenv
-          - '@ucanto/core'
+          - '@ucanto/'
     steps:
       - name: Dependabot metadata
         id: metadata
