@@ -102,10 +102,10 @@ describe('platform-stats', () => {
 
       /** @type {Measurement[]} */
       const allMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', fraudAssessment: 'TASK_NOT_IN_ROUND' }
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet2', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: 'station2', participantAddress: '0x20', inet_group: 'subnet3', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: 'station1', participantAddress: '0x10', inet_group: 'subnet1', taskingEvaluation: 'TASK_NOT_IN_ROUND' }
       ]
 
       await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: today })
@@ -166,6 +166,37 @@ describe('platform-stats', () => {
       ])
     })
 
+    it('counts only majority measurements as accepted', async () => {
+      const participantsMap = await mapParticipantsToIds(pgClient, new Set(['0x10']))
+
+      /** @type {Measurement[]} */
+      const allMeasurements = [
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MINORITY_RESULT' }
+      ]
+
+      await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: today })
+
+      const { rows: stationDetails } = await pgClient.query(`
+        SELECT
+          day::TEXT,
+          participant_id,
+          accepted_measurement_count,
+          total_measurement_count
+        FROM recent_station_details
+        WHERE day = $1::DATE
+      `, [today])
+
+      assert.deepStrictEqual(stationDetails, [
+        {
+          day: today,
+          participant_id: 1,
+          accepted_measurement_count: 1,
+          total_measurement_count: 2
+        }
+      ])
+    })
+
     it('updates top measurements participants yesterday materialized view', async () => {
       const validStationId3 = VALID_STATION_ID.slice(0, -1) + '2'
       const yesterday = await getYesterdayDate()
@@ -174,10 +205,10 @@ describe('platform-stats', () => {
 
       /** @type {Measurement[]} */
       const allMeasurements = [
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: '0x10', fraudAssessment: 'OK' },
-        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: '0x20', fraudAssessment: 'OK' }
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: VALID_STATION_ID_2, participantAddress: '0x10', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' },
+        { ...VALID_MEASUREMENT, stationId: validStationId3, participantAddress: '0x20', taskingEvaluation: 'OK', consensusEvaluation: 'MAJORITY_RESULT' }
       ]
 
       await updateStationsAndParticipants(pgClient, allMeasurements, participantsMap, { day: yesterday })
@@ -352,7 +383,7 @@ describe('platform-stats', () => {
       /** @type {Measurement[]} */
       const allMeasurements = [
         ...honestMeasurements,
-        { ...VALID_MEASUREMENT, participantAddress: '0x30', fraudAssessment: 'TASK_NOT_IN_ROUND' }
+        { ...VALID_MEASUREMENT, participantAddress: '0x30', taskingEvaluation: 'TASK_NOT_IN_ROUND' }
       ]
 
       await updatePlatformStats(pgClient, allMeasurements)

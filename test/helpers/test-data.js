@@ -40,7 +40,8 @@ export const VALID_MEASUREMENT = {
   carTooLarge: false,
   retrievalResult: 'OK',
   indexerResult: 'OK',
-  fraudAssessment: null
+  taskingEvaluation: null,
+  consensusEvaluation: null
 }
 
 // Fraud detection is mutating the measurements parsed from JSON
@@ -71,13 +72,17 @@ export const today = () => {
  * @param {Iterable<Measurement>} acceptedMeasurements
  */
 export const buildEvaluatedCommitteesFromMeasurements = (acceptedMeasurements) => {
-  for (const m of acceptedMeasurements) m.fraudAssessment = 'OK'
+  for (const m of acceptedMeasurements) {
+    m.taskingEvaluation = 'OK'
+    if (!m.consensusEvaluation) m.consensusEvaluation = 'MAJORITY_RESULT'
+  }
+
   const committees = [...groupMeasurementsToCommittees(acceptedMeasurements).values()]
   for (const c of committees) {
-    c.evaluation = {
-      hasIndexMajority: true,
+    c.decision = {
+      indexMajorityFound: true,
       indexerResult: c.measurements[0].indexerResult,
-      hasRetrievalMajority: true,
+      retrievalMajorityFound: true,
       retrievalResult: c.measurements[0].retrievalResult
     }
   }

@@ -29,20 +29,22 @@ export type RecordTelemetryFn = (
   fn: (point: Point) => void
 ) => void
 
-export type CommitteeCheckError =
+export type ConsensusNotFoundReason =
 | 'COMMITTEE_TOO_SMALL'
 | 'MAJORITY_NOT_FOUND'
-| 'MINORITY_RESULT'
+
+export type ConsensusEvaluation =
+  | 'MAJORITY_RESULT'
+  | 'MINORITY_RESULT'
+  | ConsensusNotFoundReason
 
 // When adding a new enum value, remember to update the summary initializer inside `evaluate()`
-export type FraudAssesment =
+export type TaskingEvaluation =
   | 'OK'
   | 'TASK_NOT_IN_ROUND'
   | 'TASK_WRONG_NODE'
   | 'DUP_INET_GROUP'
   | 'TOO_MANY_TASKS'
-  | CommitteeCheckError
-
 
 // When adding a new enum value, remember to update the summary initializer inside `reportRetrievalStats()`
 export type RetrievalResult =
@@ -63,7 +65,7 @@ export type RetrievalResult =
   | `HTTP_${number}`
   | `LASSIE_${number}`
   | 'UNKNOWN_ERROR'
-  | CommitteeCheckError
+  | ConsensusNotFoundReason
 
 
 // Data coming from spark-api and spark-publish
