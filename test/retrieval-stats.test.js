@@ -161,44 +161,54 @@ describe('retrieval statistics', () => {
       // inet group 1 - score=2
       {
         ...VALID_MEASUREMENT,
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
         cid: 'bafyanother',
         retrievalResult: 'TIMEOUT',
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
-        fraudAssessment: 'DUP_INET_GROUP'
+        taskingEvaluation: 'DUP_INET_GROUP'
       },
       // inet group 2 - score=3
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig2',
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig2',
         cid: 'bafyanother',
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
       },
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig2',
         cid: 'bafythree',
         retrievalResult: 'TIMEOUT',
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
       },
       // inet group 3 - score=1
       {
         ...VALID_MEASUREMENT,
         inet_group: 'ig3',
-        fraudAssessment: 'OK'
+        taskingEvaluation: 'OK'
+      },
+      // measurements not in majority are excluded
+      {
+        ...VALID_MEASUREMENT,
+        inet_group: 'ig3',
+        taskingEvaluation: 'OK',
+        consensusEvaluation: 'MINORITY_RESULT'
       }
     ]
+    for (const m of measurements) {
+      if (!m.consensusEvaluation && m.taskingEvaluation === 'OK') m.consensusEvaluation = 'MAJORITY_RESULT'
+    }
 
     const point = new Point('stats')
     buildRetrievalStats(measurements, point)
@@ -283,7 +293,7 @@ describe('recordCommitteeSizes', () => {
         cid: 'bafyanother'
       }
     ]
-    measurements.forEach(m => { m.fraudAssessment = 'OK' })
+    measurements.forEach(m => { m.taskingEvaluation = 'OK' })
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
@@ -324,7 +334,7 @@ describe('recordCommitteeSizes', () => {
         cid: 'bafyanother'
       }
     ]
-    measurements.forEach(m => { m.fraudAssessment = 'OK' })
+    measurements.forEach(m => { m.taskingEvaluation = 'OK' })
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
@@ -367,7 +377,7 @@ describe('recordCommitteeSizes', () => {
         cid: 'bafyanother'
       }
     ]
-    measurements.forEach(m => { m.fraudAssessment = 'OK' })
+    measurements.forEach(m => { m.taskingEvaluation = 'OK' })
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
@@ -401,11 +411,14 @@ describe('recordCommitteeSizes', () => {
         cid: 'bafyanother'
       }
     ]
-    measurements.forEach(m => { m.fraudAssessment = 'OK' })
+    for (const m of measurements) {
+      m.taskingEvaluation = 'OK'
+      m.consensusEvaluation = 'MAJORITY_RESULT'
+    }
 
     const point = new Point('committees')
     const committees = groupMeasurementsToCommittees(measurements).values()
-    measurements[0].fraudAssessment = 'MINORITY_RESULT'
+    measurements[0].consensusEvaluation = 'MINORITY_RESULT'
 
     recordCommitteeSizes(committees, point)
     debug(getPointName(point), point.fields)
