@@ -34,7 +34,7 @@
         "debug": "^4.4.0",
         "drand-client": "^1.2.6",
         "ethers": "^6.13.5",
-        "ipfs-car": "^1.2.0",
+        "ipfs-car": "^2.0.0",
         "ipfs-unixfs-exporter": "^13.6.1",
         "just-percentile": "^4.2.0",
         "k-closest": "^1.3.0",
