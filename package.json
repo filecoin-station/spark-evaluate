@@ -9,11 +9,13 @@
         "test:lint": "standard",
         "test:unit": "mocha",
         "test:types": "tsc -p .",
-        "release": "np"
+        "release": "np",
+        "check-deps": "depcheck"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.10",
         "@types/pg": "^8.11.11",
+        "depcheck": "^1.4.7",
         "dotenv": "^16.4.7",
         "mocha": "^11.1.0",
         "np": "^10.2.0",

@@ -1,0 +1,5 @@
+ignores: [
+  "@types/*",    # Ignore TypeScript type definitions
+  "typescript",  # TypeScript itself is used by the compiler but not imported
+  "depcheck",    # Used in npm scripts but not imported
+]
