@@ -10,7 +10,7 @@
         "test:unit": "mocha",
         "test:types": "tsc -p .",
         "release": "np",
-        "check-deps": "depcheck"
+        "test:deps": "depcheck"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.10",
