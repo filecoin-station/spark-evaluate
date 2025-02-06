@@ -35,6 +35,7 @@ jobs:
       - run: npm run test:types
       - run: npm run test:lint
       - run: npm run test:unit
+      - run: npm run test:deps
 
   dry-run:
     # Don't run on pull requests from forks - they don't have access to secrets
