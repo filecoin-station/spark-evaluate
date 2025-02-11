@@ -30,6 +30,7 @@ jobs:
           - p-map
           - dotenv
           - '@ucanto/'
+          - '@web3-storage/car-block-validator'
     steps:
       - name: Dependabot metadata
         id: metadata
